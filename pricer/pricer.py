@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.axes3d import Axes3D
+from matplotlib import cm
 
 # Initialise default values
 df_S = 100 # Spot price
@@ -358,14 +360,8 @@ class Option():
                             'minusNd2':self.minusNd2}
                         
         return self    
-      
-        
-    def _refresh_dist(self):    
-       
-        
-        return self
 
-
+    
     def _barrier_factors(self):
         
         self.mu = (self.b - ((self.sigma ** 2) / 2)) / (self.sigma ** 2)
@@ -753,6 +749,124 @@ class Option():
         plt.show()
     
     
+    def greeks_graphs_3D(self, S0=100, r=0.01, q=0, sigma=0.2, greek='Delta', option='call'):
+
+        if greek == 'Price':
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.price(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+
+        if greek == 'Delta':
+            self.SA = np.linspace(0.25 * S0, 1.75 * S0, 100)
+            self.TA = np.linspace(0.01, 2, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.delta(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+
+        if greek == 'Gamma':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 0.5, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.gamma(S=x, K=S0, T=y, r=r, sigma=sigma)
+
+        if greek == 'Vega':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.vega(S=x, K=S0, T=y, r=r, sigma=sigma)
+
+        if greek == 'Theta':               
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.theta(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+            
+        if greek == 'Rho':               
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 0.5, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.rho(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)    
+
+        if greek == 'Vomma':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.vomma(S=x, K=S0, T=y, r=r, sigma=sigma)
+
+        if greek == 'Vanna':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.vanna(S=x, K=S0, T=y, r=r, sigma=sigma)
+
+        if greek == 'Zomma':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 0.5, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.zomma(S=x, K=S0, T=y, r=r, sigma=sigma)
+            
+        if greek == 'Speed':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 0.5, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.speed(S=x, K=S0, T=y, r=r, sigma=sigma)    
+
+        if greek == 'Color':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 0.5, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.color(S=x, K=S0, T=y, r=r, sigma=sigma) 
+            
+        if greek == 'Ultima':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.ultima(S=x, K=S0, T=y, r=r, sigma=sigma)     
+
+        if greek == 'Vega Bleed':               
+            option = 'Call / Put'
+            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
+            self.TA = np.linspace(0.01, 1, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.vega_bleed(S=x, K=S0, T=y, r=r, sigma=sigma)   
+
+        if greek == 'Charm':               
+            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+            self.TA = np.linspace(0.01, 0.5, 100)
+            x, y = np.meshgrid(self.SA, self.TA)
+            self.C1 = self.charm(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+
+        
+        
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot_surface(x,
+                        y,
+                        self.C1,
+                        rstride=2, cstride=2,
+                        cmap=cm.jet,
+                        alpha=0.7,
+                        linewidth=0.25)
+        ax.set_zlim(auto=True)
+        ax.invert_xaxis()
+        ax.set_xlabel('Underlying Value', fontsize=12)
+        ax.set_ylabel('Time to Expiration', fontsize=12)
+        ax.set_zlabel(greek, fontsize=12)
+        if option == 'Call / Put':
+            ax.set_title(option+' Option '+greek, fontsize=14)
+        else:    
+            ax.set_title(str(option.title())+' Option '+greek, fontsize=14)
+        plt.show()
+    
+ 
     def greeks_graphs(self, x='delta', y='price', S0=100, T=0.25, T1=0.25, T2=0.5, 
                       r=0.01, q=0, sigma=0.2, option='call'):
                 
