@@ -1,8 +1,11 @@
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.offline import plot
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib import cm
+
 
 # Initialise default values
 df_S = 100 # Spot price
@@ -42,9 +45,9 @@ df_dict = {'df_S':100,
            'df_SA':np.linspace(80, 120, 100),
            'df_K':110,
            'df_K1':95,
-           'df_K2':100,
+           'df_K2':105,
            'df_K3':105,
-           'df_K4':110,
+           'df_K4':105,
            'df_H':105,
            'df_R':0,
            'df_T':0.5,
@@ -747,128 +750,239 @@ class Option():
         plt.ylabel(ylabel)
         plt.legend()
         plt.show()
+   
     
-    
-    def greeks_graphs_3D(self, S0=100, r=0.01, q=0, sigma=0.2, greek='Delta', option='call'):
+    def greeks_graphs_3D(self, S0=100, r=0.01, q=0, sigma=0.2, greek='delta', option='call', 
+                         interactive=False, notebook=True, colorscheme='BlueRed'):
 
-        if greek == 'Price':
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.price(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+        self.TA_lower = 0.01
 
-        if greek == 'Delta':
-            self.SA = np.linspace(0.25 * S0, 1.75 * S0, 100)
-            self.TA = np.linspace(0.01, 2, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.delta(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+        if greek == 'price':
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 1
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.price(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
 
-        if greek == 'Gamma':               
+        if greek == 'delta':
+            self.SA_lower = 0.25
+            self.SA_upper = 1.75
+            self.TA_upper = 2
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.delta(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
+
+        if greek == 'gamma':
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 0.5
             option = 'Call / Put'
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 0.5, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.gamma(S=x, K=S0, T=y, r=r, sigma=sigma)
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.gamma(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
 
-        if greek == 'Vega':               
+        if greek == 'vega':               
+            self.SA_lower = 0.5
+            self.SA_upper = 1.5
+            self.TA_upper = 1
             option = 'Call / Put'
-            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.vega(S=x, K=S0, T=y, r=r, sigma=sigma)
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.vega(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
 
-        if greek == 'Theta':               
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.theta(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+        if greek == 'theta':    
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 1
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.theta(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
             
-        if greek == 'Rho':               
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 0.5, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.rho(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)    
+        if greek == 'rho':               
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 0.5
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.rho(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)    
 
-        if greek == 'Vomma':               
+        if greek == 'vomma':               
             option = 'Call / Put'
-            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.vomma(S=x, K=S0, T=y, r=r, sigma=sigma)
+            self.SA_lower = 0.5
+            self.SA_upper = 1.5
+            self.TA_upper = 1
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.vomma(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
 
-        if greek == 'Vanna':               
+        if greek == 'vanna':               
+            self.SA_lower = 0.5
+            self.SA_upper = 1.5
+            self.TA_upper = 1
             option = 'Call / Put'
-            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.vanna(S=x, K=S0, T=y, r=r, sigma=sigma)
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.vanna(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
 
-        if greek == 'Zomma':               
+        if greek == 'zomma':               
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 0.5
             option = 'Call / Put'
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 0.5, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.zomma(S=x, K=S0, T=y, r=r, sigma=sigma)
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.zomma(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
             
-        if greek == 'Speed':               
+        if greek == 'speed':               
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 0.5
             option = 'Call / Put'
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 0.5, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.speed(S=x, K=S0, T=y, r=r, sigma=sigma)    
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.speed(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)    
 
-        if greek == 'Color':               
+        if greek == 'color':               
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 0.5
             option = 'Call / Put'
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 0.5, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.color(S=x, K=S0, T=y, r=r, sigma=sigma) 
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.color(S=self.x, K=S0, T=self.y, r=r, sigma=sigma) 
             
-        if greek == 'Ultima':               
+        if greek == 'ultima':               
+            self.SA_lower = 0.5
+            self.SA_upper = 1.5
+            self.TA_upper = 1
             option = 'Call / Put'
-            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.ultima(S=x, K=S0, T=y, r=r, sigma=sigma)     
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.ultima(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)     
 
-        if greek == 'Vega Bleed':               
+        if greek == 'vega bleed':               
+            self.SA_lower = 0.5
+            self.SA_upper = 1.5
+            self.TA_upper = 1
             option = 'Call / Put'
-            self.SA = np.linspace(0.5 * S0, 1.5 * S0, 100)
-            self.TA = np.linspace(0.01, 1, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.vega_bleed(S=x, K=S0, T=y, r=r, sigma=sigma)   
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.vega_bleed(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)   
 
-        if greek == 'Charm':               
-            self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
-            self.TA = np.linspace(0.01, 0.5, 100)
-            x, y = np.meshgrid(self.SA, self.TA)
-            self.C1 = self.charm(S=x, K=S0, T=y, r=r, sigma=sigma, option=option)
+        if greek == 'charm':               
+            self.SA_lower = 0.8
+            self.SA_upper = 1.2
+            self.TA_upper = 0.25
+            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self.z = self.charm(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
 
-        
-        
-        fig = plt.figure(figsize=(8, 6))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(x,
-                        y,
-                        self.C1,
-                        rstride=2, cstride=2,
-                        cmap=cm.jet,
-                        alpha=0.7,
-                        linewidth=0.25)
-        ax.set_zlim(auto=True)
-        ax.invert_xaxis()
-        ax.set_xlabel('Underlying Value', fontsize=12)
-        ax.set_ylabel('Time to Expiration', fontsize=12)
-        ax.set_zlabel(greek, fontsize=12)
         if option == 'Call / Put':
-            ax.set_title(option+' Option '+greek, fontsize=14)
+            titlename = str(option+' Option '+str(greek.title()))
         else:    
-            ax.set_title(str(option.title())+' Option '+greek, fontsize=14)
-        plt.show()
-    
+            titlename = str(str(option.title())+' Option '+str(greek.title()))
+
+
+        if interactive == False:
+        
+            fig = plt.figure(figsize=(8, 6))
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(self.x,
+                            self.y,
+                            self.z,
+                            rstride=2, cstride=2,
+                            cmap=cm.jet,
+                            alpha=0.7,
+                            linewidth=0.25)
+            ax.set_zlim(auto=True)
+            ax.invert_xaxis()
+            ax.set_xlabel('Underlying Value', fontsize=12)
+            ax.set_ylabel('Time to Expiration', fontsize=12)
+            ax.set_zlabel(greek, fontsize=12)
+            ax.set_title(titlename, fontsize=14)
+            plt.show()
+
+
+        if interactive == True:
+            
+            contour_x_start = self.TA_lower
+            contour_x_stop = self.TA_upper * 360
+            contour_x_size = contour_x_stop / 18
+            contour_y_start = self.SA_lower
+            contour_y_stop = self.SA_upper
+            contour_y_size = int((self.SA_upper - self.SA_lower) / 20)
+            contour_z_start = np.min(self.z)
+            contour_z_stop = np.max(self.z)
+            contour_z_size = int((np.max(self.z) - np.min(self.z)) / 10)
+            
+            
+            fig = go.Figure(data=[go.Surface(x=self.y*365, 
+                                             y=self.x, 
+                                             z=self.z, 
+                                             colorscale=colorscheme, 
+                                             contours = {"x": {"show": True, "start": contour_x_start, 
+                                                               "end": contour_x_stop, "size": contour_x_size, "color":"white"},            
+                                                         "y": {"show": True, "start": contour_y_start, 
+                                                               "end": contour_y_stop, "size": contour_y_size, "color":"white"},  
+                                                         "z": {"show": True, "start": contour_z_start, 
+                                                               "end": contour_z_stop, "size": contour_z_size}},)])
+            
+            camera = dict(
+                eye=dict(x=2, y=1, z=1)
+            )
+            
+            
+            
+            
+            fig.update_scenes(xaxis_autorange="reversed")
+            fig.update_scenes(yaxis_autorange="reversed")
+            fig.update_layout(scene = dict(
+                                xaxis = dict(
+                                     backgroundcolor="rgb(200, 200, 230)",
+                                     gridcolor="white",
+                                     showbackground=True,
+                                     zerolinecolor="white",),
+                                yaxis = dict(
+                                    backgroundcolor="rgb(230, 200,230)",
+                                    gridcolor="white",
+                                    showbackground=True,
+                                    zerolinecolor="white"),
+                                zaxis = dict(
+                                    backgroundcolor="rgb(230, 230,200)",
+                                    gridcolor="white",
+                                    showbackground=True,
+                                    zerolinecolor="white",),
+                                xaxis_title='Time to Expiration (Days)',
+                                yaxis_title='Underlying Value',
+                                zaxis_title=greek,),
+                              title=titlename, autosize=False, 
+                              width=800, height=800,
+                              margin=dict(l=65, r=50, b=65, t=90),
+                             scene_camera=camera)
+            
+            if notebook == True:
+                fig.show()
+            else:
+                plot(fig, auto_open=True)
  
-    def greeks_graphs(self, x='delta', y='price', S0=100, T=0.25, T1=0.25, T2=0.5, 
-                      r=0.01, q=0, sigma=0.2, option='call'):
+    
+    def greeks_graphs_2D(self, x='delta', y='price', S0=100, T=0.25, T1=0.25, T2=0.5, 
+                         r=0.01, q=0, sigma=0.2, option='call'):
                 
         if x == 'value':
             if y == 'price':
@@ -877,6 +991,7 @@ class Option():
                 self.value_vol(S0=S0, T=T, r=r, q=q, option=option)
             if y == 'time':
                 self.value_time(S0=S0, r=r, q=q, sigma=sigma, option=option)
+        
         if x == 'delta':
             if y == 'price':
                 self.delta_price(S0=S0, T=T, r=r, q=q, sigma=sigma, option=option)
@@ -884,6 +999,7 @@ class Option():
                 self.delta_vol(S0=S0, T=T, r=r, q=q, option=option)
             if y == 'time':
                 self.delta_time(S0=S0, r=r, q=q, sigma=sigma, option=option)
+        
         if x == 'gamma':
             if y == 'price':
                 self.gamma_price(S0=S0, T=T, r=r, q=q, sigma=sigma)
@@ -891,6 +1007,7 @@ class Option():
                 self.gamma_vol(S0=S0, T=T, r=r, q=q)
             if y == 'time':
                 self.gamma_time(S0=S0, r=r, q=q, sigma=sigma)
+        
         if x == 'vega':
             if y == 'price':
                 self.vega_price(S0=S0, T=T, r=r, q=q, sigma=sigma)
@@ -898,6 +1015,7 @@ class Option():
                 self.vega_vol(S0=S0, T=T, r=r, q=q)
             if y == 'time':
                 self.vega_time(S0=S0, r=r, q=q, sigma=sigma)  
+        
         if x == 'theta':
             if y == 'price':
                 self.theta_price(S0=S0, T=T, r=r, q=q, sigma=sigma, option=option)
@@ -905,12 +1023,13 @@ class Option():
                 self.theta_vol(S0=S0, T=T, r=r, q=q, option=option)
             if y == 'time':
                 self.theta_time(S0=S0, r=r, q=q, sigma=sigma, option=option)
+        
         if x == 'rho':
             if y == 'price':
                 self.rho_price(S0=S0, T1=T1, T2=T2, r=r, q=q, sigma=sigma)
             if y == 'vol':
                 self.rho_vol(S0=S0, T1=T1, T2=T2, r=r, q=q)
-                    
+    
     
     def value_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
         
@@ -1276,7 +1395,10 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel)
         
         
+    
    
+    
+    
     def call(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', value=False):
         
         self._return_options(legs=1, S0=S0, K1=K, T1=T, r=r, q=q, sigma=sigma, option1='call')
@@ -1323,8 +1445,7 @@ class Option():
                 
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')   
-        
-        
+               
         
     def stock(self, S0=100, direction='long'):
         
@@ -1340,9 +1461,9 @@ class Option():
         self._vis_payoff(S0=S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)     
             
     
-    def forward(self, S0=100, K1=100, K2=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', cash=False):
+    def forward(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', cash=False):
         
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, option1='call', option2='put')
+        self._return_options(legs=2, S0=S0, K1=K, K2=K, T1=T, T2=T, option1='call', option2='put')
         
         if cash == False:
             pv = 1
@@ -1489,8 +1610,8 @@ class Option():
             else:
                 payoff2 = None
             
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
-                         label='Payoff', label2='Value')    
+        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, 
+                         payoff2=payoff2, label='Payoff', label2='Value')    
   
     
     def strangle(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', 
