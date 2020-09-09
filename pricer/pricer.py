@@ -801,7 +801,7 @@ class Option():
     def _vis_greeks_mpl(self, S0, xarray1=None, xarray2=None, xarray3=None, 
                         xarray4=None, yarray1=None, yarray2=None, yarray3=None, 
                         yarray4=None, label1=None, label2=None, label3=None, label4=None, 
-                        xlabel=None, ylabel=None):
+                        xlabel=None, ylabel=None, title='Payoff'):
         
         fig, ax = plt.subplots()
         ax.plot(xarray1, yarray1, color='blue', label=label1)
@@ -810,9 +810,8 @@ class Option():
         if label4 is not None:
             ax.plot(xarray4, yarray4, color='orange', label=label4)
         plt.grid(True)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.legend()
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        ax.legend()
         plt.show()
    
     
@@ -1172,11 +1171,12 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Theoretical Value'
+        self.title = 'Value vs Price'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)        
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
     def value_vol(self, S0=100, T=0.25, r=0.05, q=0, option='call'):
@@ -1193,11 +1193,12 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Theoretical Value'
+        self.title = 'Value vs Volatility'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)     
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
         
     
     def value_time(self, S0=100, r=0.01, q=0, sigma=0.2, option='call'):
@@ -1214,11 +1215,12 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Theoretical Value'
+        self.title = 'Value vs Time'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)     
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
     
@@ -1236,11 +1238,12 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Delta'
+        self.title = 'Delta vs Price'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)       
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
     
     
     def delta_vol(self, S0=100, T=0.25, r=0.05, q=0, option='call'):
@@ -1257,11 +1260,12 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Delta'
+        self.title = 'Delta vs Volatility'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)        
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
         
         
     def delta_time(self, S0=100, r=0.01, q=0, sigma=0.2, option='call'):
@@ -1278,11 +1282,12 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Delta'
+        self.title = 'Delta vs Time'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)     
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
         
     def gamma_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2):
@@ -1299,11 +1304,12 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Gamma'
+        self.title = 'Gamma vs Price'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)        
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
         
         
     def gamma_vol(self, S0=100, T=0.25, r=0.05, q=0):
@@ -1320,11 +1326,12 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Gamma'
+        self.title = 'Gamma vs Volatility'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)            
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)            
         
     
     def gamma_time(self, S0=100, r=0.01, q=0, sigma=0.2):
@@ -1341,11 +1348,12 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Gamma'
+        self.title = 'Gamma vs Time'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)     
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
     def vega_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2):
@@ -1362,11 +1370,12 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Vega'
+        self.title = 'Vega vs Price'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
     
         
     def vega_vol(self, S0=100, T=0.25, r=0.05, q=0):
@@ -1383,11 +1392,12 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Vega'
+        self.title = 'Vega vs Volatility'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)        
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
     def vega_time(self, S0=100, r=0.01, q=0, sigma=0.2):
@@ -1404,11 +1414,12 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Vega'
+        self.title = 'Vega vs Time'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)        
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
     def theta_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
@@ -1425,11 +1436,12 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Theta'
+        self.title = 'Theta vs Price'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)        
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
     def theta_vol(self, S0=100, T=0.25, r=0.05, q=0, option='call'):
@@ -1445,12 +1457,13 @@ class Option():
         self.label3 = str(int(S0 * 1.1))+' Strike'
             
         self.xlabel = 'Volatility %'
-        self.ylabel = 'Delta'
+        self.ylabel = 'Theta'
+        self.title = 'Theta vs Volatility'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)    
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)    
         
     
     def theta_time(self, S0=100, r=0.01, q=0, sigma=0.2, option='call'):
@@ -1467,11 +1480,12 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Theta'
+        self.title = 'Theta vs Time'
 
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)     
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
     def rho_price(self, S0=100, T1=0.25, T2=0.5, r=0.05, q=0, sigma=0.2):
@@ -1490,12 +1504,13 @@ class Option():
                 
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Rho'
+        self.title = 'Rho vs Price'
         
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
                              xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
                              label2=self.label2, label3=self.label3, label4=self.label4, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
 
     def rho_vol(self, S0=100, T1=0.25, T2=0.5, r=0.05, q=0):
@@ -1514,12 +1529,13 @@ class Option():
                 
         self.xlabel = 'Volatility %'
         self.ylabel = 'Rho'
+        self.title = 'Rho vs Volatility'
         
         self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
                              xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
                              label2=self.label2, label3=self.label3, label4=self.label4, 
-                             xlabel=self.xlabel, ylabel=self.ylabel)
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
     
     def call(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', value=False):
