@@ -36,14 +36,16 @@ df_option3 = 'call'
 df_option4 = 'call'
 
 
+# List of default parameters
 df_params_list = ['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 'T1', 'T2', 
                   'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 'option', 'option1', 'option2', 'option3', 
                   'option4']
 
+# Dictionary of default parameters
 df_dict = {'df_S':100, 
            'df_S0':100,
            'df_SA':np.linspace(80, 120, 100),
-           'df_K':110,
+           'df_K':100,
            'df_K1':95,
            'df_K2':105,
            'df_K3':105,
@@ -68,6 +70,7 @@ df_dict = {'df_S':100,
            'df_option4':'call'}
 
 
+
 class Option():
     
     def __init__(self, S=df_dict['df_S'], S0=df_dict['df_S0'], SA=df_dict['df_SA'], 
@@ -78,7 +81,7 @@ class Option():
                  q=df_dict['df_q'], sigma=df_dict['df_sigma'], eta=df_dict['df_eta'], 
                  phi=df_dict['df_phi'], option=df_dict['df_option'], option1=df_dict['df_option1'], 
                  option2=df_dict['df_option2'], option3=df_dict['df_option3'], 
-                 option4=df_dict['df_option4'], df_dict=df_dict):
+                 option4=df_dict['df_option4'], df_dict=df_dict, df_params_list=df_params_list):
 
         self.S = S
         self.S0 = S0
@@ -107,16 +110,17 @@ class Option():
         self.option3 = option3
         self.option4 = option4
         self.df_dict = df_dict
+        self.df_params_list = df_params_list
                 
     
     
     def _initialise_func(self, **kwargs):
         
-        #self._reset_params()
         self._refresh_params(**kwargs)
-        #self._refresh_dist()
+        self._refresh_dist()
         
         return self
+
 
     def _initialise_barriers(self, **kwargs):
         self._refresh_params(**kwargs)
@@ -126,72 +130,28 @@ class Option():
         return self
 
 
-    def _reset_params(self, df_dict=df_dict):
-        #for key, value in df_dict.items():
-        #    self.key = value
-        self.S = df_dict['df_S']
-        self.S0 = df_dict['df_S0']
-        self.SA = df_dict['df_SA']
-        self.K = df_dict['df_K']
-        self.K1 = df_dict['df_K1']
-        self.K2 = df_dict['df_K2']
-        self.K3 = df_dict['df_K3']
-        self.K4 = df_dict['df_K4']
-        self.H = df_dict['df_H']
-        self.R = df_dict['df_R']
-        self.T = df_dict['df_T']
-        self.T1 = df_dict['df_T1']
-        self.T2 = df_dict['df_T2']
-        self.T3 = df_dict['df_T3']
-        self.T4 = df_dict['df_T4']
-        self.r = df_dict['df_r']
-        self.q = df_dict['df_q']
-        self.b = self.r - self.q
-        self.sigma = df_dict['df_sigma']
-        self.eta = df_dict['df_eta']
-        self.phi = df_dict['df_phi']
-        self.option = df_dict['df_option']
-        self.option1 = df_dict['df_option1']
-        self.option2 = df_dict['df_option2']
-        self.option3 = df_dict['df_option3']
-        self.option4 = df_dict['df_option4']
-                
-        return self    
-    
-
-    def _refresh_params_2(self, **kwargs):
+    def _refresh_params(self, **kwargs):
         for k, v in kwargs.items():
-            if k is None:
-                k = self.df_dict['df_'+k]
+            if v is None:
+                v = df_dict['df_'+str(k)]
+                self.__dict__[k] = v
             else:
-                self.k = k
- 
-    
-    def _refresh_params_3(self, S=None, S0=None, SA=None, K=None, K1=None, K2=None, 
-                        K3=None, K4=None, H=None, R=None, T=None, T1=None, T2=None, 
-                        T3=None, T4=None, r=None, b=None, q=None, sigma=None, eta=None, 
-                        phi=None, option=None, option1=None, option2=None, option3=None, 
-                        option4=None):
-        arg_dict = locals()
-        for k, v in arg_dict.items():
-            if k is None:
-                k = self.df_dict['df_'+k]
-            else:
-                self.k = k
-    
-        self.b = self.r - self.q
-        
-        self.carry = np.exp((self.b - self.r) * self.T)
-        
+                self.__dict__[k] = v
+
+        for key in self.df_params_list:
+            if key not in kwargs:
+                value = df_dict['df_'+str(key)]
+                self.__dict__[key] = value
                 
-        return self
-    
-    
-    def _refresh_params(self, S=None, S0=None, SA=None, K=None, K1=None, K2=None, 
-                        K3=None, K4=None, H=None, R=None, T=None, T1=None, T2=None, 
-                        T3=None, T4=None, r=None, b=None, q=None, sigma=None, eta=None, 
-                        phi=None, option=None, option1=None, option2=None, option3=None, 
-                        option4=None):        
+        return self        
+ 
+   
+    def _refresh_params_verbose(self, S=None, S0=None, SA=None, K=None, K1=None, 
+                                K2=None, K3=None, K4=None, H=None, R=None, T=None, 
+                                T1=None, T2=None, T3=None, T4=None, r=None, b=None, 
+                                q=None, sigma=None, eta=None, phi=None, option=None, 
+                                option1=None, option2=None, option3=None, option4=None, 
+                                combo=None):        
         #arg_dict = locals()
         #arg_list = [] 
         #for k, v in arg_dict.items():
@@ -206,104 +166,215 @@ class Option():
         
         if S is None:
             S = df_dict['df_S']
+            self.S = S
         else:
             self.S = S
         if S0 is None:
             S0 = df_dict['df_S0']
+            self.S0 = S0
         else:
             self.S0 = S0
         if SA is None:
             SA = df_dict['df_SA']
+            self.SA = SA
         else:
             self.SA = SA
         if K is None:
             K = df_dict['df_K']
+            self.K = K
         else:
             self.K = K
         if K1 is None:
-            K1 = df_dict['df_K1']
-        else:
+            #if combo == 'iron condor':
+            #    K1 = 90
+            #    self.K1 = K1
+            #if combo == 'collar':
+            #    K1 = 98
+            #    self.K1 = K1
+            #if combo == 'straddle':
+            K1 = 100
             self.K1 = K1
+            #else:
+            #   K1 = df_dict['df_K1']
+            #    self.K1 = df_dict['df_K1']
+        elif isinstance(K1, (int, float)):
+            self.K1 = K1
+        
         if K2 is None:
-            K2 = df_dict['df_K2']
-        else:
+            #if combo == 'iron condor':
+            #    K2 = 95
+            #    self.K2 = K2
+            #if combo == 'collar':
+            #    K2 = 102
+            #    self.K2 = K2
+            #if combo in ['straddle', 'butterfly', 'christmas tree', 'iron butterfly']:
+            K2 = 100
             self.K2 = K2
+            #else:
+            #    K2 = df_dict['df_K2']
+            #    self.K2 = df_dict['df_K2']
+        elif isinstance(K2, (int, float)):
+            self.K2 = K2
+        
         if K3 is None:
-            K3 = df_dict['df_K3']
+            #if combo in ['iron condor', 'iron butterfly']:
+            #    K3 = 100
+            #    self.K3 = K3
+            #else:
+                K3 = df_dict['df_K3']
+                self.K3 = df_dict['df_K3']
         else:
             self.K3 = K3
         if K4 is None:
             K4 = df_dict['df_K4']
+            self.K4 = K4       
         else:
             self.K4 = K4
         if H is None:
             H = df_dict['df_H']
+            self.H = H
         else:
             self.H = H
         if R is None:
             R = df_dict['df_R']
+            self.R = R
         else:
             self.R = R
         if T is None:
             T = df_dict['df_T']
+            self.T = T
         else:
             self.T = T
         if T1 is None:
             T1 = df_dict['df_T1']
+            self.T1 = T1
         else:
             self.T1 = T1
         if T2 is None:
             T2 = df_dict['df_T2']
+            self.T2 = T2
         else:
             self.T2 = T2
         if T3 is None:
             T3 = df_dict['df_T3']
+            self.T3 = T3    
         else:
             self.T3 = T3    
         if T4 is None:
             T4 = df_dict['df_T4']
+            self.T4 = T4    
         else:
             self.T4 = T4    
         if r is None:
             r = df_dict['df_r']
+            self.r = r
         else:
             self.r = r
         if q is None:
             q = df_dict['df_q']
+            self.q = q    
         else:
             self.q = q    
         if sigma is None:
             sigma = df_dict['df_sigma']
+            self.sigma = sigma
         else:
             self.sigma = sigma
         if eta is None:
             eta = df_dict['df_eta']
+            self.eta = eta
         else:
             self.eta = eta
         if phi is None:
             phi = df_dict['df_phi']
+            self.phi = phi    
         else:
             self.phi = phi    
         if option is None:
             option = df_dict['df_option']
+            self.option = option
         else:
             self.option = option
         if option1 is None:
             option1 = df_dict['df_option1']
+            self.option1 = option1
         else:
             self.option1 = option1
         if option2 is None:
             option2 = df_dict['df_option2']
+            self.option2 = option2
         else:
             self.option2 = option2
         if option3 is None:
             option3 = df_dict['df_option3']
+            self.option3 = option3
         else:
             self.option3 = option3
         if option4 is None:
             option4 = df_dict['df_option4']
+            self.option4 = option4
         else:
             self.option4 = option4
+    
+        
+    def _set_params(self, S=None, S0=None, SA=None, K=None, K1=None, K2=None, 
+                        K3=None, K4=None, H=None, R=None, T=None, T1=None, T2=None, 
+                        T3=None, T4=None, r=None, b=None, q=None, sigma=None, eta=None, 
+                        phi=None, option=None, option1=None, option2=None, option3=None, 
+                        option4=None, combo=None):
+        if S is not None:
+            self.S = S
+        if S0 is not None:
+            self.S0 = S0
+        if SA is not None:
+            self.SA = SA
+        if K is not None:
+            self.K = K
+        if K1 is not None:
+            self.K1 = K1
+        if K2 is not None:
+            self.K2 = K2
+        if K3 is not None:
+            self.K3 = K3
+        if K4 is not None:
+            self.K4 = K4
+        if H is not None:
+            self.H = H
+        if R is not None:
+            self.R = R
+        if T is not None:
+            self.T = T
+        if T1 is not None:
+            self.T1 = T1
+        if T2 is not None:
+            self.T2 = T2
+        if T3 is not None:
+            self.T3 = T3    
+        if T4 is not None:
+            self.T4 = T4    
+        if r is not None:
+            self.r = r
+        if q is not None:
+            self.q = q    
+        if sigma is not None:
+            self.sigma = sigma
+        if eta is not None:
+            self.eta = eta
+        if phi is not None:
+            self.phi = phi    
+        if option is not None:
+            self.option = option
+        if option1 is not None:
+            self.option1 = option1
+        if option2 is not None:
+            self.option2 = option2
+        if option3 is not None:
+            self.option3 = option3
+        if option4 is not None:
+            self.option4 = option4
+    
+        
+    def _refresh_dist(self):
         
         self.b = self.r - self.q
         
@@ -325,44 +396,8 @@ class Option():
             self.minusNd1 = si.norm.cdf(-self.d1, 0.0, 1.0)
             self.Nd2 = si.norm.cdf(self.d2, 0.0, 1.0)
             self.minusNd2 = si.norm.cdf(-self.d2, 0.0, 1.0)
-                    
-        self.params_dict = {'S':self.S, 
-                            'S0':self.S0,
-                            'SA':self.SA,
-                            'K':self.K,
-                            'K1':self.K1,
-                            'K2':self.K2,
-                            'K3':self.K3,
-                            'K4':self.K4,
-                            'H':self.H,
-                            'R':self.R,
-                            'T':self.T,
-                            'T1':self.T1,
-                            'T2':self.T2,
-                            'T3':self.T3,
-                            'T4':self.T4,
-                            'r':self.r,
-                            'b':self.b,
-                            'q':self.q,
-                            'sigma':self.sigma,
-                            'eta':self.eta,
-                            'phi':self.phi,
-                            'option':self.option,
-                            'option1':self.option1,
-                            'option2':self.option2,
-                            'option3':self.option3,
-                            'option4':self.option4,
-                            'carry': self.carry,
-                            'discount':self.discount,
-                            'd1':self.d1,
-                            'd2':self.d2,
-                            'nd1':self.nd1,
-                            'Nd1':self.Nd1,
-                            'minusNd1':self.minusNd1,
-                            'Nd2':self.Nd2,
-                            'minusNd2':self.minusNd2}
-                        
-        return self    
+        
+        return self
 
     
     def _barrier_factors(self):
@@ -418,9 +453,38 @@ class Option():
         return self
 
 
-    def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call'):
-        
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+    def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call', combo=False):
+        """
+        Return the Black Scholes Option Price
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100, taken from dictionary of default parameters. 
+        K : Float
+            Strike Price. The default is 100, taken from dictionary of default parameters.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months), taken from dictionary of default parameters.
+        r : Float
+            Interest Rate. The default is 0.05 (5%), taken from dictionary of default parameters.
+        q : Float
+            Dividend Yield. The default is 0, taken from dictionary of default parameters.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%), taken from dictionary of default parameters.
+        option : Str
+            Option type, Put or Call. The default is 'call'
+
+        Returns
+        -------
+        Float
+            Black Scholes Option Price. If combo is set to true the price to be used 
+            in combo graphs so the distributions are refreshed but not the parameters.
+
+        """
+        if combo == False:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if combo == True:
+            self._refresh_dist()
         
         if option == "call":
             self.opt_price = ((self.S * self.carry * self.Nd1) - 
@@ -913,7 +977,7 @@ class Option():
             ax.invert_xaxis()
             ax.set_xlabel('Underlying Value', fontsize=12)
             ax.set_ylabel('Time to Expiration', fontsize=12)
-            ax.set_zlabel(greek, fontsize=12)
+            ax.set_zlabel(str(greek.title()), fontsize=12)
             ax.set_title(titlename, fontsize=14)
             plt.show()
 
@@ -969,7 +1033,7 @@ class Option():
                                     zerolinecolor="white",),
                                 xaxis_title='Time to Expiration (Days)',
                                 yaxis_title='Underlying Value',
-                                zaxis_title=greek,),
+                                zaxis_title=str(greek.title()),),
                               title=titlename, autosize=False, 
                               width=800, height=800,
                               margin=dict(l=65, r=50, b=65, t=90),
@@ -1030,6 +1094,69 @@ class Option():
             if y == 'vol':
                 self.rho_vol(S0=S0, T1=T1, T2=T2, r=r, q=q)
     
+
+    def payoff_graphs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
+                      T=None, r=None, q=None, sigma=None, direction='long', option='call', 
+                      value=False, combo='straddle'):
+        
+        self._initialise_func(S0=S0, K=K, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, 
+                              q=q, sigma=sigma, combo=combo)
+        
+        if combo == 'call':
+            self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                      value=value)
+        
+        if combo == 'put':
+            self.put(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                      value=value)
+        
+        if combo == 'stock':
+            self.stock(S0=S0, direction=direction)
+        
+        if combo == 'forward':
+            self.forward(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
+                         value=value)
+        
+        if combo == 'collar':
+            self.collar(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                        value=value)
+        
+        if combo == 'spread':
+            self.spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                        option=option, value=value)
+            
+        if combo == 'backspread':
+            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                            option=option, value=value)
+        
+        if combo == 'ratio vertical spread':
+            self.ratio_vertical_spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
+                                       direction=direction, option=option, value=value)
+        
+        if combo == 'straddle':
+            self.straddle(S0=self.S0, K1=self.K, K2=self.K, T=self.T, r=self.r, 
+                          q=self.q, sigma=self.sigma, direction=direction, value=value)
+
+        if combo == 'strangle':
+            self.strangle(S0=self.S0, K1=self.K1, K2=self.K2, T=self.T, r=self.r, 
+                          q=self.q, sigma=self.sigma, direction=direction, value=value)
+        
+        if combo == 'butterfly':    
+            self.butterfly(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+                           direction=direction, option=option, value=value)
+        
+        if combo == 'christmas tree':
+            self.christmas_tree(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+                                direction=direction, option=option, value=value)    
+        
+        if combo == 'iron butterfly':
+            self.iron_butterfly(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                                sigma=sigma, direction=direction, value=value)
+            
+        if combo == 'iron condor':
+            self.iron_condor(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                             sigma=sigma, direction=direction, option=option, value=value)    
+                
     
     def value_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
         
@@ -1393,11 +1520,7 @@ class Option():
                              xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
                              label2=self.label2, label3=self.label3, label4=self.label4, 
                              xlabel=self.xlabel, ylabel=self.ylabel)
-        
-        
-    
-   
-    
+
     
     def call(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', value=False):
         
@@ -1481,8 +1604,9 @@ class Option():
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)
     
     
-    def collar(self, S0=50, K1=49, K2=51, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', value=False):
-        
+    def collar(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, sigma=0.2, 
+               direction='long', value=False):
+       
         self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, option1='put', 
                              option2='call')
         
@@ -1798,24 +1922,24 @@ class Option():
                               T2=T2, T3=T3, T4=T4, r=r, q=q, sigma=sigma, option1=option1, 
                               option2=option2, option3=option3, option4=option4)
         
-        self.C1_0 = self.price(S=S0, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1)
-        self.C1 = self.price(S=self.SA, K=K1, T=0, r=r, q=q, sigma=sigma, option=option1)
-        self.C1_G = self.price(S=self.SA, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1)
+        self.C1_0 = self.price(S=S0, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, combo=True)
+        self.C1 = self.price(S=self.SA, K=K1, T=0, r=r, q=q, sigma=sigma, option=option1, combo=True)
+        self.C1_G = self.price(S=self.SA, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, combo=True)
         
         if legs > 1:
-            self.C2_0 = self.price(S=S0, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2)
-            self.C2 = self.price(S=self.SA, K=K2, T=0, r=r, q=q, sigma=sigma, option=option2)
-            self.C2_G = self.price(S=self.SA, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2)
+            self.C2_0 = self.price(S=S0, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2, combo=True)
+            self.C2 = self.price(S=self.SA, K=K2, T=0, r=r, q=q, sigma=sigma, option=option2, combo=True)
+            self.C2_G = self.price(S=self.SA, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2, combo=True)
 
         if legs > 2:
-            self.C3_0 = self.price(S=S0, K=K3, T=T3, r=r, q=q, sigma=sigma, option=option3)
-            self.C3 = self.price(S=self.SA, K=K3, T=0, r=r, q=q, sigma=sigma, option=option3)
-            self.C3_G = self.price(S=self.SA, K=K3, T=T3, r=r, q=q, sigma=sigma, option=option3)
+            self.C3_0 = self.price(S=S0, K=K3, T=T3, r=r, q=q, sigma=sigma, option=option3, combo=True)
+            self.C3 = self.price(S=self.SA, K=K3, T=0, r=r, q=q, sigma=sigma, option=option3, combo=True)
+            self.C3_G = self.price(S=self.SA, K=K3, T=T3, r=r, q=q, sigma=sigma, option=option3, combo=True)
         
         if legs > 3:
-            self.C4_0 = self.price(S=S0, K=K4, T=T4, r=r, q=q, sigma=sigma, option=option4)
-            self.C4 = self.price(S=self.SA, K=K4, T=0, r=r, q=q, sigma=sigma, option=option4)
-            self.C4_G = self.price(S=self.SA, K=K4, T=T4, r=r, q=q, sigma=sigma, option=option4)
+            self.C4_0 = self.price(S=S0, K=K4, T=T4, r=r, q=q, sigma=sigma, option=option4, combo=True)
+            self.C4 = self.price(S=self.SA, K=K4, T=0, r=r, q=q, sigma=sigma, option=option4, combo=True)
+            self.C4_G = self.price(S=self.SA, K=K4, T=T4, r=r, q=q, sigma=sigma, option=option4, combo=True)
         
         return self
         
