@@ -11,7 +11,7 @@ from matplotlib import cm
 df_params_list = ['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 
                   'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 
                   'barrier_direction', 'knock', 'option', 'option1', 'option2', 
-                  'option3', 'option4', 'direction', 'value', 'ratio', 'combo', 
+                  'option3', 'option4', 'direction', 'value', 'ratio', 'refresh', 
                   'delta_shift', 'delta_shift_type', 'greek', 'interactive', 'notebook', 
                   'colorscheme', 'x_plot', 'y_plot', 'time_shift', 'cash']
 
@@ -52,7 +52,7 @@ df_dict = {'df_S':100,
            'df_direction':'long',
            'df_value':False,
            'df_ratio':2,
-           'df_combo':False,
+           'df_refresh':'Std',
            'df_delta_shift':25,
            'df_delta_shift_type':'avg',
            'df_greek':'delta',
@@ -102,7 +102,7 @@ class Option():
                  knock=df_dict['df_knock'], option=df_dict['df_option'], option1=df_dict['df_option1'], 
                  option2=df_dict['df_option2'], option3=df_dict['df_option3'], 
                  option4=df_dict['df_option4'], direction=df_dict['df_direction'], 
-                 value=df_dict['df_value'], ratio=df_dict['df_ratio'], combo=df_dict['df_combo'], 
+                 value=df_dict['df_value'], ratio=df_dict['df_ratio'], refresh=df_dict['df_refresh'], 
                  delta_shift=df_dict['df_delta_shift'],
                  delta_shift_type=df_dict['df_delta_shift_type'], greek=df_dict['df_greek'], 
                  interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
@@ -142,7 +142,7 @@ class Option():
         self.direction = direction # Payoff direction, long or short
         self.value = value # Flag whether to plot Intrinsic Value against payoff
         self.ratio = ratio # Ratio used in Backspread and Ratio Vertical Spread 
-        self.combo = combo # Flag whether to refresh default values in price formula
+        self.refresh = refresh # Flag whether to refresh default values in price formula
         self.delta_shift = delta_shift # Size of shift used in shift_delta function
         self.delta_shift_type = delta_shift_type # Shift type - Up, Down or Avg
         self.df_dict = df_dict # Dictionary of parameter defaults
@@ -168,7 +168,7 @@ class Option():
         
         return self
 
-    def _initialise_combo(self, **kwargs):
+    def _initialise_graphs(self, **kwargs):
         self._set_params(**kwargs)
         self._refresh_dist()
         
@@ -304,7 +304,7 @@ class Option():
 
 
     def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
-              combo=None):
+              refresh=None):
         """
         Return the Black Scholes Option Price
 
@@ -332,10 +332,11 @@ class Option():
             in combo graphs so the distributions are refreshed but not the parameters.
 
         """
-        if combo == False or combo is None:
+        if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-        if combo == True:
-            self._initialise_combo(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    refresh=refresh)
         
         if self.option == "call":
             self.opt_price = ((self.S * self.carry * self.Nd1) - 
@@ -349,10 +350,15 @@ class Option():
         return self.opt_price
 
 
-    def delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
-                    
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-                        
+    def delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+              
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    refresh=refresh)
+                                
         if self.option == 'call':
             self.opt_delta = self.carry * self.Nd1
         if self.option == 'put':
@@ -362,10 +368,14 @@ class Option():
     
     
     def shift_delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
-                    shift=None, shift_type=None):
+                    shift=None, shift_type=None, refresh=None):
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                              shift=shift, shift_type=shift_type)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                  shift=shift, shift_type=shift_type)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option,
+                                    shift=shift, shift_type=shift_type, refresh=refresh)
         
         down_shift = self.S-(self.shift/10000)*self.S
         up_shift = self.S+(self.shift/10000)*self.S
@@ -386,10 +396,15 @@ class Option():
         return self.opt_delta_shift
     
     
-    def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
+    def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-    
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    refresh=refresh)
+                   
         if self.option == 'call':
             self.opt_theta = ((-self.S * self.carry * self.nd1 * self.sigma ) / 
                               (2 * np.sqrt(self.T)) - (self.b - self.r) * self.S * self.carry * 
@@ -402,28 +417,39 @@ class Option():
         return self.opt_theta
     
     
-    def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # how much delta will change due to a small change in the underlying asset price        
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
         self.opt_gamma = ((self.nd1 * self.carry) / (self.S * self.sigma * np.sqrt(self.T)))
         
         return self.opt_gamma
     
     
-    def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
 
         self.opt_vega = self.S * self.carry * self.nd1 * np.sqrt(self.T)
         
         return self.opt_vega
     
     
-    def rho(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
+    def rho(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+            refresh=None):
                 
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    refresh=refresh)
         
         if self.option == 'call':
             self.opt_rho = self.T * self.K * np.exp(-self.r * self.T) * self.Nd2
@@ -433,23 +459,31 @@ class Option():
         return self.opt_rho
 
 
-    def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # aka DdeltaDvol, DvegaDspot 
         # how much delta will change due to a small change in volatility
         # how much vega will change due to a small change in the asset price        
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
         self.opt_vanna = ((-self.carry * self.d2) / self.sigma) * self.nd1 
 
         return self.opt_vanna               
            
 
-    def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
+    def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
         # aka DdeltaDtime, Delta Bleed 
         # how much delta will change due to a small change in time        
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    refresh=refresh)
         
         if self.option == 'call':
             self.opt_charm = (-self.carry * ((self.nd1 * ((self.b / (self.sigma * np.sqrt(self.T))) - 
@@ -462,75 +496,93 @@ class Option():
         return self.opt_charm
                
 
-    def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # DgammaDvol
         # how much gamma will change due to a small change in volatility
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_zomma = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
-                          ((self.d1 * self.d2 - 1) / self.sigma))
+        self.opt_zomma = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                                     self.refresh) * ((self.d1 * self.d2 - 1) / self.sigma))
         
         return self.opt_zomma
 
 
-    def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # DgammaDspot
         # how much gamma will change due to a small change in the asset price
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_speed = -(self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
+        self.opt_speed = -(self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
                            (1 + (self.d1 / (self.sigma * np.sqrt(self.T)))) / self.S)
         
         return self.opt_speed
 
 
-    def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # DgammaDtime, gamma bleed
         # how much gamma will change due to a small change in time
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_color = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
+        self.opt_color = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
                            ((self.r - self.b) + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) + 
                             ((1 - self.d1 * self.d2) / (2 * self.T))))
         
         return self.opt_color
 
 
-    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # DvegaDvol, vega convexity, volga
         # how much vega will change due to a small change in implied volatility
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
+        self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
                            ((self.d1 * self.d2) / (self.sigma)))
         
         return self.opt_vomma
 
 
-    def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # DvommaDvol
         # how much vomma will change due to a small change in implied volatility
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_ultima = (self.vomma(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
+        self.opt_ultima = (self.vomma(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
                            ((1 / self.sigma) * (self.d1 * self.d2 - (self.d1 / self.d2) - 
                                                 (self.d2 / self.d1) - 1)))
         
         return self.opt_ultima
 
 
-    def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None):
+    def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
         # DvegaDtime
         # how much vega will change due to a small change in time
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_vega_bleed = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
+        self.opt_vega_bleed = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
                                (self.r - self.b + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) - 
                                 ((1 + (self.d1 * self.d2) ) / (2 * self.T))))
 
@@ -539,7 +591,8 @@ class Option():
 
 
     def barrier_price(self, S=None, K=None, H=None, R=None, T=None, r=None, q=None, 
-                       sigma=None, barrier_direction=None, knock=None, option=None):
+                       sigma=None, barrier_direction=None, knock=None, option=None, 
+                       refresh=None):
         
         self._initialise_barriers(S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
                                   barrier_direction=barrier_direction, knock=knock, 
@@ -668,15 +721,16 @@ class Option():
         plt.show()
    
     
-    def greeks_graphs_3D(self, S0=None, r=None, q=None, sigma=None, greek=None, option=None, 
-                         interactive=None, notebook=None, colorscheme=None):
+    def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, option=None, 
+                         interactive=None, notebook=None, colorscheme=None, direction=None):
 
-        self._initialise_func(S0=S0, r=r, q=q, sigma=sigma, greek=greek, option=option, 
-                         interactive=interactive, notebook=notebook, colorscheme=colorscheme)
+        self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
+                         interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
+                         direction=direction)
 
         self.TA_lower = 0.01
 
-        if greek == 'price':
+        if self.greek == 'price':
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 1
@@ -684,9 +738,9 @@ class Option():
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.z = self.price(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                option=self.option)
+                                option=self.option, refresh='graph')
 
-        if greek == 'delta':
+        if self.greek == 'delta':
             self.SA_lower = 0.25
             self.SA_upper = 1.75
             self.TA_upper = 2
@@ -694,9 +748,9 @@ class Option():
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.z = self.delta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                option=self.option)
+                                option=self.option, refresh='graph')
 
-        if greek == 'gamma':
+        if self.greek == 'gamma':
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
@@ -704,9 +758,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.gamma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
+            self.z = self.gamma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                refresh='graph')
 
-        if greek == 'vega':               
+        if self.greek == 'vega':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
@@ -714,9 +769,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vega(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
+            self.z = self.vega(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                               refresh='graph')
 
-        if greek == 'theta':    
+        if self.greek == 'theta':    
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 1
@@ -724,9 +780,9 @@ class Option():
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.z = self.theta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                option=self.option)
+                                option=self.option, refresh='graph')
             
-        if greek == 'rho':               
+        if self.greek == 'rho':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
@@ -734,9 +790,9 @@ class Option():
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.z = self.rho(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                              option=self.option)    
+                              option=self.option, refresh='graph')    
 
-        if greek == 'vomma':               
+        if self.greek == 'vomma':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
@@ -744,9 +800,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
+            self.z = self.vomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                refresh='graph')
 
-        if greek == 'vanna':               
+        if self.greek == 'vanna':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
@@ -754,9 +811,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vanna(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
+            self.z = self.vanna(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                refresh='graph')
 
-        if greek == 'zomma':               
+        if self.greek == 'zomma':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
@@ -764,9 +822,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.zomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
+            self.z = self.zomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                refresh='graph')
             
-        if greek == 'speed':               
+        if self.greek == 'speed':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
@@ -774,9 +833,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.speed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)    
+            self.z = self.speed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                refresh='graph')    
 
-        if greek == 'color':               
+        if self.greek == 'color':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
@@ -784,9 +844,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.color(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma) 
+            self.z = self.color(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                refresh='graph') 
             
-        if greek == 'ultima':               
+        if self.greek == 'ultima':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
@@ -794,9 +855,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.ultima(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)     
+            self.z = self.ultima(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                 refresh='graph')     
 
-        if greek == 'vega bleed':               
+        if self.greek == 'vega bleed':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
@@ -804,9 +866,10 @@ class Option():
             self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vega_bleed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)   
+            self.z = self.vega_bleed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                     refresh='graph')   
 
-        if greek == 'charm':               
+        if self.greek == 'charm':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.25
@@ -814,13 +877,19 @@ class Option():
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.z = self.charm(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                option=self.option)
+                                option=self.option, refresh='graph')
 
+
+        if self.direction == 'short':
+            self.z = -self.z
+        
+        
         if self.option == 'Call / Put':
-            titlename = str(self.option+' Option '+str(self.greek.title()))
+            titlename = str(str(self.direction.title())+' '+self.option+' Option '+str(self.greek.title()))
         else:    
-            titlename = str(str(self.option.title())+' Option '+str(self.greek.title()))
-
+            titlename = str(str(self.direction.title())+' '+str(self.option.title())+
+                            ' Option '+str(self.greek.title()))
+           
 
         if self.interactive == False:
         
@@ -1882,35 +1951,35 @@ class Option():
         self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
         
         self.C1_0 = self.price(S=S0, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, 
-                               combo=True)
+                               refresh='graph')
         self.C1 = self.price(S=self.SA, K=K1, T=0, r=r, q=q, sigma=sigma, option=option1, 
-                             combo=True)
+                             refresh='graph')
         self.C1_G = self.price(S=self.SA, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, 
-                               combo=True)
+                               refresh='graph')
         
         if legs > 1:
             self.C2_0 = self.price(S=S0, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2, 
-                                   combo=True)
+                                   refresh='graph')
             self.C2 = self.price(S=self.SA, K=K2, T=0, r=r, q=q, sigma=sigma, option=option2, 
-                                 combo=True)
+                                 refresh='graph')
             self.C2_G = self.price(S=self.SA, K=K2, T=T2, r=r, q=q, sigma=sigma, 
-                                   option=option2, combo=True)
+                                   option=option2, refresh='graph')
 
         if legs > 2:
             self.C3_0 = self.price(S=self.S0, K=K3, T=T3, r=r, q=q, sigma=sigma, 
-                                   option=option3, combo=True)
+                                   option=option3, refresh='graph')
             self.C3 = self.price(S=self.SA, K=K3, T=0, r=r, q=q, sigma=sigma, option=option3, 
-                                 combo=True)
+                                 refresh='graph')
             self.C3_G = self.price(S=self.SA, K=K3, T=T3, r=r, q=q, sigma=sigma, 
-                                   option=option3, combo=True)
+                                   option=option3, refresh='graph')
         
         if legs > 3:
             self.C4_0 = self.price(S=self.S0, K=K4, T=T4, r=r, q=q, sigma=sigma, 
-                                   option=option4, combo=True)
+                                   option=option4, refresh='graph')
             self.C4 = self.price(S=self.SA, K=K4, T=0, r=r, q=q, sigma=sigma, option=option4, 
-                                 combo=True)
+                                 refresh='graph')
             self.C4_G = self.price(S=self.SA, K=K4, T=T4, r=r, q=q, sigma=sigma, 
-                                   option=option4, combo=True)
+                                   option=option4, refresh='graph')
         
         return self
         
