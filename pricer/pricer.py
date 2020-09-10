@@ -7,39 +7,18 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib import cm
 
 
-# Initialise default values
-df_S = 100 # Spot price
-df_S0 = 100
-df_SA = np.linspace(80, 120, 100)
-df_K = 110 # Strike price
-df_T = 0.5 # Time to maturity
-df_r = 0.05 # Risk free interest rate
-df_b = 0 # Cost of carry
-df_q = 0 # Dividend Yield
-df_sigma = 0.2 # Volatility
-df_eta = 1
-df_phi = 1
-df_K1 = 95
-df_K2 = 100
-df_K3 = 105
-df_K4 = 110
-df_H = 105
-df_R = 0
-df_T1 = 0.25
-df_T2 = 0.25
-df_T3 = 0.25
-df_T4 = 0.25
-df_option = 'call'
-df_option1 = 'call'
-df_option2 = 'call'
-df_option3 = 'call'
-df_option4 = 'call'
-
-
 # List of default parameters
-df_params_list = ['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 'T1', 'T2', 
-                  'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 'option', 'option1', 'option2', 'option3', 
-                  'option4']
+df_params_list = ['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 
+                  'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 
+                  'barrier_direction', 'knock', 'option', 'option1', 'option2', 
+                  'option3', 'option4', 'direction', 'value', 'ratio', 'combo', 
+                  'delta_shift', 'delta_shift_type', 'greek', 'interactive', 'notebook', 
+                  'colorscheme', 'x_plot', 'y_plot', 'time_shift', 'cash']
+
+mod_payoffs = ['collar', 'straddle', 'butterfly', 'christmas tree',
+                       'iron butterfly', 'iron condor']
+
+mod_params = ['S0', 'K1', 'K2', 'K3']
 
 # Dictionary of default parameters
 df_dict = {'df_S':100, 
@@ -52,7 +31,7 @@ df_dict = {'df_S':100,
            'df_K4':105,
            'df_H':105,
            'df_R':0,
-           'df_T':0.5,
+           'df_T':0.25,
            'df_T1':0.25,
            'df_T2':0.25,
            'df_T3':0.25,
@@ -63,12 +42,52 @@ df_dict = {'df_S':100,
            'df_sigma':0.2,
            'df_eta':1,
            'df_phi':1,
+           'df_barrier_direction':'down',
+           'df_knock':'in',    
            'df_option':'call',
            'df_option1':'call',
            'df_option2':'call',
            'df_option3':'call',
-           'df_option4':'call'}
+           'df_option4':'call',
+           'df_direction':'long',
+           'df_value':False,
+           'df_ratio':2,
+           'df_combo':False,
+           'df_delta_shift':25,
+           'df_delta_shift_type':'avg',
+           'df_greek':'delta',
+           'df_interactive':False,
+           'df_notebook':True,
+           'df_colorscheme':'BlueRed',
+           'df_x_plot':'delta',
+           'df_y_plot':'time',
+           'df_time_shift':0.25,
+           'df_cash':False}
 
+
+# Combo parameter values differing from standard defaults
+df_combo_dict = {'collar':{'S0':50,
+                           'K1':49,
+                           'K2':51},
+                 'straddle':{'S0':100,
+                             'K1':100,
+                             'K2':100},
+                 'butterfly':{'S0':100,
+                              'K1':95,
+                              'K2':100,
+                              'K3':105},
+                 'christmas tree':{'S0':100,
+                                   'K1':95,
+                                   'K2':100,
+                                   'K3':105},
+                 'iron butterfly':{'S0':100,
+                                   'K1':95,
+                                   'K2':100,
+                                   'K3':105},
+                 'iron condor':{'S0':100,
+                                'K1':95,
+                                'K2':100,
+                                'K3':100}}
 
 
 class Option():
@@ -79,40 +98,68 @@ class Option():
                  T1=df_dict['df_T1'], T2=df_dict['df_T2'], T3=df_dict['df_T3'], 
                  T4=df_dict['df_T4'],r=df_dict['df_r'], b=df_dict['df_b'], 
                  q=df_dict['df_q'], sigma=df_dict['df_sigma'], eta=df_dict['df_eta'], 
-                 phi=df_dict['df_phi'], option=df_dict['df_option'], option1=df_dict['df_option1'], 
+                 phi=df_dict['df_phi'], barrier_direction=df_dict['df_barrier_direction'], 
+                 knock=df_dict['df_knock'], option=df_dict['df_option'], option1=df_dict['df_option1'], 
                  option2=df_dict['df_option2'], option3=df_dict['df_option3'], 
-                 option4=df_dict['df_option4'], df_dict=df_dict, df_params_list=df_params_list):
+                 option4=df_dict['df_option4'], direction=df_dict['df_direction'], 
+                 value=df_dict['df_value'], ratio=df_dict['df_ratio'], combo=df_dict['df_combo'], 
+                 delta_shift=df_dict['df_delta_shift'],
+                 delta_shift_type=df_dict['df_delta_shift_type'], greek=df_dict['df_greek'], 
+                 interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
+                 colorscheme=df_dict['df_colorscheme'], x_plot=df_dict['df_x_plot'], 
+                 y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
+                 cash=df_dict['df_cash'], df_combo_dict=df_combo_dict, df_dict=df_dict, 
+                 df_params_list=df_params_list, mod_payoffs=mod_payoffs, mod_params=mod_params):
 
-        self.S = S
-        self.S0 = S0
-        self.SA = SA
-        self.K = K
-        self.K1 = K1
-        self.K2 = K2
-        self.K3 = K3
-        self.K4 = K4
+        self.S = S # Spot price
+        self.S0 = S0 # Spot price
+        self.SA = SA # Array of spot prices
+        self.K = K # Strike price
+        self.K1 = K1 # Strike price
+        self.K2 = K2 # Strike price
+        self.K3 = K3 # Strike price
+        self.K4 = K4 # Strike price
         self.H = H # Barrier level
         self.R = R # Rebate
-        self.T = T
-        self.T1 = T1
-        self.T2 = T2
-        self.T3 = T3
-        self.T4 = T4
-        self.r = r
-        self.q = q
-        self.b = self.r - self.q
-        self.sigma = sigma
-        self.eta = eta
-        self.phi = phi
-        self.option = option
-        self.option1 = option1
-        self.option2 = option2
-        self.option3 = option3
-        self.option4 = option4
-        self.df_dict = df_dict
-        self.df_params_list = df_params_list
-                
-    
+        self.T = T # Time to maturity
+        self.T1 = T1 # Time to maturity
+        self.T2 = T2 # Time to maturity
+        self.T3 = T3 # Time to maturity
+        self.T4 = T4 # Time to maturity
+        self.r = r # Interest rate
+        self.q = q # Dividend Yield 
+        self.b = self.r - self.q # Cost of carry
+        self.sigma = sigma # Volatility
+        self.eta = eta # Barrier parameter
+        self.phi = phi # Barrier parameter
+        self.barrier_direction = barrier_direction # Whether strike is up or down
+        self.knock = knock # Whether option knocks in or out
+        self.option = option # Option type, call or put
+        self.option1 = option1 # Option type, call or put
+        self.option2 = option2 # Option type, call or put
+        self.option3 = option3 # Option type, call or put
+        self.option4 = option4 # Option type, call or put
+        self.direction = direction # Payoff direction, long or short
+        self.value = value # Flag whether to plot Intrinsic Value against payoff
+        self.ratio = ratio # Ratio used in Backspread and Ratio Vertical Spread 
+        self.combo = combo # Flag whether to refresh default values in price formula
+        self.delta_shift = delta_shift # Size of shift used in shift_delta function
+        self.delta_shift_type = delta_shift_type # Shift type - Up, Down or Avg
+        self.df_dict = df_dict # Dictionary of parameter defaults
+        self.df_combo_dict = df_combo_dict # Dictionary of payoffs with different default parameters
+        self.df_params_list = df_params_list # List of default parameters
+        self.greek = greek # Option greek to display e.g. delta
+        self.interactive = interactive # Whether to display static mpl 3D graph or plotly interactive graph
+        self.notebook = notebook # Whether running in iPython notebook or not, False creates a popup html page 
+        self.colorscheme = colorscheme # Color palette to use in 3D graphs
+        self.x_plot = x_plot # X-axis in 2D greeks graph
+        self.y_plot = y_plot # Y-axis in 2D greeks graph
+        self.time_shift = time_shift # Time between periods used in 2D greeks graph
+        self.cash = cash # Whether to graph forward at cash or discount
+        self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
+        self.mod_params = mod_params # Parameters of these payoffs that need changing
+        self.combo_payoff = None
+
     
     def _initialise_func(self, **kwargs):
         
@@ -121,6 +168,12 @@ class Option():
         
         return self
 
+    def _initialise_combo(self, **kwargs):
+        self._set_params(**kwargs)
+        self._refresh_dist()
+        
+        return self
+    
 
     def _initialise_barriers(self, **kwargs):
         self._refresh_params(**kwargs)
@@ -131,248 +184,45 @@ class Option():
 
 
     def _refresh_params(self, **kwargs):
-        for k, v in kwargs.items():
-            if v is None:
-                v = df_dict['df_'+str(k)]
-                self.__dict__[k] = v
-            else:
-                self.__dict__[k] = v
 
-        for key in self.df_params_list:
+        if self.combo_payoff in self.mod_payoffs:
+            for k, v in kwargs.items():
+                if v is None:
+                    if k in self.mod_params:
+                        try:
+                            v = self.df_combo_dict[str(self.combo_payoff)][str(k)]
+                        except:
+                            v = df_dict['df_'+str(k)]
+                    if k not in self.mod_params:
+                        v = df_dict['df_'+str(k)]
+                    self.__dict__[k] = v
+                else:
+                    self.__dict__[k] = v
+        
+            
+        else:
+            for k, v in kwargs.items():
+                if v is None:
+                    v = df_dict['df_'+str(k)]
+                    self.__dict__[k] = v
+                else:
+                    self.__dict__[k] = v
+
+        for key in list(set(self.df_params_list) - set(self.mod_params)):
             if key not in kwargs:
-                value = df_dict['df_'+str(key)]
-                self.__dict__[key] = value
+                val = df_dict['df_'+str(key)]
+                self.__dict__[key] = val
                 
         return self        
- 
    
-    def _refresh_params_verbose(self, S=None, S0=None, SA=None, K=None, K1=None, 
-                                K2=None, K3=None, K4=None, H=None, R=None, T=None, 
-                                T1=None, T2=None, T3=None, T4=None, r=None, b=None, 
-                                q=None, sigma=None, eta=None, phi=None, option=None, 
-                                option1=None, option2=None, option3=None, option4=None, 
-                                combo=None):        
-        #arg_dict = locals()
-        #arg_list = [] 
-        #for k, v in arg_dict.items():
-        #    arg_list.append(k)
-            
-        #global val    
-        #for val in arg_list:
-        #    if val is None:
-        #        val = self.val
-        #    else:
-        #        self.val = val
-        
-        if S is None:
-            S = df_dict['df_S']
-            self.S = S
-        else:
-            self.S = S
-        if S0 is None:
-            S0 = df_dict['df_S0']
-            self.S0 = S0
-        else:
-            self.S0 = S0
-        if SA is None:
-            SA = df_dict['df_SA']
-            self.SA = SA
-        else:
-            self.SA = SA
-        if K is None:
-            K = df_dict['df_K']
-            self.K = K
-        else:
-            self.K = K
-        if K1 is None:
-            #if combo == 'iron condor':
-            #    K1 = 90
-            #    self.K1 = K1
-            #if combo == 'collar':
-            #    K1 = 98
-            #    self.K1 = K1
-            #if combo == 'straddle':
-            K1 = 100
-            self.K1 = K1
-            #else:
-            #   K1 = df_dict['df_K1']
-            #    self.K1 = df_dict['df_K1']
-        elif isinstance(K1, (int, float)):
-            self.K1 = K1
-        
-        if K2 is None:
-            #if combo == 'iron condor':
-            #    K2 = 95
-            #    self.K2 = K2
-            #if combo == 'collar':
-            #    K2 = 102
-            #    self.K2 = K2
-            #if combo in ['straddle', 'butterfly', 'christmas tree', 'iron butterfly']:
-            K2 = 100
-            self.K2 = K2
-            #else:
-            #    K2 = df_dict['df_K2']
-            #    self.K2 = df_dict['df_K2']
-        elif isinstance(K2, (int, float)):
-            self.K2 = K2
-        
-        if K3 is None:
-            #if combo in ['iron condor', 'iron butterfly']:
-            #    K3 = 100
-            #    self.K3 = K3
-            #else:
-                K3 = df_dict['df_K3']
-                self.K3 = df_dict['df_K3']
-        else:
-            self.K3 = K3
-        if K4 is None:
-            K4 = df_dict['df_K4']
-            self.K4 = K4       
-        else:
-            self.K4 = K4
-        if H is None:
-            H = df_dict['df_H']
-            self.H = H
-        else:
-            self.H = H
-        if R is None:
-            R = df_dict['df_R']
-            self.R = R
-        else:
-            self.R = R
-        if T is None:
-            T = df_dict['df_T']
-            self.T = T
-        else:
-            self.T = T
-        if T1 is None:
-            T1 = df_dict['df_T1']
-            self.T1 = T1
-        else:
-            self.T1 = T1
-        if T2 is None:
-            T2 = df_dict['df_T2']
-            self.T2 = T2
-        else:
-            self.T2 = T2
-        if T3 is None:
-            T3 = df_dict['df_T3']
-            self.T3 = T3    
-        else:
-            self.T3 = T3    
-        if T4 is None:
-            T4 = df_dict['df_T4']
-            self.T4 = T4    
-        else:
-            self.T4 = T4    
-        if r is None:
-            r = df_dict['df_r']
-            self.r = r
-        else:
-            self.r = r
-        if q is None:
-            q = df_dict['df_q']
-            self.q = q    
-        else:
-            self.q = q    
-        if sigma is None:
-            sigma = df_dict['df_sigma']
-            self.sigma = sigma
-        else:
-            self.sigma = sigma
-        if eta is None:
-            eta = df_dict['df_eta']
-            self.eta = eta
-        else:
-            self.eta = eta
-        if phi is None:
-            phi = df_dict['df_phi']
-            self.phi = phi    
-        else:
-            self.phi = phi    
-        if option is None:
-            option = df_dict['df_option']
-            self.option = option
-        else:
-            self.option = option
-        if option1 is None:
-            option1 = df_dict['df_option1']
-            self.option1 = option1
-        else:
-            self.option1 = option1
-        if option2 is None:
-            option2 = df_dict['df_option2']
-            self.option2 = option2
-        else:
-            self.option2 = option2
-        if option3 is None:
-            option3 = df_dict['df_option3']
-            self.option3 = option3
-        else:
-            self.option3 = option3
-        if option4 is None:
-            option4 = df_dict['df_option4']
-            self.option4 = option4
-        else:
-            self.option4 = option4
     
-        
-    def _set_params(self, S=None, S0=None, SA=None, K=None, K1=None, K2=None, 
-                        K3=None, K4=None, H=None, R=None, T=None, T1=None, T2=None, 
-                        T3=None, T4=None, r=None, b=None, q=None, sigma=None, eta=None, 
-                        phi=None, option=None, option1=None, option2=None, option3=None, 
-                        option4=None, combo=None):
-        if S is not None:
-            self.S = S
-        if S0 is not None:
-            self.S0 = S0
-        if SA is not None:
-            self.SA = SA
-        if K is not None:
-            self.K = K
-        if K1 is not None:
-            self.K1 = K1
-        if K2 is not None:
-            self.K2 = K2
-        if K3 is not None:
-            self.K3 = K3
-        if K4 is not None:
-            self.K4 = K4
-        if H is not None:
-            self.H = H
-        if R is not None:
-            self.R = R
-        if T is not None:
-            self.T = T
-        if T1 is not None:
-            self.T1 = T1
-        if T2 is not None:
-            self.T2 = T2
-        if T3 is not None:
-            self.T3 = T3    
-        if T4 is not None:
-            self.T4 = T4    
-        if r is not None:
-            self.r = r
-        if q is not None:
-            self.q = q    
-        if sigma is not None:
-            self.sigma = sigma
-        if eta is not None:
-            self.eta = eta
-        if phi is not None:
-            self.phi = phi    
-        if option is not None:
-            self.option = option
-        if option1 is not None:
-            self.option1 = option1
-        if option2 is not None:
-            self.option2 = option2
-        if option3 is not None:
-            self.option3 = option3
-        if option4 is not None:
-            self.option4 = option4
+    def _set_params(self, **kwargs):
+        for k, v in kwargs.items():
+            if v is not None:
+                self.__dict__[k] = v
     
+        return self
+       
         
     def _refresh_dist(self):
         
@@ -453,7 +303,8 @@ class Option():
         return self
 
 
-    def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call', combo=False):
+    def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              combo=None):
         """
         Return the Black Scholes Option Price
 
@@ -481,15 +332,15 @@ class Option():
             in combo graphs so the distributions are refreshed but not the parameters.
 
         """
-        if combo == False:
+        if combo == False or combo is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if combo == True:
-            self._refresh_dist()
+            self._initialise_combo(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         
-        if option == "call":
+        if self.option == "call":
             self.opt_price = ((self.S * self.carry * self.Nd1) - 
                               (self.K * np.exp(-self.r * self.T) * self.Nd2))  
-        if option == 'put':
+        if self.option == 'put':
             self.opt_price = ((self.K * np.exp(-self.r * self.T) * self.minusNd2) - 
                               (self.S * self.carry * self.minusNd1))
         
@@ -498,25 +349,26 @@ class Option():
         return self.opt_price
 
 
-    def delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call'):
+    def delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
                     
         self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
                         
-        if option == 'call':
+        if self.option == 'call':
             self.opt_delta = self.carry * self.Nd1
-        if option == 'put':
+        if self.option == 'put':
             self.opt_delta = -self.carry * self.minusNd1
             
         return self.opt_delta
     
     
-    def shift_delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call', 
-                    shift=25, shift_type='avg'):
+    def shift_delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+                    shift=None, shift_type=None):
         
-        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
+        self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                              shift=shift, shift_type=shift_type)
         
-        down_shift = self.S-(shift/10000)*self.S
-        up_shift = self.S+(shift/10000)*self.S
+        down_shift = self.S-(self.shift/10000)*self.S
+        up_shift = self.S+(self.shift/10000)*self.S
         opt_price = self.price(S=self.S, K=self.K, T=self.T, r=self.r, q=self.q, 
                                sigma=self.sigma, option=self.option)
         op_shift_down = self.price(S=down_shift, K=self.K, T=self.T, r=self.r, 
@@ -524,25 +376,25 @@ class Option():
         op_shift_up = self.price(S=up_shift, K=self.K, T=self.T, r=self.r, q=self.q, 
                                  sigma=self.sigma, option=self.option)
                 
-        if shift_type == 'up':
+        if self.shift_type == 'up':
             self.opt_delta_shift = (op_shift_up - opt_price) * 4
-        if shift_type == 'down':
+        if self.shift_type == 'down':
             self.opt_delta_shift = (opt_price - op_shift_down) * 4
-        if shift_type == 'avg':    
+        if self.shift_type == 'avg':    
             self.opt_delta_shift = (op_shift_up - op_shift_down) * 2
         
         return self.opt_delta_shift
     
     
-    def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call'):
+    def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
         
         self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
     
-        if option == 'call':
+        if self.option == 'call':
             self.opt_theta = ((-self.S * self.carry * self.nd1 * self.sigma ) / 
                               (2 * np.sqrt(self.T)) - (self.b - self.r) * self.S * self.carry * 
                               self.Nd1 - self.r * self.K * np.exp(-self.r * self.T) * self.Nd2)
-        if option == 'put':   
+        if self.option == 'put':   
             self.opt_theta = ((-self.S * self.carry * self.nd1 * self.sigma ) / 
                               (2 * np.sqrt(self.T)) + (self.b - self.r) * self.S * self.carry * 
                               self.minusNd1 + self.r * self.K * np.exp(-self.r * self.T) * self.minusNd2)
@@ -569,13 +421,13 @@ class Option():
         return self.opt_vega
     
     
-    def rho(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call'):
+    def rho(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
                 
         self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         
-        if option == 'call':
+        if self.option == 'call':
             self.opt_rho = self.T * self.K * np.exp(-self.r * self.T) * self.Nd2
-        if option == 'put':
+        if self.option == 'put':
             self.opt_rho = -self.T * self.K * np.exp(-self.r * self.T) * self.minusNd2
             
         return self.opt_rho
@@ -593,17 +445,17 @@ class Option():
         return self.opt_vanna               
            
 
-    def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option='call'):
+    def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None):
         # aka DdeltaDtime, Delta Bleed 
         # how much delta will change due to a small change in time        
         
         self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         
-        if option == 'call':
+        if self.option == 'call':
             self.opt_charm = (-self.carry * ((self.nd1 * ((self.b / (self.sigma * np.sqrt(self.T))) - 
                                                           (self.d2 / (2 * self.T)))) + 
                                              ((self.b - self.r) * self.Nd1)))
-        if option == 'put':
+        if self.option == 'put':
             self.opt_charm = (-self.carry * ((self.nd1 * ((self.b / (self.sigma * np.sqrt(self.T))) - 
                                                           (self.d2 / (2 * self.T)))) - 
                                              ((self.b - self.r) * self.minusNd1)))
@@ -679,20 +531,21 @@ class Option():
         self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         
         self.opt_vega_bleed = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma) * 
-                           (self.r - self.b + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) - 
-                            ((1 + (self.d1 * self.d2) ) / (2 * self.T))))
+                               (self.r - self.b + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) - 
+                                ((1 + (self.d1 * self.d2) ) / (2 * self.T))))
 
         return self.opt_vega_bleed
 
 
 
     def barrier_price(self, S=None, K=None, H=None, R=None, T=None, r=None, q=None, 
-                       sigma=None, direction='down', knock='in', option='call'):
+                       sigma=None, barrier_direction=None, knock=None, option=None):
         
         self._initialise_barriers(S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                                  barrier_direction=barrier_direction, knock=knock, 
                                   option=option)
         
-        if direction == 'down' and knock == 'in' and option == 'call':
+        if self.barrier_direction == 'down' and self.knock == 'in' and self.option == 'call':
             self.eta = 1
             self.phi = 1
         
@@ -702,7 +555,7 @@ class Option():
                 self.opt_barrier_payoff = self.A - self.B + self.D + self.E
             
 
-        if direction == 'up' and knock == 'in' and option == 'call':
+        if self.barrier_direction == 'up' and self.knock == 'in' and self.option == 'call':
             self.eta = -1
             self.phi = 1
             
@@ -712,7 +565,7 @@ class Option():
                 self.opt_barrier_payoff = self.B - self.C + self.D + self.E
 
 
-        if direction == 'down' and knock == 'in' and option == 'put':
+        if self.barrier_direction == 'down' and self.knock == 'in' and self.option == 'put':
             self.eta = 1
             self.phi = -1
             
@@ -722,7 +575,7 @@ class Option():
                 self.opt_barrier_payoff = self.A + self.E
                 
          
-        if direction == 'up' and knock == 'in' and option == 'put':
+        if self.barrier_direction == 'up' and self.knock == 'in' and self.option == 'put':
             self.eta = -1
             self.phi = -1
         
@@ -732,7 +585,7 @@ class Option():
                 self.opt_barrier_payoff = self.C + self.E
                 
 
-        if direction == 'down' and knock == 'out' and option == 'call':
+        if self.barrier_direction == 'down' and self.knock == 'out' and self.option == 'call':
             self.eta = 1
             self.phi = 1
         
@@ -742,7 +595,7 @@ class Option():
                 self.opt_barrier_payoff = self.B - self.D + self.F
             
 
-        if direction == 'up' and knock == 'out' and option == 'call':
+        if self.barrier_direction == 'up' and self.knock == 'out' and self.option == 'call':
             self.eta = -1
             self.phi = 1
             
@@ -752,7 +605,7 @@ class Option():
                 self.opt_barrier_payoff = self.A - self.B + self.C - self.D + self.F
 
 
-        if direction == 'down' and knock == 'out' and option == 'put':
+        if self.barrier_direction == 'down' and self.knock == 'out' and self.option == 'put':
             self.eta = 1
             self.phi = -1
             
@@ -762,7 +615,7 @@ class Option():
                 self.opt_barrier_payoff = self.F
                 
          
-        if direction == 'up' and knock == 'out' and option == 'put':
+        if self.barrier_direction == 'up' and self.knock == 'out' and self.option == 'put':
             self.eta = -1
             self.phi = -1
         
@@ -775,9 +628,9 @@ class Option():
 
 
 
-    def _vis_payoff(self, S0, SA, payoff, label, title='Option Payoff', payoff2=None, 
-                    label2=None, payoff3=None, label3=None, payoff4=None, label4=None, 
-                    xlabel='Stock Price', ylabel='P&L'):
+    def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
+                    payoff2=None, label2=None, payoff3=None, label3=None, payoff4=None, 
+                    label4=None, xlabel='Stock Price', ylabel='P&L'):
        
         fig, ax = plt.subplots()
         ax.plot(SA, payoff, color='blue', label=label)
@@ -798,7 +651,7 @@ class Option():
         plt.show()
     
     
-    def _vis_greeks_mpl(self, S0, xarray1=None, xarray2=None, xarray3=None, 
+    def _vis_greeks_mpl(self, S0=None, xarray1=None, xarray2=None, xarray3=None, 
                         xarray4=None, yarray1=None, yarray2=None, yarray3=None, 
                         yarray4=None, label1=None, label2=None, label3=None, label4=None, 
                         xlabel=None, ylabel=None, title='Payoff'):
@@ -815,8 +668,11 @@ class Option():
         plt.show()
    
     
-    def greeks_graphs_3D(self, S0=100, r=0.01, q=0, sigma=0.2, greek='delta', option='call', 
-                         interactive=False, notebook=True, colorscheme='BlueRed'):
+    def greeks_graphs_3D(self, S0=None, r=None, q=None, sigma=None, greek=None, option=None, 
+                         interactive=None, notebook=None, colorscheme=None):
+
+        self._initialise_func(S0=S0, r=r, q=q, sigma=sigma, greek=greek, option=option, 
+                         interactive=interactive, notebook=notebook, colorscheme=colorscheme)
 
         self.TA_lower = 0.01
 
@@ -824,144 +680,149 @@ class Option():
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 1
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.price(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
+            self.z = self.price(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                option=self.option)
 
         if greek == 'delta':
             self.SA_lower = 0.25
             self.SA_upper = 1.75
             self.TA_upper = 2
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.delta(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
+            self.z = self.delta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                option=self.option)
 
         if greek == 'gamma':
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.gamma(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
+            self.z = self.gamma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
 
         if greek == 'vega':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vega(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
+            self.z = self.vega(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
 
         if greek == 'theta':    
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 1
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.theta(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
+            self.z = self.theta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                option=self.option)
             
         if greek == 'rho':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.rho(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)    
+            self.z = self.rho(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                              option=self.option)    
 
         if greek == 'vomma':               
-            option = 'Call / Put'
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vomma(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
+            self.z = self.vomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
 
         if greek == 'vanna':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vanna(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
+            self.z = self.vanna(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
 
         if greek == 'zomma':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.zomma(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)
+            self.z = self.zomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)
             
         if greek == 'speed':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.speed(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)    
+            self.z = self.speed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)    
 
         if greek == 'color':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.color(S=self.x, K=S0, T=self.y, r=r, sigma=sigma) 
+            self.z = self.color(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma) 
             
         if greek == 'ultima':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.ultima(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)     
+            self.z = self.ultima(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)     
 
         if greek == 'vega bleed':               
             self.SA_lower = 0.5
             self.SA_upper = 1.5
             self.TA_upper = 1
-            option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.option = 'Call / Put'
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.vega_bleed(S=self.x, K=S0, T=self.y, r=r, sigma=sigma)   
+            self.z = self.vega_bleed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma)   
 
         if greek == 'charm':               
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.25
-            self.SA = np.linspace(self.SA_lower * S0, self.SA_upper * S0, 100)
+            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
             self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
             self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.z = self.charm(S=self.x, K=S0, T=self.y, r=r, sigma=sigma, option=option)
+            self.z = self.charm(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
+                                option=self.option)
 
-        if option == 'Call / Put':
-            titlename = str(option+' Option '+str(greek.title()))
+        if self.option == 'Call / Put':
+            titlename = str(self.option+' Option '+str(self.greek.title()))
         else:    
-            titlename = str(str(option.title())+' Option '+str(greek.title()))
+            titlename = str(str(self.option.title())+' Option '+str(self.greek.title()))
 
 
-        if interactive == False:
+        if self.interactive == False:
         
             fig = plt.figure(figsize=(8, 6))
             ax = fig.add_subplot(111, projection='3d')
@@ -976,12 +837,12 @@ class Option():
             ax.invert_xaxis()
             ax.set_xlabel('Underlying Value', fontsize=12)
             ax.set_ylabel('Time to Expiration', fontsize=12)
-            ax.set_zlabel(str(greek.title()), fontsize=12)
+            ax.set_zlabel(str(self.greek.title()), fontsize=12)
             ax.set_title(titlename, fontsize=14)
             plt.show()
 
 
-        if interactive == True:
+        if self.interactive == True:
             
             contour_x_start = self.TA_lower
             contour_x_stop = self.TA_upper * 360
@@ -997,7 +858,7 @@ class Option():
             fig = go.Figure(data=[go.Surface(x=self.y*365, 
                                              y=self.x, 
                                              z=self.z, 
-                                             colorscale=colorscheme, 
+                                             colorscale=self.colorscheme, 
                                              contours = {"x": {"show": True, "start": contour_x_start, 
                                                                "end": contour_x_stop, "size": contour_x_size, "color":"white"},            
                                                          "y": {"show": True, "start": contour_y_start, 
@@ -1008,8 +869,6 @@ class Option():
             camera = dict(
                 eye=dict(x=2, y=1, z=1)
             )
-            
-            
             
             
             fig.update_scenes(xaxis_autorange="reversed")
@@ -1032,130 +891,139 @@ class Option():
                                     zerolinecolor="white",),
                                 xaxis_title='Time to Expiration (Days)',
                                 yaxis_title='Underlying Value',
-                                zaxis_title=str(greek.title()),),
+                                zaxis_title=str(self.greek.title()),),
                               title=titlename, autosize=False, 
                               width=800, height=800,
                               margin=dict(l=65, r=50, b=65, t=90),
                              scene_camera=camera)
             
-            if notebook == True:
+            if self.notebook == True:
                 fig.show()
             else:
                 plot(fig, auto_open=True)
  
     
-    def greeks_graphs_2D(self, x='delta', y='price', S0=100, T=0.25, T1=0.25, T2=0.5, 
-                         r=0.01, q=0, sigma=0.2, option='call'):
-                
-        if x == 'value':
-            if y == 'price':
-                self.value_price(S0=S0, T=T, r=r, q=q, sigma=sigma, option=option)
-            if y == 'vol':
-                self.value_vol(S0=S0, T=T, r=r, q=q, option=option)
-            if y == 'time':
-                self.value_time(S0=S0, r=r, q=q, sigma=sigma, option=option)
+    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, T=None, time_shift=None,
+                         r=None, q=None, sigma=None, option=None):
         
-        if x == 'delta':
-            if y == 'price':
-                self.delta_price(S0=S0, T=T, r=r, q=q, sigma=sigma, option=option)
-            if y == 'vol':
-                self.delta_vol(S0=S0, T=T, r=r, q=q, option=option)
-            if y == 'time':
-                self.delta_time(S0=S0, r=r, q=q, sigma=sigma, option=option)
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, T=T, time_shift=time_shift, 
+                              r=r, q=q, sigma=sigma, option=option)
         
-        if x == 'gamma':
-            if y == 'price':
-                self.gamma_price(S0=S0, T=T, r=r, q=q, sigma=sigma)
-            if y == 'vol':
-                self.gamma_vol(S0=S0, T=T, r=r, q=q)
-            if y == 'time':
-                self.gamma_time(S0=S0, r=r, q=q, sigma=sigma)
+        if self.x_plot == 'value':
+            if self.y_plot == 'price':
+                self.value_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
+                                 option=self.option)
+            if self.y_plot == 'vol':
+                self.value_vol(S0=self.S0, T=self.T, r=self.r, q=self.q, option=option)
+            if self.y_plot == 'time':
+                self.value_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
+                                option=self.option)
         
-        if x == 'vega':
-            if y == 'price':
-                self.vega_price(S0=S0, T=T, r=r, q=q, sigma=sigma)
-            if y == 'vol':
-                self.vega_vol(S0=S0, T=T, r=r, q=q)
-            if y == 'time':
-                self.vega_time(S0=S0, r=r, q=q, sigma=sigma)  
+        if self.x_plot == 'delta':
+            if self.y_plot == 'price':
+                self.delta_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
+                                 option=self.option)
+            if self.y_plot == 'vol':
+                self.delta_vol(S0=self.S0, T=self.T, r=self.r, q=self.q, option=option)
+            if self.y_plot == 'time':
+                self.delta_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
+                                option=self.option)
         
-        if x == 'theta':
-            if y == 'price':
-                self.theta_price(S0=S0, T=T, r=r, q=q, sigma=sigma, option=option)
-            if y == 'vol':
-                self.theta_vol(S0=S0, T=T, r=r, q=q, option=option)
-            if y == 'time':
-                self.theta_time(S0=S0, r=r, q=q, sigma=sigma, option=option)
+        if self.x_plot == 'gamma':
+            if self.y_plot == 'price':
+                self.gamma_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma)
+            if self.y_plot == 'vol':
+                self.gamma_vol(S0=self.S0, T=self.T, r=self.r, q=self.q)
+            if self.y_plot == 'time':
+                self.gamma_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma)
         
-        if x == 'rho':
-            if y == 'price':
-                self.rho_price(S0=S0, T1=T1, T2=T2, r=r, q=q, sigma=sigma)
-            if y == 'vol':
-                self.rho_vol(S0=S0, T1=T1, T2=T2, r=r, q=q)
+        if self.x_plot == 'vega':
+            if self.y_plot == 'price':
+                self.vega_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma)
+            if self.y_plot == 'vol':
+                self.vega_vol(S0=self.S0, T=self.T, r=self.r, q=self.q)
+            if self.y_plot == 'time':
+                self.vega_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma)  
+        
+        if self.x_plot == 'theta':
+            if self.y_plot == 'price':
+                self.theta_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
+                                 option=self.option)
+            if self.y_plot == 'vol':
+                self.theta_vol(S0=self.S0, T=self.T, r=self.r, q=self.q, option=option)
+            if self.y_plot == 'time':
+                self.theta_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
+                                option=self.option)
+        
+        if self.x_plot == 'rho':
+            if self.y_plot == 'price':
+                self.rho_price(S0=self.S0, T1=self.T, T2=self.T+self.time_shift, 
+                               r=self.r, q=self.q, sigma=self.sigma)
+            if self.y_plot == 'vol':
+                self.rho_vol(S0=self.S0, T1=self.T, T2=self.T+self.time_shift, 
+                               r=self.r, q=self.q)
     
 
+        
     def payoff_graphs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
-                      T=None, r=None, q=None, sigma=None, direction='long', option='call', 
-                      value=False, combo='straddle'):
-        
-        self._initialise_func(S0=S0, K=K, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, 
-                              q=q, sigma=sigma, combo=combo)
-        
-        if combo == 'call':
+                      T=None, r=None, q=None, sigma=None, option=None, direction=None, 
+                      cash=None, value=None, combo_payoff=None):
+       
+        if combo_payoff == 'call':
             self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                       value=value)
         
-        if combo == 'put':
+        if combo_payoff == 'put':
             self.put(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                       value=value)
         
-        if combo == 'stock':
+        if combo_payoff == 'stock':
             self.stock(S0=S0, direction=direction)
         
-        if combo == 'forward':
+        if combo_payoff == 'forward':
             self.forward(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
-                         value=value)
+                         cash=cash)
         
-        if combo == 'collar':
+        if combo_payoff == 'collar':
             self.collar(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                         value=value)
         
-        if combo == 'spread':
-            self.spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                        option=option, value=value)
+        if combo_payoff == 'spread':
+            self.spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+                        direction=direction, value=value)
             
-        if combo == 'backspread':
-            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                            option=option, value=value)
+        if combo_payoff == 'backspread':
+            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+                            value=value)
         
-        if combo == 'ratio vertical spread':
+        if combo_payoff == 'ratio vertical spread':
             self.ratio_vertical_spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
-                                       direction=direction, option=option, value=value)
+                                       option=option, value=value)
         
-        if combo == 'straddle':
-            self.straddle(S0=self.S0, K1=self.K, K2=self.K, T=self.T, r=self.r, 
-                          q=self.q, sigma=self.sigma, direction=direction, value=value)
+        if combo_payoff == 'straddle':
+            self.straddle(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                          value=value)
 
-        if combo == 'strangle':
-            self.strangle(S0=self.S0, K1=self.K1, K2=self.K2, T=self.T, r=self.r, 
-                          q=self.q, sigma=self.sigma, direction=direction, value=value)
+        if combo_payoff == 'strangle':
+            self.strangle(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                          value=value)
         
-        if combo == 'butterfly':    
+        if combo_payoff == 'butterfly':    
             self.butterfly(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                           direction=direction, option=option, value=value)
+                           option=option, direction=direction, value=value)
         
-        if combo == 'christmas tree':
+        if combo_payoff == 'christmas tree':
             self.christmas_tree(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                                direction=direction, option=option, value=value)    
+                                option=option, direction=direction, value=value)    
         
-        if combo == 'iron butterfly':
+        if combo_payoff == 'iron butterfly':
             self.iron_butterfly(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
                                 sigma=sigma, direction=direction, value=value)
             
-        if combo == 'iron condor':
+        if combo_payoff == 'iron condor':
             self.iron_condor(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                             sigma=sigma, direction=direction, option=option, value=value)    
-                
+                             sigma=sigma, option=option, direction=direction, value=value)
+            
     
     def value_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
         
@@ -1538,22 +1406,27 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
     
-    def call(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', value=False):
+    def call(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
         
-        self._return_options(legs=1, S0=S0, K1=K, T1=T, r=r, q=q, sigma=sigma, option1='call')
+        self.combo_payoff = 'call'
         
-        if direction == 'long':
+        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, value=value)
+        
+        self._return_options(legs=1, S0=self.S0, K1=self.K, T1=self.T, r=self.r, 
+                             q=self.q, sigma=self.sigma, option1='call')
+        
+        if self.direction == 'long':
             payoff = self.C1 - self.C1_0
             title = 'Long Call'
-            if value == True:
+            if self.value == True:
                 payoff2 = self.C1_G - self.C1_0
             else:
                 payoff2 = None
 
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.C1 + self.C1_0
             title = 'Short Call'
-            if value == True:
+            if self.value == True:
                 payoff2 = -self.C1_G + self.C1_0
             else:
                 payoff2 = None
@@ -1562,22 +1435,27 @@ class Option():
                          label='Payoff', label2='Value')   
                 
         
-    def put(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', value=False):
+    def put(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
         
-        self._return_options(legs=1, S0=S0, K1=K, T1=T, r=r, q=q, sigma=sigma, option1='put')
+        self.combo_payoff = 'put'
         
-        if direction == 'long':
+        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, value=value)
+        
+        self._return_options(legs=1, S0=self.S0, K1=self.K, T1=self.T, r=self.r, 
+                             q=self.q, sigma=self.sigma, option1='put')
+        
+        if self.direction == 'long':
             payoff = self.C1 - self.C1_0
             title = 'Long Put'
-            if value == True:
+            if self.value == True:
                 payoff2 = self.C1_G - self.C1_0
             else:
                 payoff2 = None
 
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.C1 + self.C1_0
             title = 'Short Put'
-            if value == True:
+            if self.value == True:
                 payoff2 = -self.C1_G + self.C1_0
             else:
                 payoff2 = None
@@ -1586,116 +1464,144 @@ class Option():
                          label='Payoff', label2='Value')   
                
         
-    def stock(self, S0=100, direction='long'):
+    def stock(self, S0=None, direction=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self.combo_payoff = 'stock'
         
-        if direction == 'long':
-            payoff = self.SA - S0
+        self._initialise_func(S0=S0, direction=direction)
+        
+        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
+        
+        if self.direction == 'long':
+            payoff = self.SA - self.S0
             title = 'Long Stock'
-        if direction == 'short':
-            payoff = S0 - self.SA
+        if self.direction == 'short':
+            payoff = self.S0 - self.SA
             title = 'Short Stock'
         
-        self._vis_payoff(S0=S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)     
+        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)     
             
     
-    def forward(self, S0=100, K=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', cash=False):
+    def forward(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+                cash=None):
         
-        self._return_options(legs=2, S0=S0, K1=K, K2=K, T1=T, T2=T, option1='call', option2='put')
+        self.combo_payoff = 'forward'
         
-        if cash == False:
+        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, cash=cash)
+        
+        self._return_options(legs=2, S0=self.S0, K1=self.K, K2=self.K, T1=self.T, 
+                             T2=self.T, option1='call', option2='put')
+        
+        if self.cash == False:
             pv = 1
         else:
             pv = self.discount
         
-        if direction == 'long':
+        if self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C1_0 + self.C2_0) * pv
             title = 'Long Forward'
             
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.C1 + self.C2 + self.C1_0 - self.C2_0 * pv
             title = 'Short Forward'
         
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)
     
     
-    def collar(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, sigma=0.2, 
-               direction='long', value=False):
-       
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, option1='put', 
-                             option2='call')
+    def collar(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+               direction=None, value=None):
         
-        if direction == 'long':
+        self.combo_payoff = 'collar'
+        
+        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
+                              direction=direction, value=value)
+
+        self._return_options(legs=2, S0=self.S0, K1=self.K1, K2=self.K2, T1=self.T, 
+                             T2=self.T, option1='put', option2='call')
+        
+        if self.direction == 'long':
             payoff = self.SA - self.S0 + self.C1 - self.C2 - self.C1_0 + self.C2_0
             title = 'Long Collar'
-            if value == True:
+            if self.value == True:
                 payoff2 = self.SA - self.S0 + self.C1_G - self.C2_G - self.C1_0 + self.C2_0
             else:
                 payoff2 = None
                 
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.SA + self.S0 - self.C1 + self.C2 + self.C1_0 - self.C2_0
             title = 'Short Collar'
-            if value == True:
+            if self.value == True:
                 payoff2 = -self.SA + self.S0 - self.C1_G + self.C2_G + self.C1_0 - self.C2_0
             else:
                 payoff2 = None
+        
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
 
     
     
-    def spread(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, sigma=0.2, option='call', 
-               direction='long', value=False):
+    def spread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+               option=None, direction=None, value=None):
         
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, option1=option, option2=option)
+        self.combo_payoff = 'spread'
+        
+        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+                              direction=direction, value=value)
+        
+        self._return_options(legs=2, S0=self.S0, K1=self.K1, K2=self.K2, T1=self.T, 
+                             T2=self.T, option1=self.option, option2=self.option)
  
-        if direction == 'long':        
+        if self.direction == 'long':        
             payoff = self.C1 - self.C2 - self.C1_0 + self.C2_0
-            if value == True:
+            if self.value == True:
                 payoff2 = self.C1_G - self.C2_G - self.C1_0 + self.C2_0
             else:
                 payoff2 = None
                 
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.C1 + self.C2 + self.C1_0 - self.C2_0
-            if value == True:
+            if self.value == True:
                 payoff2 = -self.C1_G + self.C2_G + self.C1_0 - self.C2_0
             else:
                 payoff2 = None
                 
-        if option == 'call' and direction == 'long':
+        if self.option == 'call' and self.direction == 'long':
             title = 'Bull Call Spread'
-        if option == 'put' and direction == 'long':
+        if self.option == 'put' and self.direction == 'long':
             title = 'Bull Put Spread'
-        if option == 'call' and direction == 'short':
+        if self.option == 'call' and self.direction == 'short':
             title = 'Bear Call Spread'
-        if option == 'put' and direction == 'short':
+        if self.option == 'put' and self.direction == 'short':
             title = 'Bear Put Spread' 
         
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
         
    
-    def backspread(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, sigma=0.2, 
-                   option='call', ratio=2, value=False):
+    def backspread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+                   option=None, ratio=None, value=None):
 
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, option1=option, option2=option)
+        self.combo_payoff = 'backspread'
+
+        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+                              ratio=ratio, value=value)
         
-        if option == 'call':
+        self._return_options(legs=2, S0=self.S0, K1=self.K1, K2=self.K2, T1=self.T, 
+                             T2=self.T, option1=self.option, option2=self.option)
+        
+        if self.option == 'call':
             title = 'Call Backspread'
-            payoff = -self.C1 + (ratio * self.C2) + self.C1_0 - (ratio * self.C2_0)
-            if value == True:
-                payoff2 = -self.C1_G + (ratio * self.C2_G) + self.C1_0 - (ratio * self.C2_0)
+            payoff = -self.C1 + (self.ratio * self.C2) + self.C1_0 - (self.ratio * self.C2_0)
+            if self.value == True:
+                payoff2 = -self.C1_G + (self.ratio * self.C2_G) + self.C1_0 - (self.ratio * self.C2_0)
             else:
                 payoff2 = None
         
-        if option == 'put':
-            payoff = ratio * self.C1 - self.C2 - ratio*self.C1_0 + self.C2_0
+        if self.option == 'put':
+            payoff = self.ratio * self.C1 - self.C2 - self.ratio * self.C1_0 + self.C2_0
             title = 'Put Backspread'
-            if value == True:
-                payoff2 = ratio * self.C1_G - self.C2_G - ratio * self.C1_0 + self.C2_0
+            if self.value == True:
+                payoff2 = self.ratio * self.C1_G - self.C2_G - self.ratio * self.C1_0 + self.C2_0
             else:
                 payoff2 = None
                 
@@ -1703,24 +1609,30 @@ class Option():
                          label='Payoff', label2='Value')
         
         
-    def ratio_vertical_spread(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, 
-                              sigma=0.2, option='call', value=False):
+    def ratio_vertical_spread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, 
+                              sigma=None, option=None, ratio=None, value=None):
 
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, option1=option, option2=option)
+        self.combo_payoff = 'ratio vertical spread'
+
+        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+                              ratio=ratio, value=value)
         
-        if option == 'call':
+        self._return_options(legs=2, S0=self.S0, K1=self.K1, K2=self.K2, T1=self.T, 
+                             T2=self.T, option1=self.option, option2=self.option)
+        
+        if self.option == 'call':
             title = 'Call Ratio Vertical Spread'
-            payoff = self.C1 - 2*self.C2 - self.C1_0 + 2*self.C2_0
-            if value == True:
-                payoff2 = self.C1_G - 2*self.C2_G - self.C1_0 + 2*self.C2_0
+            payoff = self.C1 - self.ratio * self.C2 - self.C1_0 + self.ratio * self.C2_0
+            if self.value == True:
+                payoff2 = self.C1_G - self.ratio * self.C2_G - self.C1_0 + self.ratio * self.C2_0
             else:
                 payoff2 = None
 
-        if option == 'put':
+        if self.option == 'put':
             title = 'Put Ratio Vertical Spread'
-            payoff = -2*self.C1 + self.C2 + 2*self.C1_0 - self.C2_0
-            if value == True:
-                payoff2 = -2*self.C1_G + self.C2_G + 2*self.C1_0 - self.C2_0
+            payoff = -self.ratio * self.C1 + self.C2 + self.ratio * self.C1_0 - self.C2_0
+            if self.value == True:
+                payoff2 = -self.ratio * self.C1_G + self.C2_G + self.ratio * self.C1_0 - self.C2_0
             else:
                 payoff2 = None
         
@@ -1728,24 +1640,30 @@ class Option():
                          label='Payoff', label2='Value')
         
     
-    def straddle(self, S0=100, K1=100, K2=100, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', 
-                 value=False):
+    def straddle(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+                 value=None):
        
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, r=r, q=q, 
-                             sigma=sigma, option1='call', option2='put')
+        self.combo_payoff = 'straddle'
         
-        if direction == 'long':
+        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                              value=value)
+                
+        self._return_options(legs=2, S0=self.S0, K1=self.K, K2=self.K, T1=self.T, 
+                             T2=self.T, r=self.r, q=self.q, sigma=self.sigma, 
+                             option1='call', option2='put')
+        
+        if self.direction == 'long':
             payoff = self.C1 + self.C2 - self.C1_0 - self.C2_0
             title = 'Long Straddle'
-            if value == True:
+            if self.value == True:
                 payoff2 = self.C1_G + self.C2_G - self.C1_0 - self.C2_0
             else:
                 payoff2 = None
                         
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.C1 - self.C2 + self.C1_0 + self.C2_0
             title = 'Short Straddle'
-            if value == True:
+            if self.value == True:
                 payoff2 = -self.C1_G - self.C2_G + self.C1_0 + self.C2_0
             else:
                 payoff2 = None
@@ -1754,24 +1672,30 @@ class Option():
                          payoff2=payoff2, label='Payoff', label2='Value')    
   
     
-    def strangle(self, S0=100, K1=95, K2=105, T=0.25, r=0.05, q=0, sigma=0.2, direction='long', 
-                 value=False):
-                
-        self._return_options(legs=2, S0=S0, K1=K1, K2=K2, T1=T, T2=T, r=r, q=q, 
-                             sigma=sigma, option1='put', option2='call')
+    def strangle(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+                 direction=None, value=None):
         
-        if direction == 'long':
+        self.combo_payoff = 'strangle'
+        
+        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                              value=value)
+        
+        self._return_options(legs=2, S0=self.S0, K1=self.K1, K2=self.K2, T1=self.T, 
+                             T2=self.T, r=self.r, q=self.q, sigma=self.sigma, option1='put', 
+                             option2='call')
+        
+        if self.direction == 'long':
             payoff = self.C1 + self.C2 - self.C1_0 - self.C2_0
             title = 'Long Strangle'
-            if value == True:
+            if self.value == True:
                 payoff2 = self.C1_G + self.C2_G - self.C1_0 - self.C2_0
             else:
                 payoff2 = None
         
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = -self.C1 - self.C2 + self.C1_0 + self.C2_0
             title = 'Short Strangle'
-            if value == True:
+            if self.value == True:
                 payoff2 = -self.C1_G - self.C2_G + self.C1_0 + self.C2_0
             else:
                 payoff2 = None
@@ -1780,75 +1704,87 @@ class Option():
                          label='Payoff', label2='Value')    
 
 
-    def butterfly(self, S0=100, K1=95, K2=100, K3=105, T=0.25, r=0.05, q=0, sigma=0.2, 
-                  option='call', direction='long', value=False):
+    def butterfly(self, S0=None, K1=None, K2=None, K3=None, T=None, r=None, q=None, 
+                  sigma=None, option=None, direction=None, value=None):
         
-        self._return_options(legs=3, S0=S0, K1=K1, K2=K2, K3=K3, T1=T, T2=T, T3=T, 
-                             r=r, q=q, sigma=sigma, option1=option, option2=option, 
-                             option3=option)
+        self.combo_payoff = 'butterfly'
         
-        if direction == 'long':
+        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+                              option=option, direction=direction, value=value)
+        
+        self._return_options(legs=3, S0=self.S0, K1=self.K1, K2=self.K2, K3=self.K3, 
+                             T1=self.T, T2=self.T, T3=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option1=self.option, option2=self.option, 
+                             option3=self.option)
+        
+        if self.direction == 'long':
             payoff = (self.C1 - 2*self.C2 + self.C3 - self.C1_0 + 2*self.C2_0 - self.C3_0)
-            if value == True:
+            if self.value == True:
                 payoff2 = (self.C1_G - 2*self.C2_G + self.C3_G - self.C1_0 + 2*self.C2_0 - self.C3_0)
             else:
                 payoff2 = None
                 
-        if direction == 'short':    
+        if self.direction == 'short':    
             payoff = (-self.C1 + 2*self.C2 - self.C3 + self.C1_0 - 2*self.C2_0 + self.C3_0)
-            if value == True:
+            if self.value == True:
                 payoff = (-self.C1_G + 2*self.C2_G - self.C3_G + self.C1_0 - 2*self.C2_0 + self.C3_0)
             else:
                 payoff2 = None
     
-        if option == 'call' and direction == 'long':
+        if self.option == 'call' and self.direction == 'long':
             title = 'Long Butterfly with Calls'
-        if option == 'put' and direction == 'long':
+        if self.option == 'put' and self.direction == 'long':
             title = 'Long Butterfly with Puts'
-        if option == 'call' and direction == 'short':
+        if self.option == 'call' and self.direction == 'short':
             title = 'Short Butterfly with Calls'
-        if option == 'put' and direction == 'short':
+        if self.option == 'put' and self.direction == 'short':
             title = 'Short Butterfly with Puts'
                 
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
 
 
-    def christmas_tree(self, S0=100, K1=95, K2=100, K3=105, T=0.25, r=0.05, q=0, 
-                       sigma=0.2, option='call', direction='long', value=False):
+    def christmas_tree(self, S0=None, K1=None, K2=None, K3=None, T=None, r=None, 
+                       q=None, sigma=None, option=None, direction=None, value=None):
         
-        self._return_options(legs=3, S0=S0, K1=K1, K2=K2, K3=K3, T1=T, T2=T, T3=T, 
-                             r=r, q=q, sigma=sigma, option1=option, option2=option, 
-                             option3=option)
+        self.combo_payoff = 'christmas tree'
         
-        if option == 'call' and direction == 'long':
+        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+                              option=option, direction=direction, value=value)
+        
+        self._return_options(legs=3, S0=self.S0, K1=self.K1, K2=self.K2, K3=self.K3, 
+                             T1=self.T, T2=self.T, T3=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option1=self.option, option2=self.option, 
+                             option3=self.option)
+        
+        if self.option == 'call' and self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C3 - self.C1_0 + self.C2_0 + self.C3_0)
             title = 'Long Christmas Tree with Calls'
-            if value == True:
+            if self.value == True:
                 payoff2 = (self.C1_G - self.C2_G - self.C3_G - self.C1_0 + self.C2_0 + self.C3_0)
             else:
                 payoff2 = None
                 
-        if option == 'put' and direction == 'long':
+        if self.option == 'put' and self.direction == 'long':
             payoff = (-self.C1 - self.C2 + self.C3 + self.C1_0 + self.C2_0 - self.C3_0)
             title = 'Long Christmas Tree with Puts'
-            if value == True:
+            if self.value == True:
                 payoff2 = (-self.C1_G - self.C2_G + self.C3_G + self.C1_0 + self.C2_0 - self.C3_0)
             else:
                 payoff2 = None
             
-        if option == 'call' and direction == 'short':
+        if self.option == 'call' and self.direction == 'short':
             payoff = (-self.C1 + self.C2 + self.C3 + self.C1_0 - self.C2_0 - self.C3_0)
             title = 'Short Christmas Tree with Calls'
-            if value == True:
+            if self.value == True:
                 payoff2 = (-self.C1_G + self.C2_G + self.C3_G + self.C1_0 - self.C2_0 - self.C3_0)
             else:
                 payoff2 = None
             
-        if option == 'put' and direction == 'short':
+        if self.option == 'put' and self.direction == 'short':
             payoff = (self.C1 + self.C2 - self.C3 - self.C1_0 - self.C2_0 + self.C3_0)
             title = 'Short Christmas Tree with Puts'
-            if value == True:
+            if self.value == True:
                 payoff2 = (self.C1_G + self.C2_G - self.C3_G - self.C1_0 - self.C2_0 + self.C3_0)
             else:
                 payoff2 = None
@@ -1857,28 +1793,34 @@ class Option():
                          label='Payoff', label2='Value')
 
 
-    def iron_butterfly(self, S0=100, K1=95, K2=100, K3=100, K4=105, T=0.25, r=0.05, 
-                       q=0, sigma=0.2, direction='long', value=False):
+    def iron_butterfly(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+                       q=None, sigma=None, direction=None, value=None):
         
-        self._return_options(legs=4, S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T1=T, T2=T, 
-                          T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', option2='call', 
-                          option3='put', option4='call')
+        self.combo_payoff = 'iron butterfly'
         
-        if direction == 'long':
+        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                              sigma=sigma, direction=direction, value=value)
+        
+        self._return_options(legs=4, S0=self.S0, K1=self.K1, K2=self.K2, K3=self.K3, 
+                             K4=self.K4, T1=self.T, T2=self.T, T3=self.T, T4=self.T, 
+                             r=self.r, q=self.q, sigma=self.sigma, option1='put', option2='call', 
+                             option3='put', option4='call')
+        
+        if self.direction == 'long':
             payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
                       self.C2_0 - self.C3_0 + self.C4_0)
             title = 'Long Iron Butterfly'
-            if value == True:
+            if self.value == True:
                 payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G + self.C1_0 - 
                            self.C2_0 - self.C3_0 + self.C4_0)
             else:
                 payoff2 = None
         
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
                       self.C2_0 + self.C3_0 - self.C4_0)
             title = 'Short Iron Butterfly'
-            if value == True:
+            if self.value == True:
                 payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G - self.C1_0 + 
                            self.C2_0 + self.C3_0 - self.C4_0)
             else:
@@ -1886,41 +1828,46 @@ class Option():
         
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
-
     
     
-    def iron_condor(self, S0=100, K1=90, K2=95, K3=100, K4=105, T=0.25, r=0.05, q=0, 
-                    sigma=0.2, option='call', direction='long', value=False):
+    def iron_condor(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+                       q=None, sigma=None, option=None, direction=None, value=None):
         
-        self.return_options(legs=4, S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T1=T, T2=T, 
-                          T3=T, T4=T, r=r, q=q, sigma=sigma, option1=option, option2=option, 
-                          option3=option, option4=option)
+        self.combo_payoff = 'iron condor'
         
-        if direction == 'long':
+        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                              sigma=sigma, option=option, direction=direction, value=value)
+        
+        self._return_options(legs=4, S0=self.S0, K1=self.K1, K2=self.K2, K3=self.K3, 
+                             K4=self.K4, T1=self.T, T2=self.T, T3=self.T, T4=self.T, 
+                             r=self.r, q=self.q, sigma=self.sigma, option1=self.option, 
+                             option2=self.option, option3=self.option, option4=self.option)
+        
+        if self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
                       self.C2_0 + self.C3_0 - self.C4_0)
-            if value == True:
+            if self.value == True:
                 payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G - self.C1_0 + 
                            self.C2_0 + self.C3_0 - self.C4_0)
             else:
                 payoff2 = None
         
-        if direction == 'short':
+        if self.direction == 'short':
             payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
                       self.C2_0 - self.C3_0 + self.C4_0)
-            if value == True:
+            if self.value == True:
                 payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G + self.C1_0 - 
                            self.C2_0 - self.C3_0 + self.C4_0)
             else:
                 payoff2 = None
                 
-        if option == 'call' and direction == 'long':
+        if self.option == 'call' and self.direction == 'long':
             title = 'Long Iron Condor with Calls'
-        if option == 'put' and direction == 'long':
+        if self.option == 'put' and self.direction == 'long':
             title = 'Long Iron Condor with Puts'
-        if option == 'call' and direction == 'short':
+        if self.option == 'call' and self.direction == 'short':
             title = 'Short Iron Condor with Calls'
-        if option == 'put' and direction == 'short':
+        if self.option == 'put' and self.direction == 'short':
             title = 'Short Iron Condor with Puts'    
        
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
@@ -1928,34 +1875,42 @@ class Option():
     
     
     
-    def _return_options(self, legs=2, S0=None, K1=None, K2=None, K3=None, K4=None, T1=None, 
-                T2=None, T3=None, T4=None, r=None, q=None, sigma=None, option1=None, 
-                option2=None, option3=None, option4=None):
+    def _return_options(self, legs=2, S0=None, K1=None, K2=None, K3=None, 
+                        K4=None, T1=None, T2=None, T3=None, T4=None, r=None, q=None, 
+                        sigma=None, option1=None, option2=None, option3=None, option4=None):
  
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)        
-
-        self._initialise_func(S0=S0, SA=self.SA, K1=K1, K2=K2, K3=K3, K4=K4, T1=T1, 
-                              T2=T2, T3=T3, T4=T4, r=r, q=q, sigma=sigma, option1=option1, 
-                              option2=option2, option3=option3, option4=option4)
+        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
         
-        self.C1_0 = self.price(S=S0, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, combo=True)
-        self.C1 = self.price(S=self.SA, K=K1, T=0, r=r, q=q, sigma=sigma, option=option1, combo=True)
-        self.C1_G = self.price(S=self.SA, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, combo=True)
+        self.C1_0 = self.price(S=S0, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, 
+                               combo=True)
+        self.C1 = self.price(S=self.SA, K=K1, T=0, r=r, q=q, sigma=sigma, option=option1, 
+                             combo=True)
+        self.C1_G = self.price(S=self.SA, K=K1, T=T1, r=r, q=q, sigma=sigma, option=option1, 
+                               combo=True)
         
         if legs > 1:
-            self.C2_0 = self.price(S=S0, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2, combo=True)
-            self.C2 = self.price(S=self.SA, K=K2, T=0, r=r, q=q, sigma=sigma, option=option2, combo=True)
-            self.C2_G = self.price(S=self.SA, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2, combo=True)
+            self.C2_0 = self.price(S=S0, K=K2, T=T2, r=r, q=q, sigma=sigma, option=option2, 
+                                   combo=True)
+            self.C2 = self.price(S=self.SA, K=K2, T=0, r=r, q=q, sigma=sigma, option=option2, 
+                                 combo=True)
+            self.C2_G = self.price(S=self.SA, K=K2, T=T2, r=r, q=q, sigma=sigma, 
+                                   option=option2, combo=True)
 
         if legs > 2:
-            self.C3_0 = self.price(S=S0, K=K3, T=T3, r=r, q=q, sigma=sigma, option=option3, combo=True)
-            self.C3 = self.price(S=self.SA, K=K3, T=0, r=r, q=q, sigma=sigma, option=option3, combo=True)
-            self.C3_G = self.price(S=self.SA, K=K3, T=T3, r=r, q=q, sigma=sigma, option=option3, combo=True)
+            self.C3_0 = self.price(S=self.S0, K=K3, T=T3, r=r, q=q, sigma=sigma, 
+                                   option=option3, combo=True)
+            self.C3 = self.price(S=self.SA, K=K3, T=0, r=r, q=q, sigma=sigma, option=option3, 
+                                 combo=True)
+            self.C3_G = self.price(S=self.SA, K=K3, T=T3, r=r, q=q, sigma=sigma, 
+                                   option=option3, combo=True)
         
         if legs > 3:
-            self.C4_0 = self.price(S=S0, K=K4, T=T4, r=r, q=q, sigma=sigma, option=option4, combo=True)
-            self.C4 = self.price(S=self.SA, K=K4, T=0, r=r, q=q, sigma=sigma, option=option4, combo=True)
-            self.C4_G = self.price(S=self.SA, K=K4, T=T4, r=r, q=q, sigma=sigma, option=option4, combo=True)
+            self.C4_0 = self.price(S=self.S0, K=K4, T=T4, r=r, q=q, sigma=sigma, 
+                                   option=option4, combo=True)
+            self.C4 = self.price(S=self.SA, K=K4, T=0, r=r, q=q, sigma=sigma, option=option4, 
+                                 combo=True)
+            self.C4_G = self.price(S=self.SA, K=K4, T=T4, r=r, q=q, sigma=sigma, 
+                                   option=option4, combo=True)
         
         return self
         
