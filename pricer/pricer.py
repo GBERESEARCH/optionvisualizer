@@ -10,12 +10,14 @@ from matplotlib import cm
 # Dictionary of default parameters
 df_dict = {'df_S':100, 
            'df_S0':100,
-           'df_SA':np.linspace(80, 120, 100),
            'df_K':100,
            'df_K1':95,
            'df_K2':105,
            'df_K3':105,
            'df_K4':105,
+           'df_G1':90,
+           'df_G2':100,
+           'df_G3':110,
            'df_H':105,
            'df_R':0,
            'df_T':0.25,
@@ -52,12 +54,13 @@ df_dict = {'df_S':100,
            'df_cash':False,
 
             # List of default parameters used when refreshing 
-            'df_params_list':['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 
-                              'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 
-                              'barrier_direction', 'knock', 'option', 'option1', 'option2', 
-                              'option3', 'option4', 'direction', 'value', 'ratio', 'refresh', 
-                              'delta_shift', 'delta_shift_type', 'greek', 'interactive', 'notebook', 
-                              'colorscheme', 'x_plot', 'y_plot', 'time_shift', 'cash'],
+            'df_params_list':['S', 'S0', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 
+                              'G2', 'G3', 'H', 'R', 'T', 'T1', 'T2', 'T3', 'T4', 
+                              'r', 'b', 'q', 'sigma', 'eta', 'phi', 'barrier_direction', 
+                              'knock', 'option', 'option1', 'option2', 'option3', 
+                              'option4', 'direction', 'value', 'ratio', 'refresh', 
+                              'delta_shift', 'delta_shift_type', 'greek', 'interactive', 
+                              'notebook', 'cash'],
             
             # Payoffs requiring changes to default parameters
             'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
@@ -98,9 +101,10 @@ df_dict = {'df_S':100,
 
 class Option():
     
-    def __init__(self, S=df_dict['df_S'], S0=df_dict['df_S0'], SA=df_dict['df_SA'], 
-                 K=df_dict['df_K'], K1=df_dict['df_K1'], K2=df_dict['df_K2'], K3=df_dict['df_K3'], 
-                 K4=df_dict['df_K4'], H=df_dict['df_H'], R=df_dict['df_R'], T=df_dict['df_T'], 
+    def __init__(self, S=df_dict['df_S'], S0=df_dict['df_S0'], K=df_dict['df_K'], 
+                 K1=df_dict['df_K1'], K2=df_dict['df_K2'], K3=df_dict['df_K3'], 
+                 K4=df_dict['df_K4'], G1=df_dict['df_G1'], G2=df_dict['df_G2'], 
+                 G3=df_dict['df_G3'], H=df_dict['df_H'], R=df_dict['df_R'], T=df_dict['df_T'], 
                  T1=df_dict['df_T1'], T2=df_dict['df_T2'], T3=df_dict['df_T3'], 
                  T4=df_dict['df_T4'],r=df_dict['df_r'], b=df_dict['df_b'], 
                  q=df_dict['df_q'], sigma=df_dict['df_sigma'], eta=df_dict['df_eta'], 
@@ -119,12 +123,14 @@ class Option():
 
         self.S = S # Spot price
         self.S0 = S0 # Spot price
-        self.SA = SA # Array of spot prices
         self.K = K # Strike price
-        self.K1 = K1 # Strike price
-        self.K2 = K2 # Strike price
-        self.K3 = K3 # Strike price
-        self.K4 = K4 # Strike price
+        self.K1 = K1 # Strike price for combo payoffs
+        self.K2 = K2 # Strike price for combo payoffs
+        self.K3 = K3 # Strike price for combo payoffs
+        self.K4 = K4 # Strike price for combo payoffs
+        self.G1 = G1 # Strike price for 2D Greeks graphs
+        self.G2 = G2 # Strike price for 2D Greeks graphs
+        self.G3 = G3 # Strike price for 2D Greeks graphs
         self.H = H # Barrier level
         self.R = R # Rebate
         self.T = T # Time to maturity
@@ -686,6 +692,23 @@ class Option():
         return self.opt_barrier_payoff    
 
 
+    def _strike_label(self):
+        for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
+            if self.__dict__[str(key)] == self.S0:
+                self.__dict__[value] = 'ATM Strike'
+            else:
+                self.__dict__[value] = str(int(self.__dict__[key]))+' Strike'
+        
+        return self            
+
+
+    def _graph_space_prep(self):
+        
+        self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
+        self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
+        self.x, self.y = np.meshgrid(self.SA, self.TA)
+
+        return self
 
     def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
                     payoff2=None, label2=None, payoff3=None, label3=None, payoff4=None, 
@@ -710,7 +733,7 @@ class Option():
         plt.show()
     
     
-    def _vis_greeks_mpl(self, S0=None, xarray1=None, xarray2=None, xarray3=None, 
+    def _vis_greeks_mpl(self, xarray1=None, xarray2=None, xarray3=None, 
                         xarray4=None, yarray1=None, yarray2=None, yarray3=None, 
                         yarray4=None, label1=None, label2=None, label3=None, label4=None, 
                         xlabel=None, ylabel=None, title='Payoff'):
@@ -978,64 +1001,83 @@ class Option():
                 plot(fig, auto_open=True)
  
     
-    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, T=None, time_shift=None,
-                         r=None, q=None, sigma=None, option=None):
+    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+                         G3=None, T=None, time_shift=None, r=None, q=None, sigma=None, 
+                         option=None):
         
-        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, T=T, time_shift=time_shift, 
-                              r=r, q=q, sigma=sigma, option=option)
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
+                              G3=G3, T=T, time_shift=time_shift, r=r, q=q, sigma=sigma, 
+                              option=option)
+        
+        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
+        self.sigmaA = np.linspace(0.05, 0.5, 100)
+        self.TA = np.linspace(0.01, 1, 100)
+        
         
         if self.x_plot == 'value':
             if self.y_plot == 'price':
-                self.value_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
-                                 option=self.option)
+                self._value_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, 
+                                 r=self.r, q=self.q, sigma=self.sigma, option=self.option)
             if self.y_plot == 'vol':
-                self.value_vol(S0=self.S0, T=self.T, r=self.r, q=self.q, option=option)
+                self._value_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r,
+                               q=self.q, option=option)
             if self.y_plot == 'time':
-                self.value_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
-                                option=self.option)
+                self._value_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, r=self.r, q=self.q, 
+                                sigma=self.sigma, option=self.option)
         
         if self.x_plot == 'delta':
             if self.y_plot == 'price':
-                self.delta_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
-                                 option=self.option)
+                self._delta_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                                 q=self.q, sigma=self.sigma, option=self.option)
             if self.y_plot == 'vol':
-                self.delta_vol(S0=self.S0, T=self.T, r=self.r, q=self.q, option=option)
+                self._delta_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                               q=self.q, option=self.option)
             if self.y_plot == 'time':
-                self.delta_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
-                                option=self.option)
+                self._delta_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, r=self.r, q=self.q, 
+                                sigma=self.sigma, option=self.option)
         
         if self.x_plot == 'gamma':
             if self.y_plot == 'price':
-                self.gamma_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma)
+                self._gamma_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                                 q=self.q, sigma=self.sigma)
             if self.y_plot == 'vol':
-                self.gamma_vol(S0=self.S0, T=self.T, r=self.r, q=self.q)
+                self._gamma_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                               q=self.q)
             if self.y_plot == 'time':
-                self.gamma_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma)
+                self._gamma_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, r=self.r, q=self.q, 
+                                sigma=self.sigma)
         
         if self.x_plot == 'vega':
             if self.y_plot == 'price':
-                self.vega_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma)
+                self._vega_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                                q=self.q, sigma=self.sigma)
             if self.y_plot == 'vol':
-                self.vega_vol(S0=self.S0, T=self.T, r=self.r, q=self.q)
+                self._vega_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                              q=self.q)
             if self.y_plot == 'time':
-                self.vega_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma)  
+                self._vega_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, r=self.r, q=self.q, 
+                               sigma=self.sigma)  
         
         if self.x_plot == 'theta':
             if self.y_plot == 'price':
-                self.theta_price(S0=self.S0, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
-                                 option=self.option)
+                self._theta_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                                 q=self.q, sigma=self.sigma, option=self.option)
             if self.y_plot == 'vol':
-                self.theta_vol(S0=self.S0, T=self.T, r=self.r, q=self.q, option=option)
+                self._theta_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, r=self.r, 
+                               q=self.q, option=option)
             if self.y_plot == 'time':
-                self.theta_time(S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
-                                option=self.option)
+                self._theta_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, r=self.r, q=self.q, 
+                                sigma=self.sigma, option=self.option)
         
         if self.x_plot == 'rho':
             if self.y_plot == 'price':
-                self.rho_price(S0=self.S0, T1=self.T, T2=self.T+self.time_shift, 
+                self._rho_price(S0=self.S0, G1=self.G1, T1=self.T, T2=self.T+self.time_shift, 
                                r=self.r, q=self.q, sigma=self.sigma)
+            if self.y_plot == 'strike':
+                self._rho_strike(S0=self.S0, G1=self.G1, T1=self.T, T2=self.T+self.time_shift, 
+                               r=self.r, q=self.q, sigma=self.sigma)            
             if self.y_plot == 'vol':
-                self.rho_vol(S0=self.S0, T1=self.T, T2=self.T+self.time_shift, 
+                self._rho_vol(S0=self.S0, G1=self.G1, T1=self.T, T2=self.T+self.time_shift, 
                                r=self.r, q=self.q)
     
 
@@ -1100,370 +1142,437 @@ class Option():
                              sigma=sigma, option=option, direction=direction, value=value)
             
     
-    def value_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
+    def _value_price(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, sigma=None, option=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma, 
+                              option=option)
+               
+        self.C1 = self.price(S=self.SA, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C2 = self.price(S=self.SA, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C3 = self.price(S=self.SA, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
         
-        self.C1 = self.price(S=self.SA, K=S0 * 0.9, T=T, r=r, q=q, sigma=sigma, option=option)
-        self.C2 = self.price(S=self.SA, K=S0, T=T, r=r, q=q, sigma=sigma, option=option)
-        self.C3 = self.price(S=self.SA, K=S0 * 1.1, T=T, r=r, q=q, sigma=sigma, option=option)
-    
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
-            
+        self._strike_label()
+                   
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Theoretical Value'
         self.title = 'Value vs Price'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def value_vol(self, S0=100, T=0.25, r=0.05, q=0, option='call'):
+    def _value_vol(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                   option=None):
         
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, option=option)
         
-        self.C1 = self.price(S=S0, K=S0 * 0.9, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
-        self.C2 = self.price(S=S0, K=S0, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
-        self.C3 = self.price(S=S0, K=S0 * 1.1, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
+        self.C1 = self.price(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
+        self.C2 = self.price(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
+        self.C3 = self.price(S=self.S0, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Theoretical Value'
         self.title = 'Value vs Volatility'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
         
     
-    def value_time(self, S0=100, r=0.01, q=0, sigma=0.2, option='call'):
+    def _value_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, option=None):
         
-        self.TA = np.linspace(0.01, 1, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, r=r, q=q, sigma=sigma, 
+                              option=option)
         
-        self.C1 = self.price(S=S0, K=S0 * 0.9, T=self.TA, r=r, q=q, sigma=sigma, option=option)
-        self.C2 = self.price(S=S0, K=S0, T=self.TA, r=r, q=q, sigma=sigma, option=option)
-        self.C3 = self.price(S=S0, K=S0 * 1.1, T=self.TA, r=r, q=q, sigma=sigma, option=option)
+        self.C1 = self.price(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C2 = self.price(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C3 = self.price(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Theoretical Value'
         self.title = 'Value vs Time'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
     
-    def delta_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
+    def _delta_price(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                     sigma=None, option=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma, 
+                              option=option)
         
-        self.C1 = self.delta(S=self.SA, K=S0 * 0.9, T=T, r=r, q=q, sigma=sigma, option=option)
-        self.C2 = self.delta(S=self.SA, K=S0, T=T, r=r, q=q, sigma=sigma, option=option)
-        self.C3 = self.delta(S=self.SA, K=S0 * 1.1, T=T, r=r, q=q, sigma=sigma, option=option)
+        self.C1 = self.delta(S=self.SA, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C2 = self.delta(S=self.SA, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C3 = self.delta(S=self.SA, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Delta'
         self.title = 'Delta vs Price'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
     
     
-    def delta_vol(self, S0=100, T=0.25, r=0.05, q=0, option='call'):
+    def _delta_vol(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                   option=None):
         
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, option=option)
         
-        self.C1 = self.delta(S=S0, K=S0 * 0.9, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
-        self.C2 = self.delta(S=S0, K=S0, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
-        self.C3 = self.delta(S=S0, K=S0 * 1.1, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
+        self.C1 = self.delta(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
+        self.C2 = self.delta(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
+        self.C3 = self.delta(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Delta'
         self.title = 'Delta vs Volatility'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
         
         
-    def delta_time(self, S0=100, r=0.01, q=0, sigma=0.2, option='call'):
+    def _delta_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, option=None):
         
-        self.TA = np.linspace(0.01, 1, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, r=r, q=q, sigma=sigma, 
+                              option=option)
         
-        self.C1 = self.delta(S=S0, K=S0 * 0.9, T=self.TA, r=r, q=q, sigma=sigma, option=option)
-        self.C2 = self.delta(S=S0, K=S0, T=self.TA, r=r, q=q, sigma=sigma, option=option)
-        self.C3 = self.delta(S=S0, K=S0 * 1.1, T=self.TA, r=r, q=q, sigma=sigma, option=option)
+        self.C1 = self.delta(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C2 = self.delta(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C3 = self.delta(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Delta'
         self.title = 'Delta vs Time'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
         
-    def gamma_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2):
+    def _gamma_price(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                     sigma=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma)
         
-        self.C1 = self.gamma(S=self.SA, K=S0 * 0.9, T=T, r=r, q=q, sigma=sigma)
-        self.C2 = self.gamma(S=self.SA, K=S0, T=T, r=r, q=q, sigma=sigma)
-        self.C3 = self.gamma(S=self.SA, K=S0 * 1.1, T=T, r=r, q=q, sigma=sigma)
+        self.C1 = self.gamma(S=self.SA, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C2 = self.gamma(S=self.SA, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C3 = self.gamma(S=self.SA, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Gamma'
         self.title = 'Gamma vs Price'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
         
         
-    def gamma_vol(self, S0=100, T=0.25, r=0.05, q=0):
-
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
+    def _gamma_vol(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None):
         
-        self.C1 = self.gamma(S=S0, K=S0 * 0.9, T=T, r=r, q=q, sigma=self.sigmaA)
-        self.C2 = self.gamma(S=S0, K=S0, T=T, r=r, q=q, sigma=self.sigmaA)
-        self.C3 = self.gamma(S=S0, K=S0 * 1.1, T=T, r=r, q=q, sigma=self.sigmaA)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q)
+        
+        self.C1 = self.gamma(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, refresh='graph')
+        self.C2 = self.gamma(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, refresh='graph')
+        self.C3 = self.gamma(S=self.S0, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Gamma'
         self.title = 'Gamma vs Volatility'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)            
         
     
-    def gamma_time(self, S0=100, r=0.01, q=0, sigma=0.2):
+    def _gamma_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None):
         
-        self.TA = np.linspace(0.01, 1, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, r=r, q=q, sigma=sigma)
         
-        self.C1 = self.gamma(S=S0, K=S0 * 0.9, T=self.TA, r=r, q=q, sigma=sigma)
-        self.C2 = self.gamma(S=S0, K=S0, T=self.TA, r=r, q=q, sigma=sigma)
-        self.C3 = self.gamma(S=S0, K=S0 * 1.1, T=self.TA, r=r, q=q, sigma=sigma)
+        self.C1 = self.gamma(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C2 = self.gamma(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C3 = self.gamma(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Gamma'
         self.title = 'Gamma vs Time'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
-    def vega_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2):
+    def _vega_price(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                     sigma=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma)
         
-        self.C1 = self.vega(S=self.SA, K=S0 * 0.9, T=T, r=r, q=q, sigma=sigma)
-        self.C2 = self.vega(S=self.SA, K=S0, T=T, r=r, q=q, sigma=sigma)
-        self.C3 = self.vega(S=self.SA, K=S0 * 1.1, T=T, r=r, q=q, sigma=sigma)
+        self.C1 = self.vega(S=self.SA, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C2 = self.vega(S=self.SA, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C3 = self.vega(S=self.SA, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Vega'
         self.title = 'Vega vs Price'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
     
         
-    def vega_vol(self, S0=100, T=0.25, r=0.05, q=0):
-
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
+    def _vega_vol(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None):
         
-        self.C1 = self.vega(S=S0, K=S0 * 0.9, T=T, r=r, q=q, sigma=self.sigmaA)
-        self.C2 = self.vega(S=S0, K=S0, T=T, r=r, q=q, sigma=self.sigmaA)
-        self.C3 = self.vega(S=S0, K=S0 * 1.1, T=T, r=r, q=q, sigma=self.sigmaA)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q)
+        
+        self.C1 = self.vega(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, refresh='graph')
+        self.C2 = self.vega(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, refresh='graph')
+        self.C3 = self.vega(S=self.S0, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Vega'
         self.title = 'Vega vs Volatility'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def vega_time(self, S0=100, r=0.01, q=0, sigma=0.2):
-
-        self.TA = np.linspace(0.01, 1, 100)
+    def _vega_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None):
         
-        self.C1 = self.vega(S=S0, K=S0 * 0.9, T=self.TA, r=r, q=q, sigma=sigma)
-        self.C2 = self.vega(S=S0, K=S0, T=self.TA, r=r, q=q, sigma=sigma)
-        self.C3 = self.vega(S=S0, K=S0 * 1.1, T=self.TA, r=r, q=q, sigma=sigma)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, r=r, q=q, sigma=sigma)
+        
+        self.C1 = self.vega(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C2 = self.vega(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
+        self.C3 = self.vega(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Vega'
         self.title = 'Vega vs Time'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def theta_price(self, S0=100, T=0.25, r=0.05, q=0, sigma=0.2, option='call'):
+    def _theta_price(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                     sigma=None, option=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma, 
+                              option=option)
         
-        self.C1 = self.theta(S=self.SA, K=S0 * 0.9, T=T, r=r, q=q, sigma=sigma, option=option)
-        self.C2 = self.theta(S=self.SA, K=S0, T=T, r=r, q=q, sigma=sigma, option=option)
-        self.C3 = self.theta(S=self.SA, K=S0 * 1.1, T=T, r=r, q=q, sigma=sigma, option=option)
+        self.C1 = self.theta(S=self.SA, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C2 = self.theta(S=self.SA, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C3 = self.theta(S=self.SA, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Theta'
         self.title = 'Theta vs Price'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def theta_vol(self, S0=100, T=0.25, r=0.05, q=0, option='call'):
+    def _theta_vol(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, 
+                   option=None):
         
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, option=option)
         
-        self.C1 = self.theta(S=S0, K=S0 * 0.9, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
-        self.C2 = self.theta(S=S0, K=S0, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
-        self.C3 = self.theta(S=S0, K=S0 * 1.1, T=T, r=r, q=q, sigma=self.sigmaA, option=option)
+        self.C1 = self.theta(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
+        self.C2 = self.theta(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
+        self.C3 = self.theta(S=self.S0, K=self.G3, T=self.T, r=self.r, q=self.q, 
+                             sigma=self.sigmaA, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Theta'
         self.title = 'Theta vs Volatility'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)    
         
     
-    def theta_time(self, S0=100, r=0.01, q=0, sigma=0.2, option='call'):
+    def _theta_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, option=None):
         
-        self.TA = np.linspace(0.01, 1, 100)
+        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, r=r, q=q, sigma=sigma, 
+                              option=option)
         
-        self.C1 = self.theta(S=S0, K=S0 * 0.9, T=self.TA, r=r, q=q, sigma=sigma, option=option)
-        self.C2 = self.theta(S=S0, K=S0, T=self.TA, r=r, q=q, sigma=sigma, option=option)
-        self.C3 = self.theta(S=S0, K=S0 * 1.1, T=self.TA, r=r, q=q, sigma=sigma, option=option)
+        self.C1 = self.theta(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C2 = self.theta(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
+        self.C3 = self.theta(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
+                             sigma=self.sigma, option=self.option, refresh='graph')
     
-        self.label1 = str(int(S0 * 0.9))+' Strike'
-        self.label2 = 'ATM Strike'
-        self.label3 = str(int(S0 * 1.1))+' Strike'
+        self._strike_label()
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Theta'
         self.title = 'Theta vs Time'
 
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
                              label1=self.label1, label2=self.label2, label3=self.label3, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
-    def rho_price(self, S0=100, T1=0.25, T2=0.5, r=0.05, q=0, sigma=0.2):
+    def _rho_price(self, S0=None, G1=None, T1=None, T2=None, r=None, 
+                   q=None, sigma=None):
         
-        self.SA = np.linspace(0.8 * S0, 1.2 * S0, 100)
+        self._initialise_func(S0=S0, G1=G1, T1=T1, T2=T2, r=r, q=q, sigma=sigma)
         
-        self.C1 = self.rho(S=self.SA, K=S0, T=T1, r=r, sigma=sigma, option="call")
-        self.C2 = self.rho(S=self.SA, K=S0, T=T2, r=r, sigma=sigma, option="call")
-        self.C3 = self.rho(S=self.SA, K=S0, T=T1, r=r, sigma=sigma, option="put")
-        self.C4 = self.rho(S=self.SA, K=S0, T=T2, r=r, sigma=sigma, option="put")
+        self.C1 = self.rho(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
+                           sigma=self.sigma, option='call', refresh='graph')
+        self.C2 = self.rho(S=self.SA, K=self.G1, T=self.T2, r=self.r, q=self.q, 
+                           sigma=self.sigma, option="call", refresh='graph')
+        self.C3 = self.rho(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
+                           sigma=self.sigma, option="put", refresh='graph')
+        self.C4 = self.rho(S=self.SA, K=self.G1, T=self.T2, r=self.r, q=self.q, 
+                           sigma=self.sigma, option="put", refresh='graph')
         
-        self.label1 = '3m call'
-        self.label2 = '6m call'
-        self.label3 = '3m put'
-        self.label4 = '6m put'
+        self.label1 = str(int(T1*12))+'m Call'
+        self.label2 = str(int(T2*12))+'m Call'
+        self.label3 = str(int(T1*12))+'m Put'
+        self.label4 = str(int(T2*12))+'m Put'
                 
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Rho'
         self.title = 'Rho vs Price'
         
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
                              xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
                              label2=self.label2, label3=self.label3, label4=self.label4, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
 
-    def rho_vol(self, S0=100, T1=0.25, T2=0.5, r=0.05, q=0):
+    def _rho_strike(self, S0=None, G1=None, T1=None, T2=None, r=None, 
+                   q=None, sigma=None):
         
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
+        self._initialise_func(S0=S0, G1=G1, T1=T1, T2=T2, r=r, q=q, sigma=sigma)
         
-        self.C1 = self.rho(S=S0, K=S0, T=T1, r=r, sigma=self.sigmaA, option="call")
-        self.C2 = self.rho(S=S0, K=S0, T=T2, r=r, sigma=self.sigmaA, option="call")
-        self.C3 = self.rho(S=S0, K=S0, T=T1, r=r, sigma=self.sigmaA, option="put")
-        self.C4 = self.rho(S=S0, K=S0, T=T2, r=r, sigma=self.sigmaA, option="put")
+        self.C1 = self.rho(S=self.S0, K=self.SA, T=self.T1, r=self.r, q=self.q, 
+                           sigma=self.sigma, option='call', refresh='graph')
+        self.C2 = self.rho(S=self.S0, K=self.SA, T=self.T2, r=self.r, q=self.q, 
+                           sigma=self.sigma, option="call", refresh='graph')
+        self.C3 = self.rho(S=self.S0, K=self.SA, T=self.T1, r=self.r, q=self.q, 
+                           sigma=self.sigma, option="put", refresh='graph')
+        self.C4 = self.rho(S=self.S0, K=self.SA, T=self.T2, r=self.r, q=self.q, 
+                           sigma=self.sigma, option="put", refresh='graph')
+        
+        self.label1 = str(int(T1*12))+'m Call'
+        self.label2 = str(int(T2*12))+'m Call'
+        self.label3 = str(int(T1*12))+'m Put'
+        self.label4 = str(int(T2*12))+'m Put'
+                
+        self.xlabel = 'Strike Price'
+        self.ylabel = 'Rho'
+        self.title = 'Rho vs Strike'
+        
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                             yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
+                             xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
+                             label2=self.label2, label3=self.label3, label4=self.label4, 
+                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
+
+
+    def _rho_vol(self, S0=None, G1=None, T1=None, T2=None, r=None, q=None):
+        
+        self._initialise_func(S0=S0, G1=G1, T1=T1, T2=T2, r=r, q=q)
+        
+        self.C1 = self.rho(S=self.S0, K=self.G1, T=self.T1, r=self.r, sigma=self.sigmaA, 
+                           option="call", refresh='graph')
+        self.C2 = self.rho(S=self.S0, K=self.G1, T=self.T2, r=self.r, sigma=self.sigmaA, 
+                           option="call", refresh='graph')
+        self.C3 = self.rho(S=self.S0, K=self.G1, T=self.T1, r=self.r, sigma=self.sigmaA, 
+                           option="put", refresh='graph')
+        self.C4 = self.rho(S=self.S0, K=self.G1, T=self.T2, r=self.r, sigma=self.sigmaA, 
+                           option="put", refresh='graph')
         
         self.label1 = '3m call'
         self.label2 = '6m call'
@@ -1474,7 +1583,7 @@ class Option():
         self.ylabel = 'Rho'
         self.title = 'Rho vs Volatility'
         
-        self._vis_greeks_mpl(S0=self.S0, yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
                              xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
                              label2=self.label2, label3=self.label3, label4=self.label4, 
