@@ -97,7 +97,67 @@ df_dict = {'df_S':100,
                                             'K1':90,
                                             'K2':95,
                                             'K3':100,
-                                            'K4':105}}}
+                                            'K4':105}},
+            
+            # Ranges of Underlying price and Time to Expiry for 3D greeks graphs
+            'df_3D_chart_ranges':{'price':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':1},
+                                  'delta':{'SA_lower':0.25,
+                                           'SA_upper':1.75,
+                                           'TA_lower':0.01,
+                                           'TA_upper':2},
+                                  'gamma':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':5},
+                                  'vega':{'SA_lower':0.5,
+                                          'SA_upper':1.5,
+                                          'TA_lower':0.01,
+                                          'TA_upper':1},
+                                  'theta':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':1},
+                                  'rho':{'SA_lower':0.8,
+                                         'SA_upper':1.2,
+                                         'TA_lower':0.01,
+                                         'TA_upper':0.5},
+                                  'vomma':{'SA_lower':0.5,
+                                           'SA_upper':1.5,
+                                           'TA_lower':0.01,
+                                           'TA_upper':1},
+                                  'vanna':{'SA_lower':0.5,
+                                           'SA_upper':1.5,
+                                           'TA_lower':0.01,
+                                           'TA_upper':1},
+                                  'zomma':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':0.5},
+                                  'speed':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':0.5},
+                                  'color':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':0.5},
+                                  'ultima':{'SA_lower':0.5,
+                                            'SA_upper':1.5,
+                                            'TA_lower':0.01,
+                                            'TA_upper':1},
+                                  'vega bleed':{'SA_lower':0.5,
+                                                'SA_upper':1.5,
+                                                'TA_lower':0.01,
+                                                'TA_upper':1},
+                                  'charm':{'SA_lower':0.8,
+                                           'SA_upper':1.2,
+                                           'TA_lower':0.01,
+                                           'TA_upper':0.25}}}
+
+
 
 class Option():
     
@@ -704,11 +764,18 @@ class Option():
 
     def _graph_space_prep(self):
         
+        
+        self.SA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_lower']
+        self.SA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_upper']
+        self.TA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['TA_lower']
+        self.TA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_lower']
+        
         self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
         self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
         self.x, self.y = np.meshgrid(self.SA, self.TA)
 
         return self
+
 
     def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
                     payoff2=None, label2=None, payoff3=None, label3=None, payoff4=None, 
@@ -739,6 +806,7 @@ class Option():
                         xlabel=None, ylabel=None, title='Payoff'):
         
         fig, ax = plt.subplots()
+        plt.style.use('seaborn-darkgrid')
         ax.plot(xarray1, yarray1, color='blue', label=label1)
         ax.plot(xarray2, yarray2, color='red', label=label2)
         ax.plot(xarray3, yarray3, color='green', label=label3)
