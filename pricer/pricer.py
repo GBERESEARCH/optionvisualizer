@@ -374,7 +374,7 @@ class Option():
         if self.option == 'call':
             self.opt_delta = self.carry * self.Nd1
         if self.option == 'put':
-            self.opt_delta = -self.carry * self.minusNd1
+            self.opt_delta = self.carry * (self.Nd1 - 1)
             
         return self.opt_delta
     
@@ -1116,8 +1116,8 @@ class Option():
     
     def _value_price(self, S0=None, G1=None, G2=None, G3=None, T=None, r=None, q=None, sigma=None, option=None):
         
-        self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma, 
-                              option=option)
+        #self._initialise_func(S0=S0, G1=G1, G2=G2, G3=G3, T=T, r=r, q=q, sigma=sigma, 
+        #                      option=option)
                
         self.C1 = self.price(S=self.SA, K=self.G1, T=self.T, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
@@ -1130,7 +1130,7 @@ class Option():
                    
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Theoretical Value'
-        self.title = 'Value vs Price'
+        self.title = str(self.option.title())+' Value vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1154,7 +1154,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Theoretical Value'
-        self.title = 'Value vs Volatility'
+        self.title = str(self.option.title())+'Value vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1178,7 +1178,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Theoretical Value'
-        self.title = 'Value vs Time'
+        self.title = str(self.option.title())+'Value vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1204,7 +1204,7 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Delta'
-        self.title = 'Delta vs Price'
+        self.title = str(self.option.title())+'Delta vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1228,7 +1228,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Delta'
-        self.title = 'Delta vs Volatility'
+        self.title = str(self.option.title())+'Delta vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1252,7 +1252,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Delta'
-        self.title = 'Delta vs Time'
+        self.title = str(self.option.title())+'Delta vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1276,7 +1276,7 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Gamma'
-        self.title = 'Gamma vs Price'
+        self.title = 'Call & Put Gamma vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1299,7 +1299,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Gamma'
-        self.title = 'Gamma vs Volatility'
+        self.title = 'Call & Put Gamma vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1322,7 +1322,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Gamma'
-        self.title = 'Gamma vs Time'
+        self.title = 'Call & Put Gamma vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1346,7 +1346,7 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Vega'
-        self.title = 'Vega vs Price'
+        self.title = 'Call & Put Vega vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1369,7 +1369,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Vega'
-        self.title = 'Vega vs Volatility'
+        self.title = 'Call & Put Vega vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1392,7 +1392,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Vega'
-        self.title = 'Vega vs Time'
+        self.title = 'Call & Put Vega vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1417,7 +1417,7 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Theta'
-        self.title = 'Theta vs Price'
+        self.title = str(self.option.title())+'Theta vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1441,7 +1441,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Theta'
-        self.title = 'Theta vs Volatility'
+        self.title = str(self.option.title())+'Theta vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1465,7 +1465,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Theta'
-        self.title = 'Theta vs Time'
+        self.title = str(self.option.title())+'Theta vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1494,7 +1494,7 @@ class Option():
                 
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Rho'
-        self.title = 'Rho vs Price'
+        self.title = 'Call & Put Rho vs Price'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
@@ -1524,7 +1524,7 @@ class Option():
                 
         self.xlabel = 'Strike Price'
         self.ylabel = 'Rho'
-        self.title = 'Rho vs Strike'
+        self.title = 'Call & Put Rho vs Strike'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
@@ -1553,7 +1553,7 @@ class Option():
                 
         self.xlabel = 'Volatility %'
         self.ylabel = 'Rho'
-        self.title = 'Rho vs Volatility'
+        self.title = 'Call & Put Rho vs Volatility'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
