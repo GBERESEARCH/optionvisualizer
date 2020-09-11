@@ -763,9 +763,7 @@ class Option():
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 1
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.price(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 option=self.option, refresh='graph')
 
@@ -773,9 +771,7 @@ class Option():
             self.SA_lower = 0.25
             self.SA_upper = 1.75
             self.TA_upper = 2
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.delta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 option=self.option, refresh='graph')
 
@@ -784,9 +780,7 @@ class Option():
             self.SA_upper = 1.2
             self.TA_upper = 0.5
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.gamma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 refresh='graph')
 
@@ -795,9 +789,7 @@ class Option():
             self.SA_upper = 1.5
             self.TA_upper = 1
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.vega(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                refresh='graph')
 
@@ -805,9 +797,7 @@ class Option():
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 1
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.theta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 option=self.option, refresh='graph')
             
@@ -815,9 +805,7 @@ class Option():
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.5
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.rho(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                               option=self.option, refresh='graph')    
 
@@ -826,9 +814,7 @@ class Option():
             self.SA_upper = 1.5
             self.TA_upper = 1
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.vomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 refresh='graph')
 
@@ -837,9 +823,7 @@ class Option():
             self.SA_upper = 1.5
             self.TA_upper = 1
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.vanna(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 refresh='graph')
 
@@ -848,9 +832,7 @@ class Option():
             self.SA_upper = 1.2
             self.TA_upper = 0.5
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.zomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 refresh='graph')
             
@@ -859,9 +841,7 @@ class Option():
             self.SA_upper = 1.2
             self.TA_upper = 0.5
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.speed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 refresh='graph')    
 
@@ -870,9 +850,7 @@ class Option():
             self.SA_upper = 1.2
             self.TA_upper = 0.5
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.color(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 refresh='graph') 
             
@@ -881,9 +859,7 @@ class Option():
             self.SA_upper = 1.5
             self.TA_upper = 1
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.ultima(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                  refresh='graph')     
 
@@ -892,9 +868,7 @@ class Option():
             self.SA_upper = 1.5
             self.TA_upper = 1
             self.option = 'Call / Put'
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.vega_bleed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                      refresh='graph')   
 
@@ -902,9 +876,7 @@ class Option():
             self.SA_lower = 0.8
             self.SA_upper = 1.2
             self.TA_upper = 0.25
-            self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-            self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
+            self._graph_space_prep()
             self.z = self.charm(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
                                 option=self.option, refresh='graph')
 
