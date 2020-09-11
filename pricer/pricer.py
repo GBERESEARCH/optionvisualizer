@@ -7,19 +7,6 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib import cm
 
 
-# List of default parameters
-df_params_list = ['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 
-                  'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 
-                  'barrier_direction', 'knock', 'option', 'option1', 'option2', 
-                  'option3', 'option4', 'direction', 'value', 'ratio', 'refresh', 
-                  'delta_shift', 'delta_shift_type', 'greek', 'interactive', 'notebook', 
-                  'colorscheme', 'x_plot', 'y_plot', 'time_shift', 'cash']
-
-mod_payoffs = ['collar', 'straddle', 'butterfly', 'christmas tree',
-                       'iron butterfly', 'iron condor']
-
-mod_params = ['S0', 'K1', 'K2', 'K3']
-
 # Dictionary of default parameters
 df_dict = {'df_S':100, 
            'df_S0':100,
@@ -62,33 +49,52 @@ df_dict = {'df_S':100,
            'df_x_plot':'delta',
            'df_y_plot':'time',
            'df_time_shift':0.25,
-           'df_cash':False}
+           'df_cash':False,
 
+            # List of default parameters used when refreshing 
+            'df_params_list':['S', 'S0', 'SA', 'K', 'K1', 'K2', 'K3', 'K4', 'H', 'R', 'T', 
+                              'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 'phi', 
+                              'barrier_direction', 'knock', 'option', 'option1', 'option2', 
+                              'option3', 'option4', 'direction', 'value', 'ratio', 'refresh', 
+                              'delta_shift', 'delta_shift_type', 'greek', 'interactive', 'notebook', 
+                              'colorscheme', 'x_plot', 'y_plot', 'time_shift', 'cash'],
+            
+            # Payoffs requiring changes to default parameters
+            'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
+                              'iron butterfly', 'iron condor'],
+            
+            # Those parameters that need changing
+            'df_mod_params':['S0', 'K', 'K1', 'K2', 'K3'],
 
-# Combo parameter values differing from standard defaults
-df_combo_dict = {'collar':{'S0':50,
-                           'K1':49,
-                           'K2':51},
-                 'straddle':{'S0':100,
-                             'K1':100,
-                             'K2':100},
-                 'butterfly':{'S0':100,
-                              'K1':95,
-                              'K2':100,
-                              'K3':105},
-                 'christmas tree':{'S0':100,
-                                   'K1':95,
-                                   'K2':100,
-                                   'K3':105},
-                 'iron butterfly':{'S0':100,
-                                   'K1':95,
-                                   'K2':100,
-                                   'K3':105},
-                 'iron condor':{'S0':100,
-                                'K1':95,
-                                'K2':100,
-                                'K3':100}}
-
+            # Combo parameter values differing from standard defaults
+            'df_combo_dict':{'collar':{'S0':100,
+                                       'K1':98,
+                                       'K2':102},
+                             'straddle':{'S0':100,
+                                         'K':100},
+                             'butterfly':{'S0':100,
+                                          'K1':95,
+                                          'K2':100,
+                                          'K3':105,
+                                          'K4':105},
+                             'christmas tree':{'S0':100,
+                                               'K':100,
+                                               'K1':95,
+                                               'K2':100,
+                                               'K3':105,
+                                               'K4':105},
+                             'iron butterfly':{'S0':100,
+                                               'K':100,
+                                               'K1':95,
+                                               'K2':100,
+                                               'K3':100,
+                                               'K4':105},
+                             'iron condor':{'S0':100,
+                                            'K':100,
+                                            'K1':90,
+                                            'K2':95,
+                                            'K3':100,
+                                            'K4':105}}}
 
 class Option():
     
@@ -103,13 +109,13 @@ class Option():
                  option2=df_dict['df_option2'], option3=df_dict['df_option3'], 
                  option4=df_dict['df_option4'], direction=df_dict['df_direction'], 
                  value=df_dict['df_value'], ratio=df_dict['df_ratio'], refresh=df_dict['df_refresh'], 
-                 delta_shift=df_dict['df_delta_shift'],
-                 delta_shift_type=df_dict['df_delta_shift_type'], greek=df_dict['df_greek'], 
-                 interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
-                 colorscheme=df_dict['df_colorscheme'], x_plot=df_dict['df_x_plot'], 
-                 y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
-                 cash=df_dict['df_cash'], df_combo_dict=df_combo_dict, df_dict=df_dict, 
-                 df_params_list=df_params_list, mod_payoffs=mod_payoffs, mod_params=mod_params):
+                 delta_shift=df_dict['df_delta_shift'], delta_shift_type=df_dict['df_delta_shift_type'], 
+                 greek=df_dict['df_greek'], interactive=df_dict['df_interactive'], 
+                 notebook=df_dict['df_notebook'], colorscheme=df_dict['df_colorscheme'], 
+                 x_plot=df_dict['df_x_plot'], y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
+                 cash=df_dict['df_cash'], df_combo_dict=df_dict['df_combo_dict'], 
+                 df_params_list=df_dict['df_params_list'], mod_payoffs=df_dict['df_mod_payoffs'], 
+                 mod_params=df_dict['df_mod_params'], df_dict=df_dict):
 
         self.S = S # Spot price
         self.S0 = S0 # Spot price
