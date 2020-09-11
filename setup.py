@@ -6,7 +6,8 @@ setup(name='pricer',
       author='...',
       author_email='...',
       packages=['pricer'],
-      install_requires=['numpy',
-                        'matplotlib',
+      install_requires=['matplotlib',
+			'numpy',
+                        'plotly',
 			'scipy'])
 
