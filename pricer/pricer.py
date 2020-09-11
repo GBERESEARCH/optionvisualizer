@@ -1042,7 +1042,7 @@ class Option():
         
     def payoff_graphs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                       T=None, r=None, q=None, sigma=None, option=None, direction=None, 
-                      cash=None, value=None, combo_payoff=None):
+                      cash=None, ratio=None, value=None, combo_payoff=None):
        
         if combo_payoff == 'call':
             self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
@@ -1068,12 +1068,12 @@ class Option():
                         direction=direction, value=value)
             
         if combo_payoff == 'backspread':
-            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
-                            value=value)
+            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
+                            ratio=ratio, value=value)
         
         if combo_payoff == 'ratio vertical spread':
             self.ratio_vertical_spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
-                                       option=option, value=value)
+                                       option=option, ratio=ratio, value=value)
         
         if combo_payoff == 'straddle':
             self.straddle(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
