@@ -1087,14 +1087,17 @@ class Option():
                                  direction=self.direction)
         
         if self.x_plot == 'rho':
+            self.T1 = self.T
+            self.T2 = self.T + self.time_shift
+            
             if self.y_plot == 'price':
-                self._rho_price(S0=self.S0, G1=self.G1, T1=self.T, T2=self.T+self.time_shift, 
+                self._rho_price(S0=self.S0, G1=self.G1, T1=self.T1, T2=self.T2, 
                                r=self.r, q=self.q, sigma=self.sigma, direction=self.direction)
             if self.y_plot == 'strike':
-                self._rho_strike(S0=self.S0, G1=self.G1, T1=self.T, T2=self.T+self.time_shift, 
+                self._rho_strike(S0=self.S0, G1=self.G1, T1=self.T1, T2=self.T2, 
                                r=self.r, q=self.q, sigma=self.sigma, direction=self.direction)            
             if self.y_plot == 'vol':
-                self._rho_vol(S0=self.S0, G1=self.G1, T1=self.T, T2=self.T+self.time_shift, 
+                self._rho_vol(S0=self.S0, G1=self.G1, T1=self.T1, T2=self.T2, 
                                r=self.r, q=self.q, direction=self.direction)
     
 
@@ -1275,7 +1278,7 @@ class Option():
                              sigma=self.sigmaA, option=self.option, refresh='graph')
         self.C2 = self.delta(S=self.S0, K=self.G2, T=self.T2, r=self.r, q=self.q, 
                              sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C3 = self.delta(S=self.S0, K=self.G2, T=self.T3, r=self.r, q=self.q, 
+        self.C3 = self.delta(S=self.S0, K=self.G3, T=self.T3, r=self.r, q=self.q, 
                              sigma=self.sigmaA, option=self.option, refresh='graph')
     
         if self.direction == 'short':
@@ -1581,15 +1584,16 @@ class Option():
             self.C1 = -self.C1
             self.C2 = -self.C2
             self.C3 = -self.C3
+            self.C4 = -self.C4
         
-        self.label1 = str(int(T1*365))+' Day Call'
-        self.label2 = str(int(T2*365))+' Day Call'
-        self.label3 = str(int(T1*365))+' Day Put'
-        self.label4 = str(int(T2*365))+' Day Put'
+        self.label1 = str(int(self.T1*365))+' Day Call'
+        self.label2 = str(int(self.T2*365))+' Day Call'
+        self.label3 = str(int(self.T1*365))+' Day Put'
+        self.label4 = str(int(self.T2*365))+' Day Put'
                 
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' '+' Call & Put Rho vs Price'
+        self.title = str(self.direction.title())+' '+' Call / Put Rho vs Price'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
@@ -1614,15 +1618,16 @@ class Option():
             self.C1 = -self.C1
             self.C2 = -self.C2
             self.C3 = -self.C3
+            self.C4 = -self.C4
         
-        self.label1 = str(int(T1*365))+' Day Call'
-        self.label2 = str(int(T2*365))+' Day Call'
-        self.label3 = str(int(T1*365))+' Day Put'
-        self.label4 = str(int(T2*365))+' Day Put'
+        self.label1 = str(int(self.T1*365))+' Day Call'
+        self.label2 = str(int(self.T2*365))+' Day Call'
+        self.label3 = str(int(self.T1*365))+' Day Put'
+        self.label4 = str(int(self.T2*365))+' Day Put'
                 
         self.xlabel = 'Strike Price'
         self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' '+' Call & Put Rho vs Strike'
+        self.title = str(self.direction.title())+' '+' Call / Put Rho vs Strike'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
@@ -1632,6 +1637,8 @@ class Option():
 
 
     def _rho_vol(self, S0=None, G1=None, T1=None, T2=None, r=None, q=None, direction=None):
+        
+        self._initialise_func(S0=S0, G1=G1, T1=T1, T2=T2, r=r, q=q, direction=direction)
         
         self.C1 = self.rho(S=self.S0, K=self.G1, T=self.T1, r=self.r, sigma=self.sigmaA, 
                            option="call", refresh='graph')
@@ -1646,19 +1653,20 @@ class Option():
             self.C1 = -self.C1
             self.C2 = -self.C2
             self.C3 = -self.C3
+            self.C4 = -self.C4
         
-        self.label1 = str(int(T1*365))+' Day Call'
-        self.label2 = str(int(T2*365))+' Day Call'
-        self.label3 = str(int(T1*365))+' Day Put'
-        self.label4 = str(int(T2*365))+' Day Put'
+        self.label1 = str(int(self.T1*365))+' Day Call'
+        self.label2 = str(int(self.T2*365))+' Day Call'
+        self.label3 = str(int(self.T1*365))+' Day Put'
+        self.label4 = str(int(self.T2*365))+' Day Put'
                 
         self.xlabel = 'Volatility %'
         self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' '+' Call & Put Rho vs Volatility'
+        self.title = str(self.direction.title())+' '+' Call / Put Rho vs Volatility'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
-                             xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
+                             yarray4=self.C4, xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, 
+                             xarray3=self.sigmaA*100, xarray4=self.sigmaA*100, label1=self.label1, 
                              label2=self.label2, label3=self.label3, label4=self.label4, 
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
