@@ -70,6 +70,18 @@ df_dict = {'df_S':100,
             # Those parameters that need changing
             'df_mod_params':['S0', 'K', 'K1', 'K2', 'K3'],
 
+            # Dictionary mapping function parameters to axis labels
+            'df_label_dict':{'price':'Underlying Price',
+                             'value':'Theoretical Value',
+                             'vol':'Volatility %',
+                             'time':'Time to Expiration (Days)',
+                             'delta':'Delta',
+                             'gamma':'Gamma',
+                             'vega':'Vega',
+                             'theta':'Theta',
+                             'rho':'Rho',
+                             'strike':'Strike Price'},
+             
             # Combo parameter values differing from standard defaults
             'df_combo_dict':{'collar':{'S0':100,
                                        'K1':98,
@@ -180,7 +192,8 @@ class Option():
                  x_plot=df_dict['df_x_plot'], y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
                  cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
                  df_params_list=df_dict['df_params_list'], mod_payoffs=df_dict['df_mod_payoffs'], 
-                 mod_params=df_dict['df_mod_params'], df_dict=df_dict):
+                 mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
+                 df_dict=df_dict):
 
         self.S = S # Spot price
         self.S0 = S0 # Spot price
@@ -232,8 +245,10 @@ class Option():
         self.axis = axis # Price or Vol against Time in 3D graphs
         self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
         self.mod_params = mod_params # Parameters of these payoffs that need changing
+        self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
         self.combo_payoff = None
         self.strike_label = dict()
+        
 
     
     def _initialise_func(self, **kwargs):
@@ -244,6 +259,7 @@ class Option():
         return self
 
     def _initialise_graphs(self, **kwargs):
+        
         self._set_params(**kwargs)
         self._refresh_dist()
         
@@ -492,7 +508,7 @@ class Option():
         return self.opt_theta
     
     
-    def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # how much delta will change due to a small change in the underlying asset price        
         
         if refresh == 'Std' or refresh is None:
@@ -505,7 +521,7 @@ class Option():
         return self.opt_gamma
     
     
-    def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -534,7 +550,7 @@ class Option():
         return self.opt_rho
 
 
-    def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # aka DdeltaDvol, DvegaDspot 
         # how much delta will change due to a small change in volatility
         # how much vega will change due to a small change in the asset price        
@@ -571,7 +587,7 @@ class Option():
         return self.opt_charm
                
 
-    def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # DgammaDvol
         # how much gamma will change due to a small change in volatility
         
@@ -586,7 +602,7 @@ class Option():
         return self.opt_zomma
 
 
-    def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # DgammaDspot
         # how much gamma will change due to a small change in the asset price
         
@@ -601,7 +617,7 @@ class Option():
         return self.opt_speed
 
 
-    def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # DgammaDtime, gamma bleed
         # how much gamma will change due to a small change in time
         
@@ -617,7 +633,7 @@ class Option():
         return self.opt_color
 
 
-    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # DvegaDvol, vega convexity, volga
         # how much vega will change due to a small change in implied volatility
         
@@ -632,7 +648,7 @@ class Option():
         return self.opt_vomma
 
 
-    def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # DvommaDvol
         # how much vomma will change due to a small change in implied volatility
         
@@ -648,7 +664,7 @@ class Option():
         return self.opt_ultima
 
 
-    def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, refresh=None):
+    def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         # DvegaDtime
         # how much vega will change due to a small change in time
         
@@ -1099,6 +1115,24 @@ class Option():
                 plot(fig, auto_open=True)
  
     
+    
+    def greeks_graphs_2D_gen(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+                             G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
+                             r=None, q=None, sigma=None, option=None, direction=None):
+        
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
+                              G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
+                              r=r, q=q, sigma=sigma, option=option, direction=direction)
+        
+        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
+        self.sigmaA = np.linspace(0.05, 0.5, 100)
+        self.TA = np.linspace(0.01, 1, 100)
+    
+        self._2D_general_graph()       
+    
+    
+    
+    
     def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
                          G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
                          r=None, q=None, sigma=None, option=None, direction=None):
@@ -1114,87 +1148,54 @@ class Option():
         
         if self.x_plot == 'value':
             if self.y_plot == 'price':
-                self._value_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                  T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, 
-                                  q=self.q, sigma=self.sigma, option=self.option, 
-                                  direction=self.direction)
+                self._value_price()
             if self.y_plot == 'vol':
-                self._value_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, q=self.q, 
-                                option=option, direction=self.direction)
+                self._value_vol()
             if self.y_plot == 'time':
-                self._value_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                 r=self.r, q=self.q, sigma=self.sigma, option=self.option, 
-                                 direction=self.direction)
+                self._value_time()
         
         if self.x_plot == 'delta':
             if self.y_plot == 'price':
-                self._delta_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                  T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, 
-                                  q=self.q, sigma=self.sigma, option=self.option, 
-                                  direction=self.direction)
+                self._delta_price()
             if self.y_plot == 'vol':
-                self._delta_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, q=self.q, 
-                                option=self.option, direction=self.direction)
+                self._delta_vol()
             if self.y_plot == 'time':
-                self._delta_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                 r=self.r, q=self.q, sigma=self.sigma, option=self.option, 
-                                 direction=self.direction)
+                self._delta_time()
         
         if self.x_plot == 'gamma':
             if self.y_plot == 'price':
-                self._gamma_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                  T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, 
-                                  q=self.q, sigma=self.sigma, direction=self.direction)
+                self._gamma_price()
             if self.y_plot == 'vol':
-                self._gamma_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, q=self.q, 
-                                direction=self.direction)
+                self._gamma_vol()
             if self.y_plot == 'time':
-                self._gamma_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                 r=self.r, q=self.q, sigma=self.sigma, direction=self.direction)
+                self._gamma_time()
         
         if self.x_plot == 'vega':
             if self.y_plot == 'price':
-                self._vega_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                 T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, 
-                                 q=self.q, sigma=self.sigma, direction=self.direction)
+                self._vega_price()
             if self.y_plot == 'vol':
-                self._vega_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, T1=self.T1, 
-                               T2=self.T2, T3=self.T3, r=self.r, q=self.q, direction=self.direction)
+                self._vega_vol()
             if self.y_plot == 'time':
-                self._vega_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                r=self.r, q=self.q, sigma=self.sigma, direction=self.direction)  
+                self._vega_time()  
         
         if self.x_plot == 'theta':
             if self.y_plot == 'price':
-                self._theta_price(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                  T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, 
-                                  q=self.q, sigma=self.sigma, option=self.option, 
-                                  direction=self.direction)
+                self._theta_price()
             if self.y_plot == 'vol':
-                self._theta_vol(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                T1=self.T1, T2=self.T2, T3=self.T3, r=self.r, 
-                                q=self.q, option=option, direction=self.direction)
+                self._theta_vol()
             if self.y_plot == 'time':
-                self._theta_time(S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                 r=self.r, q=self.q, sigma=self.sigma, option=self.option, 
-                                 direction=self.direction)
+                self._theta_time()
         
         if self.x_plot == 'rho':
             self.T1 = self.T
             self.T2 = self.T + self.time_shift
             
             if self.y_plot == 'price':
-                self._rho_price(S0=self.S0, G1=self.G1, T1=self.T1, T2=self.T2, 
-                               r=self.r, q=self.q, sigma=self.sigma, direction=self.direction)
+                self._rho_price()
             if self.y_plot == 'strike':
-                self._rho_strike(S0=self.S0, G1=self.G1, T1=self.T1, T2=self.T2, 
-                               r=self.r, q=self.q, sigma=self.sigma, direction=self.direction)            
+                self._rho_strike()            
             if self.y_plot == 'vol':
-                self._rho_vol(S0=self.S0, G1=self.G1, T1=self.T1, T2=self.T2, 
-                               r=self.r, q=self.q, direction=self.direction)
+                self._rho_vol()
     
 
         
@@ -1258,9 +1259,94 @@ class Option():
                              sigma=sigma, option=option, direction=direction, value=value)
             
     
-    def _value_price(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, 
-                     T3=None, r=None, q=None, sigma=None, option=None, direction=None):
-                               
+
+    def _2D_general_graph(self):                               
+        
+        if self.x_plot in ['value', 'delta', 'gamma', 'vega', 'theta']:
+            x_name_dict = {'value':'price', 'delta':'delta', 'gamma':'gamma', 'vega':'vega', 'theta':'theta'}
+            for opt in [1, 2, 3]:
+                if self.y_plot == 'price':
+                    self.__dict__['C'+str(opt)] = self.__dict__[x_name_dict[self.x_plot]](S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
+                                                                             r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
+                if self.y_plot == 'vol':
+                    self.__dict__['C'+opt] = self.__dict__[str(self.x_plot)](S=self.S0, K=self.__dict__['G'+opt], T=self.__dict__['T'+opt], 
+                                                                              r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
+                if self.y_plot == 'time':        
+                    self.__dict__['C'+opt] = self.__dict__[str(self.x_plot)](S=self.S0, K=self.__dict__['G'+opt], T=self.TA, r=self.r, 
+                                                                                   q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
+        
+            if self.direction == 'short':
+                self.C1 = -self.C1
+                self.C2 = -self.C2
+                self.C3 = -self.C3
+            
+            self._strike_tenor_label()
+ 
+        if self.x_plot == 'rho':
+            tenor_type = {1:1, 2:2, 3:1, 4:2}
+            opt_type = {1:'call', 2:'call', 3:'put', 4:'put'}
+            for opt in [1, 2, 3, 4]:
+                if self.y_plot == 'price':
+                    self.__dict__['C'+opt] = self.__dict__[str(self.x_plot)](S=self.SA, K=self.G1, T=self.__dict__['T'+tenor_type[opt]], 
+                                                                             r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
+                if self.y_plot == 'strike':
+                    self.__dict__['C'+opt] = self.__dict__[str(self.x_plot)](S=self.S0, K=self.SA, T=self.__dict__['T'+tenor_type[opt]],
+                                                                             r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
+                if self.y_plot == 'vol':
+                    self.__dict__['C'+opt] = self.__dict__[str(self.x_plot)](S=self.S0, K=self.G1, T=self.__dict__['T'+tenor_type[opt]], 
+                                                                             r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
+    
+            if self.direction == 'short':
+                self.C1 = -self.C1
+                self.C2 = -self.C2
+                self.C3 = -self.C3
+                self.C4 = -self.C4
+    
+            self.label1 = str(int(self.T1*365))+' Day Call'
+            self.label2 = str(int(self.T2*365))+' Day Call'
+            self.label3 = str(int(self.T1*365))+' Day Put'
+            self.label4 = str(int(self.T2*365))+' Day Put'
+    
+    
+        self.xlabel = self.label_dict[str(self.x_plot)]
+        self.ylabel = self.label_dict[str(self.y_plot)]
+        
+             
+    
+        
+        if self.x_plot in ['value', 'delta', 'gamma', 'vega', 'theta']:
+            
+            self.title = (str(self.direction.title())+' '+str(self.option.title())+
+                          ' '+self.x_plot.title()+' vs '+self.y_plot.title())   
+            
+            self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                                 xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
+                                 label1=self.label1, label2=self.label2, label3=self.label3, 
+                                 xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
+
+    
+        if self.x_plot == 'rho':
+            
+            self.title = (str(self.direction.title())+' Call / Put '+
+                          self.x_plot.title()+' vs '+self.y_plot.title())   
+            
+            if self.y_plot in ['price', 'strike']:
+                self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                                     yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
+                                     xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
+                                     label2=self.label2, label3=self.label3, label4=self.label4, 
+                                     xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
+    
+            if self.y_plot == 'vol':
+                self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                                     yarray4=self.C4, xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, 
+                                     xarray3=self.sigmaA*100, xarray4=self.sigmaA*100, label1=self.label1, 
+                                     label2=self.label2, label3=self.label3, label4=self.label4, 
+                                     xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
+ 
+
+    def _value_price(self):        
+        
         self.C1 = self.price(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
         self.C2 = self.price(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
@@ -1285,8 +1371,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def _value_vol(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, 
-                   r=None, q=None, option=None, direction=None):
+    def _value_vol(self):
         
         self.C1 = self.price(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
                              sigma=self.sigmaA, option=self.option, refresh='graph')
@@ -1312,8 +1397,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
         
     
-    def _value_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, 
-                    option=None, direction=None):
+    def _value_time(self):
         
         self.C1 = self.price(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
@@ -1340,8 +1424,7 @@ class Option():
     
     
     
-    def _delta_price(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, r=None, q=None, 
-                     sigma=None, option=None, direction=None):
+    def _delta_price(self):
         
         self.C1 = self.delta(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
@@ -1367,8 +1450,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
     
     
-    def _delta_vol(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, 
-                   r=None, q=None, option=None, direction=None):
+    def _delta_vol(self):
         
         self.C1 = self.delta(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigmaA, option=self.option, refresh='graph')
@@ -1394,8 +1476,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
         
         
-    def _delta_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, 
-                    option=None, direction=None):
+    def _delta_time(self):
         
         self.C1 = self.delta(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
@@ -1421,8 +1502,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
         
-    def _gamma_price(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, 
-                     T3=None, r=None, q=None, sigma=None, direction=None):
+    def _gamma_price(self):
         
         self.C1 = self.gamma(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigma, refresh='graph')
@@ -1448,8 +1528,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
         
         
-    def _gamma_vol(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, 
-                   r=None, q=None, direction=None):
+    def _gamma_vol(self):
         
         self.C1 = self.gamma(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigmaA, refresh='graph')
@@ -1475,8 +1554,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)            
         
     
-    def _gamma_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, 
-                    direction=None):
+    def _gamma_time(self):
         
         self.C1 = self.gamma(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
                              sigma=self.sigma, refresh='graph')
@@ -1502,8 +1580,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
-    def _vega_price(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, 
-                    T3=None, r=None, q=None, sigma=None, direction=None):
+    def _vega_price(self):
         
         self.C1 = self.vega(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigma, refresh='graph')
@@ -1529,8 +1606,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
     
         
-    def _vega_vol(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, 
-                  r=None, q=None, direction=None):
+    def _vega_vol(self):
         
         self.C1 = self.vega(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigmaA, refresh='graph')
@@ -1556,8 +1632,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def _vega_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, 
-                   direction=None):
+    def _vega_time(self):
         
         self.C1 = self.vega(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
                              sigma=self.sigma, refresh='graph')
@@ -1583,8 +1658,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def _theta_price(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, 
-                     T3=None, r=None, q=None, sigma=None, option=None, direction=None):
+    def _theta_price(self):
         
         self.C1 = self.theta(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
@@ -1610,8 +1684,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
     
     
-    def _theta_vol(self, S0=None, G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, 
-                   r=None, q=None, option=None, direction=None):
+    def _theta_vol(self):
         
         self.C1 = self.theta(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                              sigma=self.sigmaA, option=self.option, refresh='graph')
@@ -1637,8 +1710,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)    
         
     
-    def _theta_time(self, S0=None, G1=None, G2=None, G3=None, r=None, q=None, sigma=None, 
-                    option=None, direction=None):
+    def _theta_time(self):
         
         self.C1 = self.theta(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option, refresh='graph')
@@ -1664,8 +1736,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
     
     
-    def _rho_price(self, S0=None, G1=None, T1=None, T2=None, r=None, 
-                   q=None, sigma=None, direction=None):
+    def _rho_price(self):
         
         self.C1 = self.rho(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
                            sigma=self.sigma, option='call', refresh='graph')
@@ -1698,8 +1769,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
 
-    def _rho_strike(self, S0=None, G1=None, T1=None, T2=None, r=None, 
-                   q=None, sigma=None, direction=None):
+    def _rho_strike(self):
         
         self.C1 = self.rho(S=self.S0, K=self.SA, T=self.T1, r=self.r, q=self.q, 
                            sigma=self.sigma, option='call', refresh='graph')
@@ -1732,9 +1802,7 @@ class Option():
                              xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
 
 
-    def _rho_vol(self, S0=None, G1=None, T1=None, T2=None, r=None, q=None, direction=None):
-        
-        self._initialise_func(S0=S0, G1=G1, T1=T1, T2=T2, r=r, q=q, direction=direction)
+    def _rho_vol(self):
         
         self.C1 = self.rho(S=self.S0, K=self.G1, T=self.T1, r=self.r, sigma=self.sigmaA, 
                            option="call", refresh='graph')
