@@ -45,9 +45,9 @@ class Pricer():
              american=df_dict['df_american'], step=df_dict['df_step'], state=df_dict['df_state'], 
              skew=df_dict['df_skew']):
         
-        self.S = S # Spot price
-        self.K = K # Strike price
-
+        #self.S = S # Spot price
+        #self.K = K # Strike price
+        pass
     
     def _ncr(self, n, r):
         
@@ -851,6 +851,7 @@ class ImpliedVol(Pricer):
     def __init__(self):
         super().__init__(self)
 
+
     @timethis
     def newtonraphson(self, S, K, T, r, q, cm, epsilon, option):
         # Newton-Raphson method - needs knowledge of partial derivative of option 
@@ -901,11 +902,40 @@ class ImpliedVol(Pricer):
             cHigh = self.bsm(S, K, T, r, q, vHigh, option)
             vi = vLow + (cm - cLow) * (vHigh - vLow) / (cHigh - cLow)
             
-        result = vi
-        
+        result = vi    
+            
         return result
 
+    @timethis
+    def iv_naive(self, S, K, T, r, q, cm, epsilon, option):
+    
+        vi = 0.2
+        ci = self.bsm(S=S, K=K, T=T, r=r, q=q, sigma=vi, option=option)
+        price_diff = cm - ci
+        if price_diff > 0:
+            flag = 1
+        else:
+            flag = -1
+        while abs(price_diff) > epsilon:
+            while price_diff * flag > 0:
+                ci = self.bsm(S=S, K=K, T=T, r=r, q=q, sigma=vi, option=option)
+                price_diff = cm - ci
+                vi += (0.01 * flag)
+            while price_diff * flag < 0:
+                ci = self.bsm(S=S, K=K, T=T, r=r, q=q, sigma=vi, option=option)
+                price_diff = cm - ci
+                vi -= (0.001 * flag)
+            while price_diff > 0:
+                ci = self.bsm(S=S, K=K, T=T, r=r, q=q, sigma=vi, option=option)
+                price_diff = cm - ci
+                vi += (0.0001 * flag)
+            while price_diff > 0:
+                ci = self.bsm(S=S, K=K, T=T, r=r, q=q, sigma=vi, option=option)
+                price_diff = cm - ci
+                vi -= (0.00001 * flag)
+        
+        return vi
 
-#%%
+
 
 
