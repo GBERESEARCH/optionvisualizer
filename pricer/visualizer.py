@@ -1568,7 +1568,7 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Gamma'
-        self.title = str(self.direction.title())+' '+' Call / Put Gamma vs Price'
+        self.title = str(self.direction.title())+' Call / Put Gamma vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1594,7 +1594,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Gamma'
-        self.title = str(self.direction.title())+' '+' Call / Put Gamma vs Volatility'
+        self.title = str(self.direction.title())+' Call / Put Gamma vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1620,7 +1620,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Gamma'
-        self.title = str(self.direction.title())+' '+' Call / Put Gamma vs Time'
+        self.title = str(self.direction.title())+' Call / Put Gamma vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1646,7 +1646,7 @@ class Option():
             
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Vega'
-        self.title = str(self.direction.title())+' '+' Call / Put Vega vs Price'
+        self.title = str(self.direction.title())+' Call / Put Vega vs Price'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
@@ -1672,7 +1672,7 @@ class Option():
             
         self.xlabel = 'Volatility %'
         self.ylabel = 'Vega'
-        self.title = str(self.direction.title())+' '+' Call / Put Vega vs Volatility'
+        self.title = str(self.direction.title())+' Call / Put Vega vs Volatility'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
@@ -1698,7 +1698,7 @@ class Option():
             
         self.xlabel = 'Time to Expiration (days)'
         self.ylabel = 'Vega'
-        self.title = str(self.direction.title())+' '+' Call / Put Vega vs Time'
+        self.title = str(self.direction.title())+' Call / Put Vega vs Time'
 
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
@@ -1786,13 +1786,13 @@ class Option():
     
     def _rho_price(self):
         
-        self.C1 = self.rho(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
+        self.C1 = self.rho(S=self.SA, K=self.G2, T=self.T1, r=self.r, q=self.q, 
                            sigma=self.sigma, option='call', refresh='graph')
-        self.C2 = self.rho(S=self.SA, K=self.G1, T=self.T2, r=self.r, q=self.q, 
+        self.C2 = self.rho(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
                            sigma=self.sigma, option="call", refresh='graph')
-        self.C3 = self.rho(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
+        self.C3 = self.rho(S=self.SA, K=self.G2, T=self.T1, r=self.r, q=self.q, 
                            sigma=self.sigma, option="put", refresh='graph')
-        self.C4 = self.rho(S=self.SA, K=self.G1, T=self.T2, r=self.r, q=self.q, 
+        self.C4 = self.rho(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
                            sigma=self.sigma, option="put", refresh='graph')
         
         if self.direction == 'short':
@@ -1808,7 +1808,7 @@ class Option():
                 
         self.xlabel = 'Underlying Price'
         self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' '+' Call / Put Rho vs Price'
+        self.title = str(self.direction.title())+' Call / Put Rho vs Price'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
@@ -1841,7 +1841,7 @@ class Option():
                 
         self.xlabel = 'Strike Price'
         self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' '+' Call / Put Rho vs Strike'
+        self.title = str(self.direction.title())+' Call / Put Rho vs Strike'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
@@ -1852,13 +1852,13 @@ class Option():
 
     def _rho_vol(self):
         
-        self.C1 = self.rho(S=self.S0, K=self.G1, T=self.T1, r=self.r, sigma=self.sigmaA, 
+        self.C1 = self.rho(S=self.S0, K=self.G2, T=self.T1, r=self.r, sigma=self.sigmaA, 
                            option="call", refresh='graph')
-        self.C2 = self.rho(S=self.S0, K=self.G1, T=self.T2, r=self.r, sigma=self.sigmaA, 
+        self.C2 = self.rho(S=self.S0, K=self.G2, T=self.T2, r=self.r, sigma=self.sigmaA, 
                            option="call", refresh='graph')
-        self.C3 = self.rho(S=self.S0, K=self.G1, T=self.T1, r=self.r, sigma=self.sigmaA, 
+        self.C3 = self.rho(S=self.S0, K=self.G2, T=self.T1, r=self.r, sigma=self.sigmaA, 
                            option="put", refresh='graph')
-        self.C4 = self.rho(S=self.S0, K=self.G1, T=self.T2, r=self.r, sigma=self.sigmaA, 
+        self.C4 = self.rho(S=self.S0, K=self.G2, T=self.T2, r=self.r, sigma=self.sigmaA, 
                            option="put", refresh='graph')
         
         if self.direction == 'short':
@@ -1874,7 +1874,7 @@ class Option():
                 
         self.xlabel = 'Volatility %'
         self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' '+' Call / Put Rho vs Volatility'
+        self.title = str(self.direction.title())+' Call / Put Rho vs Volatility'
         
         self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
                              yarray4=self.C4, xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, 
