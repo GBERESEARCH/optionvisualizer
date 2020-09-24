@@ -619,7 +619,7 @@ class Option():
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
         self.opt_zomma = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                                     self.refresh) * ((self.d1 * self.d2 - 1) / self.sigma))
+                                     self.option, self.refresh) * ((self.d1 * self.d2 - 1) / self.sigma))
         
         return self.opt_zomma
 
@@ -633,8 +633,8 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_speed = -(self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
-                           (1 + (self.d1 / (self.sigma * np.sqrt(self.T)))) / self.S)
+        self.opt_speed = -(self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                                      self.option, self.refresh) * (1 + (self.d1 / (self.sigma * np.sqrt(self.T)))) / self.S)
         
         return self.opt_speed
 
@@ -648,9 +648,10 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_color = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
-                           ((self.r - self.b) + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) + 
-                            ((1 - self.d1 * self.d2) / (2 * self.T))))
+        self.opt_color = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                                     self.option, self.refresh) * ((self.r - self.b) + 
+                                    ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) + 
+                                    ((1 - self.d1 * self.d2) / (2 * self.T))))
         
         return self.opt_color
 
@@ -664,8 +665,8 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
-                           ((self.d1 * self.d2) / (self.sigma)))
+        self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                                    self.option, self.refresh) * ((self.d1 * self.d2) / (self.sigma)))
         
         return self.opt_vomma
 
@@ -679,9 +680,10 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_ultima = (self.vomma(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
-                           ((1 / self.sigma) * (self.d1 * self.d2 - (self.d1 / self.d2) - 
-                                                (self.d2 / self.d1) - 1)))
+        self.opt_ultima = (self.vomma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                                      self.option, self.refresh) * ((1 / self.sigma) * 
+                                     (self.d1 * self.d2 - (self.d1 / self.d2) - 
+                                     (self.d2 / self.d1) - 1)))
         
         return self.opt_ultima
 
@@ -695,9 +697,10 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_vega_bleed = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, self.refresh) * 
-                               (self.r - self.b + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) - 
-                                ((1 + (self.d1 * self.d2) ) / (2 * self.T))))
+        self.opt_vega_bleed = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                               self.option, self.refresh) * (self.r - self.b + 
+                             ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) - 
+                              ((1 + (self.d1 * self.d2) ) / (2 * self.T))))
 
         return self.opt_vega_bleed
 
