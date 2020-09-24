@@ -1,3 +1,4 @@
+
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
@@ -172,7 +173,22 @@ df_dict = {'df_S':100,
                                   'charm':{'SA_lower':0.8,
                                            'SA_upper':1.2,
                                            'TA_lower':0.01,
-                                           'TA_upper':0.25}}}
+                                           'TA_upper':0.25}},
+            # Greek names as function input and individual function names            
+            'df_greek_dict':{'price':'price',
+                             'delta':'delta',
+                             'gamma':'gamma',
+                             'vega':'vega',
+                             'theta':'theta',
+                             'rho':'rho',
+                             'vomma':'vomma',
+                             'vanna':'vanna',
+                             'zomma':'zomma',
+                             'speed':'speed',
+                             'color':'color',
+                             'ultima':'ultima',
+                             'vega bleed':'vega_bleed',
+                             'charm':'charm'}}
 
 
 
@@ -197,7 +213,7 @@ class Option():
                  cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
                  df_params_list=df_dict['df_params_list'], mod_payoffs=df_dict['df_mod_payoffs'], 
                  mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
-                 df_dict=df_dict):
+                 greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
 
         self.S = S # Spot price
         self.S0 = S0 # Spot price
@@ -250,6 +266,7 @@ class Option():
         self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
         self.mod_params = mod_params # Parameters of these payoffs that need changing
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
+        self.greek_dict = greek_dict
         self.combo_payoff = None
         self.strike_label = dict()
         
@@ -261,6 +278,7 @@ class Option():
         self._refresh_dist()
         
         return self
+
 
     def _initialise_graphs(self, **kwargs):
         
@@ -301,7 +319,6 @@ class Option():
                     self.__dict__[k] = v
                 else:
                     self.__dict__[k] = v
-
         
 
         for key in list(set(self.df_params_list) - set(kwargs.keys())):
@@ -864,6 +881,32 @@ class Option():
         ax.legend()
         plt.show()
    
+    
+    
+    def greeks_graphs_3D_gen(self, greek=None, S0=None, r=None, q=None, sigma=None, 
+                                  option=None, interactive=None, notebook=None, 
+                                  colorscheme=None, direction=None, axis=None):
+        
+        self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
+                         interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
+                         direction=direction, axis=axis)
+        
+
+        for greek_label, greek_func in self.greek_dict.items():
+            if self.greek == greek_label:
+                if self.axis == 'price':
+                    self._graph_space_prep(axis='price')
+                    self.z = getattr(self, greek_func)(S=self.x, K=self.S0, T=self.y, 
+                                                       r=self.r, sigma=self.sigma, 
+                                                       option=self.option, refresh='graph')
+                if self.axis == 'vol':
+                    self._graph_space_prep(axis='vol')
+                    self.z = getattr(self, greek_func)(S=self.S0, K=self.S0, T=self.y, 
+                                                       r=self.r, sigma=self.x, 
+                                                       option=self.option, refresh='graph')
+                    
+        self._vis_greeks_3D()            
+    
     
     def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
                                   option=None, interactive=None, notebook=None, 
@@ -2345,3 +2388,9 @@ class Option():
         return self
         
     
+
+
+
+        
+        
+        
