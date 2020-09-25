@@ -904,7 +904,7 @@ class Option():
                               G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
                               r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
-                              size=size, direction=direction, axis=axis)
+                              size=size, direction=direction, axis=axis, graphtype=graphtype)
         
         
         if self.graphtype == '2D':
