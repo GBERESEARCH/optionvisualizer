@@ -43,6 +43,7 @@ df_dict = {'df_S':100,
            'df_value':False,
            'df_ratio':2,
            'df_refresh':'Std',
+           'df_combo_payoff':'straddle',
            'df_delta_shift':25,
            'df_delta_shift_type':'avg',
            'df_greek':'delta',
@@ -78,19 +79,7 @@ df_dict = {'df_S':100,
             
             # Those parameters that need changing
             'df_mod_params':['S0', 'K', 'K1', 'K2', 'K3', 'K4'],
-
-            # Dictionary mapping function parameters to axis labels
-            'df_label_dict':{'price':'Underlying Price',
-                             'value':'Theoretical Value',
-                             'vol':'Volatility %',
-                             'time':'Time to Expiration (Days)',
-                             'delta':'Delta',
-                             'gamma':'Gamma',
-                             'vega':'Vega',
-                             'theta':'Theta',
-                             'rho':'Rho',
-                             'strike':'Strike Price'},
-             
+            
             # Combo parameter values differing from standard defaults
             'df_combo_dict':{'collar':{'S0':100,
                                        'K':100,
@@ -124,6 +113,18 @@ df_dict = {'df_S':100,
                                             'K2':95,
                                             'K3':100,
                                             'K4':105}},
+            
+            # Dictionary mapping function parameters to axis labels
+            'df_label_dict':{'price':'Underlying Price',
+                             'value':'Theoretical Value',
+                             'vol':'Volatility %',
+                             'time':'Time to Expiration (Days)',
+                             'delta':'Delta',
+                             'gamma':'Gamma',
+                             'vega':'Vega',
+                             'theta':'Theta',
+                             'rho':'Rho',
+                             'strike':'Strike Price'},
             
             # Ranges of Underlying price and Time to Expiry for 3D greeks graphs
             'df_3D_chart_ranges':{'price':{'SA_lower':0.8,
@@ -214,11 +215,11 @@ class Option():
                  option2=df_dict['df_option2'], option3=df_dict['df_option3'], 
                  option4=df_dict['df_option4'], direction=df_dict['df_direction'], 
                  value=df_dict['df_value'], ratio=df_dict['df_ratio'], refresh=df_dict['df_refresh'], 
-                 delta_shift=df_dict['df_delta_shift'], delta_shift_type=df_dict['df_delta_shift_type'], 
-                 greek=df_dict['df_greek'], interactive=df_dict['df_interactive'], 
-                 notebook=df_dict['df_notebook'], colorscheme=df_dict['df_colorscheme'], 
-                 colorintensity=df_dict['df_colorintensity'], size=df_dict['df_size'],
-                 graphtype=df_dict['df_graphtype'], x_plot=df_dict['df_x_plot'], 
+                 combo_payoff=df_dict['df_combo_payoff'], delta_shift=df_dict['df_delta_shift'], 
+                 delta_shift_type=df_dict['df_delta_shift_type'], greek=df_dict['df_greek'], 
+                 interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
+                 colorscheme=df_dict['df_colorscheme'], colorintensity=df_dict['df_colorintensity'], 
+                 size=df_dict['df_size'], graphtype=df_dict['df_graphtype'], x_plot=df_dict['df_x_plot'], 
                  y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
                  cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
                  df_params_list=df_dict['df_params_list'], equal_greeks=df_dict['df_equal_greeks'], 
@@ -281,10 +282,8 @@ class Option():
         self.mod_params = mod_params # Parameters of these payoffs that need changing
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
         self.equal_greeks = equal_greeks # List of Greeks where call and put values are the same
-        self.greek_dict = greek_dict
-        self.combo_payoff = None
-        self.strike_label = dict()
-        
+        self.greek_dict = greek_dict # Greek names as function input and individual function names
+        self.combo_payoff = combo_payoff # 2D graph payoff structure
 
     
     def _initialise_func(self, **kwargs):
@@ -813,6 +812,7 @@ class Option():
 
     def _strike_tenor_label(self):
         
+        self.strike_label = dict()
         for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
             if self.__dict__[str(key)] == self.S0:
                 self.strike_label[value] = 'ATM Strike'
