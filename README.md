@@ -5,20 +5,20 @@ A tool to calculate option prices and sensitivities and visualize these.
 Each of the functions comes with default parameters so it can be run without arguments for ease of illustration or they can be specified individually
 
 ### Black-Scholes option pricing and sensitivities:
-  - Price
-  - Delta
-  - Gamma
-  - Vega
-  - Theta
-  - Rho
-  - Vomma
-  - Vanna
-  - Charm
-  - Zomma
-  - Speed
-  - Color
-  - Ultima
-  - Vega Bleed
+  - Price: option price 
+  - Delta: sensitivity of option price to changes in asset price
+  - Gamma: sensitivity of delta to changes in asset price
+  - Vega: sensitivity of option price to changes in volatility
+  - Theta: sensitivity of option price to changes in time to maturity
+  - Rho: sensitivity of option price to changes in the risk free rate
+  - Vomma: sensitivity of vega to changes in volatility; Volga
+  - Vanna: sensitivity of delta to changes in volatility / of vega to changes in asset price
+  - Charm: sensitivity of delta to changes in time to maturity aka Delta Bleed
+  - Zomma: sensitivity of gamma to changes in volatility
+  - Speed: sensitivity of gamma to changes in asset price; 3rd derivative of option price wrt spot
+  - Color: sensitivity of gamma to changes in time to maturity; GammaTheta
+  - Ultima: sensitivity of vomma to changes in volatility; 3rd derivative of option price wrt volatility
+  - Vega Bleed: sensitivity of vega to changes in time to maturity
  
 ### Option strategy Payoff graphs:
   - call / put
