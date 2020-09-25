@@ -900,16 +900,25 @@ class Option():
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
                axis=None, graphtype=None):
         
+        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
+                              G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
+                              r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
+                              notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
+                              size=size, direction=direction, axis=axis)
+        
+        
         if self.graphtype == '2D':
-            self.greeks_graphs_2D(self, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
-                                  G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
-                                  r=r, q=q, sigma=sigma, option=option, direction=direction)
+            self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
+                                  S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
+                                  T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
+                                  time_shift=self.time_shift, r=self.r, q=self.q, 
+                                  sigma=self.sigma, option=self.option, direction=self.direction)
             
         if self.graphtype == '3D':
-            self.greeks_graphs_3D(self, greek=greek, S0=S0, r=r, q=q, sigma=sigma, 
-                                  option=option, interactive=interactive, notebook=notebook, 
-                                  colorscheme=colorscheme, colorintensity=colorintensity, 
-                                  size=size, direction=direction, axis=axis)
+            self.greeks_graphs_3D(greek=self.greek, S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
+                                  option=self.option, interactive=self.interactive, notebook=self.notebook, 
+                                  colorscheme=self.colorscheme, colorintensity=self.colorintensity, 
+                                  size=self.size, direction=self.direction, axis=self.axis)
     
     
     def greeks_graphs_3D_gen(self, greek=None, S0=None, r=None, q=None, sigma=None, 
