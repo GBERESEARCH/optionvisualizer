@@ -48,7 +48,9 @@ df_dict = {'df_S':100,
            'df_greek':'delta',
            'df_interactive':False,
            'df_notebook':True,
-           'df_colorscheme':'BlueRed',
+           'df_colorscheme':'jet',
+           'df_colorintensity':1,
+           'df_size':(12, 10),
            'df_x_plot':'delta',
            'df_y_plot':'time',
            'df_time_shift':0.25,
@@ -62,7 +64,7 @@ df_dict = {'df_S':100,
                               'knock', 'option', 'option1', 'option2', 'option3', 
                               'option4', 'direction', 'value', 'ratio', 'refresh', 
                               'delta_shift', 'delta_shift_type', 'greek', 'interactive', 
-                              'notebook', 'cash', 'axis'],
+                              'notebook', 'colorscheme', 'colorintensity', 'size', 'cash', 'axis'],
             
             # Payoffs requiring changes to default parameters
             'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
@@ -209,6 +211,7 @@ class Option():
                  delta_shift=df_dict['df_delta_shift'], delta_shift_type=df_dict['df_delta_shift_type'], 
                  greek=df_dict['df_greek'], interactive=df_dict['df_interactive'], 
                  notebook=df_dict['df_notebook'], colorscheme=df_dict['df_colorscheme'], 
+                 colorintensity=df_dict['df_colorintensity'], size=df_dict['df_size'], 
                  x_plot=df_dict['df_x_plot'], y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
                  cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
                  df_params_list=df_dict['df_params_list'], mod_payoffs=df_dict['df_mod_payoffs'], 
@@ -258,6 +261,8 @@ class Option():
         self.interactive = interactive # Whether to display static mpl 3D graph or plotly interactive graph
         self.notebook = notebook # Whether running in iPython notebook or not, False creates a popup html page 
         self.colorscheme = colorscheme # Color palette to use in 3D graphs
+        self.colorintensity = colorintensity # Alpha level to use in 3D graphs
+        self.size = size # Tuple for size of 3D static graph
         self.x_plot = x_plot # X-axis in 2D greeks graph
         self.y_plot = y_plot # Y-axis in 2D greeks graph
         self.time_shift = time_shift # Time between periods used in 2D greeks graph
@@ -887,12 +892,13 @@ class Option():
     
     
     def greeks_graphs_3D_gen(self, greek=None, S0=None, r=None, q=None, sigma=None, 
-                                  option=None, interactive=None, notebook=None, 
-                                  colorscheme=None, direction=None, axis=None):
+                             option=None, interactive=None, notebook=None, colorscheme=None, 
+                             colorintensity=None, size=None, direction=None, axis=None):
         
         self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
-                         interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
-                         direction=direction, axis=axis)
+                              interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
+                              colorintensity=colorintensity, size=size, direction=direction, 
+                              axis=axis)
         
 
         for greek_label, greek_func in self.greek_dict.items():
@@ -912,12 +918,13 @@ class Option():
     
     
     def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
-                                  option=None, interactive=None, notebook=None, 
-                                  colorscheme=None, direction=None, axis=None):
+                         option=None, interactive=None, notebook=None, colorscheme=None, 
+                         colorintensity=None, size=None, direction=None, axis=None):
 
         self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
-                         interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
-                         direction=direction, axis=axis)
+                              interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
+                              colorintensity=colorintensity, size=size, direction=direction, 
+                              axis=axis)
 
         if self.greek == 'price':
             if self.axis == 'price':
@@ -1087,14 +1094,14 @@ class Option():
 
         if self.interactive == False:
         
-            fig = plt.figure(figsize=(8, 6))
+            fig = plt.figure(figsize=self.size)
             ax = fig.add_subplot(111, projection='3d')
             ax.plot_surface(self.x * self.graph_scale,
                             self.y * 365,
                             self.z,
                             rstride=2, cstride=2,
-                            cmap=cm.jet,
-                            alpha=0.7,
+                            cmap=plt.get_cmap(self.colorscheme),
+                            alpha=self.colorintensity,
                             linewidth=0.25)
             ax.set_zlim(auto=True)
             ax.invert_xaxis()
