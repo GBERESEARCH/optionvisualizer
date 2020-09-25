@@ -68,6 +68,10 @@ df_dict = {'df_S':100,
                               'notebook', 'colorscheme', 'colorintensity', 'size', 
                               'graphtype', 'cash', 'axis'],
             
+            # List of Greeks where call and put values are the same
+            'df_equal_greeks':['gamma','vega', 'vomma', 'vanna', 'zomma', 'speed', 
+                              'color', 'ultima', 'vega bleed'],
+            
             # Payoffs requiring changes to default parameters
             'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
                               'iron butterfly', 'iron condor'],
@@ -217,9 +221,10 @@ class Option():
                  graphtype=df_dict['df_graphtype'], x_plot=df_dict['df_x_plot'], 
                  y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
                  cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
-                 df_params_list=df_dict['df_params_list'], mod_payoffs=df_dict['df_mod_payoffs'], 
-                 mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
-                 greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
+                 df_params_list=df_dict['df_params_list'], equal_greeks=df_dict['df_equal_greeks'], 
+                 mod_payoffs=df_dict['df_mod_payoffs'], mod_params=df_dict['df_mod_params'], 
+                 label_dict=df_dict['df_label_dict'], greek_dict=df_dict['df_greek_dict'], 
+                 df_dict=df_dict):
 
         self.S = S # Spot price
         self.S0 = S0 # Spot price
@@ -275,6 +280,7 @@ class Option():
         self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
         self.mod_params = mod_params # Parameters of these payoffs that need changing
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
+        self.equal_greeks = equal_greeks # List of Greeks where call and put values are the same
         self.greek_dict = greek_dict
         self.combo_payoff = None
         self.strike_label = dict()
@@ -921,9 +927,9 @@ class Option():
                                   size=self.size, direction=self.direction, axis=self.axis)
     
     
-    def greeks_graphs_3D_gen(self, greek=None, S0=None, r=None, q=None, sigma=None, 
-                             option=None, interactive=None, notebook=None, colorscheme=None, 
-                             colorintensity=None, size=None, direction=None, axis=None):
+    def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
+                         option=None, interactive=None, notebook=None, colorscheme=None, 
+                         colorintensity=None, size=None, direction=None, axis=None):
         
         self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
                               interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
@@ -932,6 +938,8 @@ class Option():
         
 
         for greek_label, greek_func in self.greek_dict.items():
+            if self.greek in self.equal_greeks:
+                self.option = 'Call / Put'
             if self.greek == greek_label:
                 if self.axis == 'price':
                     self._graph_space_prep(axis='price')
@@ -946,169 +954,7 @@ class Option():
                     
         self._vis_greeks_3D()            
     
-    
-    def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
-                         option=None, interactive=None, notebook=None, colorscheme=None, 
-                         colorintensity=None, size=None, direction=None, axis=None):
-
-        self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
-                              interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
-                              colorintensity=colorintensity, size=size, direction=direction, 
-                              axis=axis)
-
-        if self.greek == 'price':
-            if self.axis == 'price':
-                self._graph_space_prep(axis='price')
-                self.z = self.price(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                option=self.option, refresh='graph')
-            
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.price(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                option=self.option, refresh='graph')
-
-        if self.greek == 'delta':
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.delta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    option=self.option, refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.delta(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                    option=self.option, refresh='graph')    
-
-        if self.greek == 'gamma':
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.gamma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.gamma(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                    refresh='graph')
-        if self.greek == 'vega':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.vega(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                   refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.vega(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                   refresh='graph')
-
-        if self.greek == 'theta':    
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.theta(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    option=self.option, refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.theta(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                    option=self.option, refresh='graph')
-            
-        if self.greek == 'rho':               
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.rho(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                  option=self.option, refresh='graph')    
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.rho(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                  option=self.option, refresh='graph')    
-
-        if self.greek == 'vomma':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.vomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.vomma(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                    refresh='graph')
-
-        if self.greek == 'vanna':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.vanna(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.vanna(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                    refresh='graph')
-
-        if self.greek == 'zomma':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.zomma(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    refresh='graph')
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.zomma(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                    refresh='graph')
-
-            
-        if self.greek == 'speed':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.speed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    refresh='graph')    
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.speed(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x, 
-                                    refresh='graph')    
-
-        if self.greek == 'color':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.color(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    refresh='graph') 
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.color(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                    refresh='graph') 
-            
-        if self.greek == 'ultima':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.ultima(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                     refresh='graph')     
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.ultima(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                     refresh='graph')     
-
-        if self.greek == 'vega bleed':               
-            self.option = 'Call / Put'
-            if self.axis == 'price':
-                self._graph_space_prep()
-                self.z = self.vega_bleed(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                         refresh='graph')   
-            if self.axis == 'vol':    
-                self._graph_space_prep(axis='vol')
-                self.z = self.vega_bleed(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                         refresh='graph')   
-
-        if self.greek == 'charm': 
-            if self.axis == 'price':              
-                self._graph_space_prep()
-                self.z = self.charm(S=self.x, K=self.S0, T=self.y, r=self.r, sigma=self.sigma, 
-                                    option=self.option, refresh='graph')
-            if self.axis == 'vol':              
-                self._graph_space_prep(axis='vol')
-                self.z = self.charm(S=self.S0, K=self.S0, T=self.y, r=self.r, sigma=self.x,
-                                    option=self.option, refresh='graph')
- 
-        self._vis_greeks_3D()
-        
-    
+   
     def _vis_greeks_3D(self):
 
         if self.direction == 'short':
