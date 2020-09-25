@@ -51,6 +51,7 @@ df_dict = {'df_S':100,
            'df_colorscheme':'jet',
            'df_colorintensity':1,
            'df_size':(12, 10),
+           'df_graphtype':'2D',
            'df_x_plot':'delta',
            'df_y_plot':'time',
            'df_time_shift':0.25,
@@ -64,7 +65,8 @@ df_dict = {'df_S':100,
                               'knock', 'option', 'option1', 'option2', 'option3', 
                               'option4', 'direction', 'value', 'ratio', 'refresh', 
                               'delta_shift', 'delta_shift_type', 'greek', 'interactive', 
-                              'notebook', 'colorscheme', 'colorintensity', 'size', 'cash', 'axis'],
+                              'notebook', 'colorscheme', 'colorintensity', 'size', 
+                              'graphtype', 'cash', 'axis'],
             
             # Payoffs requiring changes to default parameters
             'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
@@ -211,8 +213,9 @@ class Option():
                  delta_shift=df_dict['df_delta_shift'], delta_shift_type=df_dict['df_delta_shift_type'], 
                  greek=df_dict['df_greek'], interactive=df_dict['df_interactive'], 
                  notebook=df_dict['df_notebook'], colorscheme=df_dict['df_colorscheme'], 
-                 colorintensity=df_dict['df_colorintensity'], size=df_dict['df_size'], 
-                 x_plot=df_dict['df_x_plot'], y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
+                 colorintensity=df_dict['df_colorintensity'], size=df_dict['df_size'],
+                 graphtype=df_dict['df_graphtype'], x_plot=df_dict['df_x_plot'], 
+                 y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
                  cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
                  df_params_list=df_dict['df_params_list'], mod_payoffs=df_dict['df_mod_payoffs'], 
                  mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
@@ -263,6 +266,7 @@ class Option():
         self.colorscheme = colorscheme # Color palette to use in 3D graphs
         self.colorintensity = colorintensity # Alpha level to use in 3D graphs
         self.size = size # Tuple for size of 3D static graph
+        self.graphtype = graphtype # 2D or 3D graph 
         self.x_plot = x_plot # X-axis in 2D greeks graph
         self.y_plot = y_plot # Y-axis in 2D greeks graph
         self.time_shift = time_shift # Time between periods used in 2D greeks graph
@@ -890,6 +894,23 @@ class Option():
         plt.show()
    
     
+    def greeks(self, greek=None, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+               G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
+               q=None, sigma=None, option=None, direction=None, interactive=None, 
+               notebook=None, colorscheme=None, colorintensity=None, size=None, 
+               axis=None, graphtype=None):
+        
+        if self.graphtype == '2D':
+            self.greeks_graphs_2D(self, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
+                                  G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
+                                  r=r, q=q, sigma=sigma, option=option, direction=direction)
+            
+        if self.graphtype == '3D':
+            self.greeks_graphs_3D(self, greek=greek, S0=S0, r=r, q=q, sigma=sigma, 
+                                  option=option, interactive=interactive, notebook=notebook, 
+                                  colorscheme=colorscheme, colorintensity=colorintensity, 
+                                  size=size, direction=direction, axis=axis)
+    
     
     def greeks_graphs_3D_gen(self, greek=None, S0=None, r=None, q=None, sigma=None, 
                              option=None, interactive=None, notebook=None, colorscheme=None, 
@@ -1257,9 +1278,9 @@ class Option():
     
 
         
-    def payoff_graphs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
-                      T=None, r=None, q=None, sigma=None, option=None, direction=None, 
-                      cash=None, ratio=None, value=None, combo_payoff=None):
+    def payoffs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
+                T=None, r=None, q=None, sigma=None, option=None, direction=None, 
+                cash=None, ratio=None, value=None, combo_payoff=None):
        
         if combo_payoff == 'call':
             self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
@@ -1896,11 +1917,12 @@ class Option():
     def call(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
         
         self.combo_payoff = 'call'
+        self.option1 = 'call'
         
-        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, value=value)
+        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                              value=value, option1=self.option1)
         
-        self._return_options(legs=1, S0=self.S0, K1=self.K, T1=self.T, r=self.r, 
-                             q=self.q, sigma=self.sigma, option1='call')
+        self._return_options(legs=1)
         
         if self.direction == 'long':
             payoff = self.C1 - self.C1_0
@@ -1925,11 +1947,12 @@ class Option():
     def put(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
         
         self.combo_payoff = 'put'
+        self.option1 = 'put'
         
-        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, value=value)
+        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                              value=value, option1=self.option1)
         
-        self._return_options(legs=1, S0=self.S0, K1=self.K, T1=self.T, r=self.r, 
-                             q=self.q, sigma=self.sigma, option1='put')
+        self._return_options(legs=1)
         
         if self.direction == 'long':
             payoff = self.C1 - self.C1_0
