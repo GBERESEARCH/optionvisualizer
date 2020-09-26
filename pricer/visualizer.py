@@ -1,12 +1,8 @@
-
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.offline import plot
-from mpl_toolkits.mplot3d.axes3d import Axes3D
-from matplotlib import cm
-
 
 # Dictionary of default parameters
 df_dict = {'df_S':100, 
@@ -53,8 +49,8 @@ df_dict = {'df_S':100,
            'df_colorintensity':1,
            'df_size':(12, 10),
            'df_graphtype':'2D',
-           'df_x_plot':'delta',
-           'df_y_plot':'time',
+           'df_y_plot':'delta',
+           'df_x_plot':'time',
            'df_time_shift':0.25,
            'df_cash':False,
            'df_axis':'price',
@@ -70,7 +66,7 @@ df_dict = {'df_S':100,
                               'graphtype', 'cash', 'axis'],
             
             # List of Greeks where call and put values are the same
-            'df_equal_greeks':['gamma','vega', 'vomma', 'vanna', 'zomma', 'speed', 
+            'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
                               'color', 'ultima', 'vega bleed'],
             
             # Payoffs requiring changes to default parameters
@@ -114,7 +110,26 @@ df_dict = {'df_S':100,
                                             'K3':100,
                                             'K4':105}},
             
-            # Dictionary mapping function parameters to axis labels
+            # Dictionary mapping function parameters to x axis labels for 2D graphs
+            'df_x_name_dict':{'price':'SA', 
+                              'strike':'SA',
+                              'vol':'sigmaA', 
+                              'time':'TA'},
+            
+            # Dictionary mapping scaling parameters to x axis labels for 2D graphs
+            'df_x_scale_dict':{'price':1, 
+                               'strike':1,
+                               'vol':100, 
+                               'time':365},
+            
+            # Dictionary mapping function parameters to y axis labels for 2D graphs
+            'df_y_name_dict':{'value':'price', 
+                              'delta':'delta', 
+                              'gamma':'gamma', 
+                              'vega':'vega', 
+                              'theta':'theta'},
+
+            # Dictionary mapping function parameters to axis labels for 3D graphs
             'df_label_dict':{'price':'Underlying Price',
                              'value':'Theoretical Value',
                              'vol':'Volatility %',
@@ -183,6 +198,7 @@ df_dict = {'df_S':100,
                                            'SA_upper':1.2,
                                            'TA_lower':0.01,
                                            'TA_upper':0.25}},
+            
             # Greek names as function input and individual function names            
             'df_greek_dict':{'price':'price',
                              'delta':'delta',
@@ -219,13 +235,14 @@ class Option():
                  delta_shift_type=df_dict['df_delta_shift_type'], greek=df_dict['df_greek'], 
                  interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
                  colorscheme=df_dict['df_colorscheme'], colorintensity=df_dict['df_colorintensity'], 
-                 size=df_dict['df_size'], graphtype=df_dict['df_graphtype'], x_plot=df_dict['df_x_plot'], 
-                 y_plot=df_dict['df_y_plot'], time_shift=df_dict['df_time_shift'], 
-                 cash=df_dict['df_cash'], axis=df_dict['df_axis'], df_combo_dict=df_dict['df_combo_dict'], 
-                 df_params_list=df_dict['df_params_list'], equal_greeks=df_dict['df_equal_greeks'], 
-                 mod_payoffs=df_dict['df_mod_payoffs'], mod_params=df_dict['df_mod_params'], 
-                 label_dict=df_dict['df_label_dict'], greek_dict=df_dict['df_greek_dict'], 
-                 df_dict=df_dict):
+                 size=df_dict['df_size'], graphtype=df_dict['df_graphtype'], y_plot=df_dict['df_y_plot'], 
+                 x_plot=df_dict['df_x_plot'], x_name_dict=df_dict['df_x_name_dict'], 
+                 x_scale_dict=df_dict['df_x_scale_dict'], y_name_dict=df_dict['df_y_name_dict'], 
+                 time_shift=df_dict['df_time_shift'], cash=df_dict['df_cash'], axis=df_dict['df_axis'], 
+                 df_combo_dict=df_dict['df_combo_dict'], df_params_list=df_dict['df_params_list'], 
+                 equal_greeks=df_dict['df_equal_greeks'], mod_payoffs=df_dict['df_mod_payoffs'], 
+                 mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
+                 greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
 
         self.S = S # Spot price
         self.S0 = S0 # Spot price
@@ -273,8 +290,11 @@ class Option():
         self.colorintensity = colorintensity # Alpha level to use in 3D graphs
         self.size = size # Tuple for size of 3D static graph
         self.graphtype = graphtype # 2D or 3D graph 
-        self.x_plot = x_plot # X-axis in 2D greeks graph
-        self.y_plot = y_plot # Y-axis in 2D greeks graph
+        self.y_plot = y_plot # X-axis in 2D greeks graph
+        self.x_plot = x_plot # Y-axis in 2D greeks graph
+        self.x_name_dict = x_name_dict # Dictionary mapping function parameters to x axis labels for 2D graphs
+        self.x_scale_dict = x_scale_dict # Dictionary mapping scaling parameters to x axis labels for 2D graphs
+        self.y_name_dict = y_name_dict # Dictionary mapping function parameters to y axis labels for 2D graphs
         self.time_shift = time_shift # Time between periods used in 2D greeks graph
         self.cash = cash # Whether to graph forward at cash or discount
         self.axis = axis # Price or Vol against Time in 3D graphs
@@ -900,13 +920,13 @@ class Option():
         plt.show()
    
     
-    def greeks(self, greek=None, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+    def greeks(self, greek=None, y_plot=None, x_plot=None, S0=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
                axis=None, graphtype=None):
         
-        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
+        self._initialise_func(greek=greek, y_plot=y_plot, x_plot=x_plot, S0=S0, G1=G1, 
                               G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
                               r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
@@ -914,7 +934,7 @@ class Option():
         
         
         if self.graphtype == '2D':
-            self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
+            self.greeks_graphs_2D(y_plot=self.y_plot, x_plot=self.x_plot, 
                                   S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
                                   T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
                                   time_shift=self.time_shift, r=self.r, q=self.q, 
@@ -1050,11 +1070,11 @@ class Option():
  
     
     
-    def greeks_graphs_2D_gen(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+    def greeks_graphs_2D(self, y_plot=None, x_plot=None, S0=None, G1=None, G2=None, 
                              G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
                              r=None, q=None, sigma=None, option=None, direction=None):
         
-        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
+        self._initialise_func(y_plot=y_plot, x_plot=x_plot, S0=S0, G1=G1, G2=G2, 
                               G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
                               r=r, q=q, sigma=sigma, option=option, direction=direction)
         
@@ -1064,75 +1084,7 @@ class Option():
     
         self._2D_general_graph()       
     
-    
-    
-    
-    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
-                         G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
-                         r=None, q=None, sigma=None, option=None, direction=None):
-        
-        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
-                              G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
-                              r=r, q=q, sigma=sigma, option=option, direction=direction)
-        
-        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
-        self.TA = np.linspace(0.01, 1, 100)
-        
-        
-        if self.x_plot == 'value':
-            if self.y_plot == 'price':
-                self._value_price()
-            if self.y_plot == 'vol':
-                self._value_vol()
-            if self.y_plot == 'time':
-                self._value_time()
-        
-        if self.x_plot == 'delta':
-            if self.y_plot == 'price':
-                self._delta_price()
-            if self.y_plot == 'vol':
-                self._delta_vol()
-            if self.y_plot == 'time':
-                self._delta_time()
-        
-        if self.x_plot == 'gamma':
-            if self.y_plot == 'price':
-                self._gamma_price()
-            if self.y_plot == 'vol':
-                self._gamma_vol()
-            if self.y_plot == 'time':
-                self._gamma_time()
-        
-        if self.x_plot == 'vega':
-            if self.y_plot == 'price':
-                self._vega_price()
-            if self.y_plot == 'vol':
-                self._vega_vol()
-            if self.y_plot == 'time':
-                self._vega_time()  
-        
-        if self.x_plot == 'theta':
-            if self.y_plot == 'price':
-                self._theta_price()
-            if self.y_plot == 'vol':
-                self._theta_vol()
-            if self.y_plot == 'time':
-                self._theta_time()
-        
-        if self.x_plot == 'rho':
-            self.T1 = self.T
-            self.T2 = self.T + self.time_shift
-            
-            if self.y_plot == 'price':
-                self._rho_price()
-            if self.y_plot == 'strike':
-                self._rho_strike()            
-            if self.y_plot == 'vol':
-                self._rho_vol()
-    
-
-        
+          
     def payoffs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, direction=None, 
                 cash=None, ratio=None, value=None, combo_payoff=None):
@@ -1196,45 +1148,43 @@ class Option():
 
     def _2D_general_graph(self):                               
         
-        if self.x_plot in ['value', 'delta', 'gamma', 'vega', 'theta']:
-            x_name_dict = {'value':'price', 'delta':'delta', 'gamma':'gamma', 'vega':'vega', 'theta':'theta'}
+        if self.y_plot in self.y_name_dict.keys():
             for opt in [1, 2, 3]:
-                if self.y_plot == 'price':
-                    self.__dict__['C'+str(opt)] = getattr(self, x_name_dict[self.x_plot])(S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
+                if self.x_plot == 'price':
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
-                if self.y_plot == 'vol':
-                    self.__dict__['C'+str(opt)] = getattr(self, x_name_dict[self.x_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
+                if self.x_plot == 'vol':
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                               r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
-                if self.y_plot == 'time':        
-                    self.__dict__['C'+str(opt)] = getattr(self, x_name_dict[self.x_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
+                if self.x_plot == 'time':        
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
                                                                                    q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
         
             if self.direction == 'short':
-                self.C1 = -self.C1
-                self.C2 = -self.C2
-                self.C3 = -self.C3
+                for opt in [1, 2, 3]:
+                    self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
             
             self._strike_tenor_label()
  
-        if self.x_plot == 'rho':
+        if self.y_plot == 'rho':
+            self.T1 = self.T
+            self.T2 = self.T + self.time_shift
             tenor_type = {1:1, 2:2, 3:1, 4:2}
             opt_type = {1:'call', 2:'call', 3:'put', 4:'put'}
             for opt in [1, 2, 3, 4]:
-                if self.y_plot == 'price':
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.x_plot))(S=self.SA, K=self.G1, T=self.__dict__['T'+str(tenor_type[opt])], 
+                if self.x_plot == 'price':
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.SA, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
-                if self.y_plot == 'strike':
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.x_plot))(S=self.S0, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
+                if self.x_plot == 'strike':
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
-                if self.y_plot == 'vol':
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.x_plot))(S=self.S0, K=self.G1, T=self.__dict__['T'+str(tenor_type[opt])], 
+                if self.x_plot == 'vol':
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
-    
+                    
             if self.direction == 'short':
-                self.C1 = -self.C1
-                self.C2 = -self.C2
-                self.C3 = -self.C3
-                self.C4 = -self.C4
+                for opt in [1, 2, 3, 4]:
+                    self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
     
             self.label1 = str(int(self.T1*365))+' Day Call'
             self.label2 = str(int(self.T2*365))+' Day Call'
@@ -1245,529 +1195,30 @@ class Option():
         self.xlabel = self.label_dict[str(self.x_plot)]
         self.ylabel = self.label_dict[str(self.y_plot)]
         
-             
-    
-        
-        if self.x_plot in ['value', 'delta', 'gamma', 'vega', 'theta']:
+        if self.y_plot in [self.equal_greeks, 'rho']:
+                self.option = 'Call / Put'     
             
-            self.title = (str(self.direction.title())+' '+str(self.option.title())+
-                          ' '+self.x_plot.title()+' vs '+self.y_plot.title())   
+        self.title = (str(self.direction.title())+' '+str(self.option.title())+
+                      ' '+self.y_plot.title()+' vs '+self.x_plot.title())   
             
+        self.x_name = str(self.x_plot)
+        if self.x_name in self.x_name_dict.keys():
+            self.xarray = (self.__dict__[str(self.x_name_dict[self.x_name])] * 
+                           self.x_scale_dict[self.x_name])
+
+        if self.y_plot in self.y_name_dict.keys():        
             self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                 xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
+                                 xarray1=self.xarray, xarray2=self.xarray, xarray3=self.xarray, 
                                  label1=self.label1, label2=self.label2, label3=self.label3, 
                                  xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
-
     
-        if self.x_plot == 'rho':
-            
-            self.title = (str(self.direction.title())+' Call / Put '+
-                          self.x_plot.title()+' vs '+self.y_plot.title())   
-            
-            if self.y_plot in ['price', 'strike']:
-                self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                     yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
-                                     xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
-                                     label2=self.label2, label3=self.label3, label4=self.label4, 
-                                     xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
-    
-            if self.y_plot == 'vol':
-                self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                     yarray4=self.C4, xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, 
-                                     xarray3=self.sigmaA*100, xarray4=self.sigmaA*100, label1=self.label1, 
-                                     label2=self.label2, label3=self.label3, label4=self.label4, 
-                                     xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
+        if self.y_plot == 'rho':
+            self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                                 yarray4=self.C4, xarray1=self.xarray, xarray2=self.xarray, 
+                                 xarray3=self.xarray, xarray4=self.xarray, label1=self.label1, 
+                                 label2=self.label2, label3=self.label3, label4=self.label4, 
+                                 xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
  
-
-    def _value_price(self):        
-        
-        self.C1 = self.price(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C2 = self.price(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C3 = self.price(S=self.SA, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-                   
-        self.xlabel = 'Underlying Price'
-        self.ylabel = 'Theoretical Value'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Value vs Price'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
-    
-    
-    def _value_vol(self):
-        
-        self.C1 = self.price(S=self.S0, K=self.G1, T=self.T, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C2 = self.price(S=self.S0, K=self.G2, T=self.T, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C3 = self.price(S=self.S0, K=self.G3, T=self.T, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Volatility %'
-        self.ylabel = 'Theoretical Value'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Value vs Volatility'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
-        
-    
-    def _value_time(self):
-        
-        self.C1 = self.price(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C2 = self.price(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C3 = self.price(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Time to Expiration (days)'
-        self.ylabel = 'Theoretical Value'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Value vs Time'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
-    
-    
-    
-    def _delta_price(self):
-        
-        self.C1 = self.delta(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C2 = self.delta(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C3 = self.delta(S=self.SA, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Underlying Price'
-        self.ylabel = 'Delta'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Delta vs Price'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
-    
-    
-    def _delta_vol(self):
-        
-        self.C1 = self.delta(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C2 = self.delta(S=self.S0, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C3 = self.delta(S=self.S0, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Volatility %'
-        self.ylabel = 'Delta'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Delta vs Volatility'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
-        
-        
-    def _delta_time(self):
-        
-        self.C1 = self.delta(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C2 = self.delta(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C3 = self.delta(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Time to Expiration (days)'
-        self.ylabel = 'Delta'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Delta vs Time'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
-    
-        
-    def _gamma_price(self):
-        
-        self.C1 = self.gamma(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C2 = self.gamma(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C3 = self.gamma(S=self.SA, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Underlying Price'
-        self.ylabel = 'Gamma'
-        self.title = str(self.direction.title())+' Call / Put Gamma vs Price'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
-        
-        
-    def _gamma_vol(self):
-        
-        self.C1 = self.gamma(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, refresh='graph')
-        self.C2 = self.gamma(S=self.S0, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, refresh='graph')
-        self.C3 = self.gamma(S=self.S0, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Volatility %'
-        self.ylabel = 'Gamma'
-        self.title = str(self.direction.title())+' Call / Put Gamma vs Volatility'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)            
-        
-    
-    def _gamma_time(self):
-        
-        self.C1 = self.gamma(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C2 = self.gamma(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C3 = self.gamma(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Time to Expiration (days)'
-        self.ylabel = 'Gamma'
-        self.title = str(self.direction.title())+' Call / Put Gamma vs Time'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
-    
-    
-    def _vega_price(self):
-        
-        self.C1 = self.vega(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C2 = self.vega(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C3 = self.vega(S=self.SA, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Underlying Price'
-        self.ylabel = 'Vega'
-        self.title = str(self.direction.title())+' Call / Put Vega vs Price'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
-    
-        
-    def _vega_vol(self):
-        
-        self.C1 = self.vega(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, refresh='graph')
-        self.C2 = self.vega(S=self.S0, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, refresh='graph')
-        self.C3 = self.vega(S=self.S0, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Volatility %'
-        self.ylabel = 'Vega'
-        self.title = str(self.direction.title())+' Call / Put Vega vs Volatility'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
-    
-    
-    def _vega_time(self):
-        
-        self.C1 = self.vega(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C2 = self.vega(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-        self.C3 = self.vega(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Time to Expiration (days)'
-        self.ylabel = 'Vega'
-        self.title = str(self.direction.title())+' Call / Put Vega vs Time'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
-    
-    
-    def _theta_price(self):
-        
-        self.C1 = self.theta(S=self.SA, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C2 = self.theta(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C3 = self.theta(S=self.SA, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Underlying Price'
-        self.ylabel = 'Theta'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Theta vs Price'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.SA, xarray2=self.SA, xarray3=self.SA, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)        
-    
-    
-    def _theta_vol(self):
-        
-        self.C1 = self.theta(S=self.S0, K=self.G1, T=self.T1, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C2 = self.theta(S=self.S0, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-        self.C3 = self.theta(S=self.S0, K=self.G3, T=self.T3, r=self.r, q=self.q, 
-                             sigma=self.sigmaA, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Volatility %'
-        self.ylabel = 'Theta'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Theta vs Volatility'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, xarray3=self.sigmaA*100, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)    
-        
-    
-    def _theta_time(self):
-        
-        self.C1 = self.theta(S=self.S0, K=self.G1, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C2 = self.theta(S=self.S0, K=self.G2, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-        self.C3 = self.theta(S=self.S0, K=self.G3, T=self.TA, r=self.r, q=self.q, 
-                             sigma=self.sigma, option=self.option, refresh='graph')
-    
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-        
-        self._strike_tenor_label()
-            
-        self.xlabel = 'Time to Expiration (days)'
-        self.ylabel = 'Theta'
-        self.title = str(self.direction.title())+' '+str(self.option.title())+' Theta vs Time'
-
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             xarray1=self.TA*365, xarray2=self.TA*365, xarray3=self.TA*365, 
-                             label1=self.label1, label2=self.label2, label3=self.label3, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)     
-    
-    
-    def _rho_price(self):
-        
-        self.C1 = self.rho(S=self.SA, K=self.G2, T=self.T1, r=self.r, q=self.q, 
-                           sigma=self.sigma, option='call', refresh='graph')
-        self.C2 = self.rho(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                           sigma=self.sigma, option="call", refresh='graph')
-        self.C3 = self.rho(S=self.SA, K=self.G2, T=self.T1, r=self.r, q=self.q, 
-                           sigma=self.sigma, option="put", refresh='graph')
-        self.C4 = self.rho(S=self.SA, K=self.G2, T=self.T2, r=self.r, q=self.q, 
-                           sigma=self.sigma, option="put", refresh='graph')
-        
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-            self.C4 = -self.C4
-        
-        self.label1 = str(int(self.T1*365))+' Day Call'
-        self.label2 = str(int(self.T2*365))+' Day Call'
-        self.label3 = str(int(self.T1*365))+' Day Put'
-        self.label4 = str(int(self.T2*365))+' Day Put'
-                
-        self.xlabel = 'Underlying Price'
-        self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' Call / Put Rho vs Price'
-        
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
-                             xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
-                             label2=self.label2, label3=self.label3, label4=self.label4, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
-
-
-    def _rho_strike(self):
-        
-        self.C1 = self.rho(S=self.S0, K=self.SA, T=self.T1, r=self.r, q=self.q, 
-                           sigma=self.sigma, option='call', refresh='graph')
-        self.C2 = self.rho(S=self.S0, K=self.SA, T=self.T2, r=self.r, q=self.q, 
-                           sigma=self.sigma, option="call", refresh='graph')
-        self.C3 = self.rho(S=self.S0, K=self.SA, T=self.T1, r=self.r, q=self.q, 
-                           sigma=self.sigma, option="put", refresh='graph')
-        self.C4 = self.rho(S=self.S0, K=self.SA, T=self.T2, r=self.r, q=self.q, 
-                           sigma=self.sigma, option="put", refresh='graph')
-        
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-            self.C4 = -self.C4
-        
-        self.label1 = str(int(self.T1*365))+' Day Call'
-        self.label2 = str(int(self.T2*365))+' Day Call'
-        self.label3 = str(int(self.T1*365))+' Day Put'
-        self.label4 = str(int(self.T2*365))+' Day Put'
-                
-        self.xlabel = 'Strike Price'
-        self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' Call / Put Rho vs Strike'
-        
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             yarray4=self.C4, xarray1=self.SA, xarray2=self.SA, 
-                             xarray3=self.SA, xarray4=self.SA, label1=self.label1, 
-                             label2=self.label2, label3=self.label3, label4=self.label4, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
-
-
-    def _rho_vol(self):
-        
-        self.C1 = self.rho(S=self.S0, K=self.G2, T=self.T1, r=self.r, sigma=self.sigmaA, 
-                           option="call", refresh='graph')
-        self.C2 = self.rho(S=self.S0, K=self.G2, T=self.T2, r=self.r, sigma=self.sigmaA, 
-                           option="call", refresh='graph')
-        self.C3 = self.rho(S=self.S0, K=self.G2, T=self.T1, r=self.r, sigma=self.sigmaA, 
-                           option="put", refresh='graph')
-        self.C4 = self.rho(S=self.S0, K=self.G2, T=self.T2, r=self.r, sigma=self.sigmaA, 
-                           option="put", refresh='graph')
-        
-        if self.direction == 'short':
-            self.C1 = -self.C1
-            self.C2 = -self.C2
-            self.C3 = -self.C3
-            self.C4 = -self.C4
-        
-        self.label1 = str(int(self.T1*365))+' Day Call'
-        self.label2 = str(int(self.T2*365))+' Day Call'
-        self.label3 = str(int(self.T1*365))+' Day Put'
-        self.label4 = str(int(self.T2*365))+' Day Put'
-                
-        self.xlabel = 'Volatility %'
-        self.ylabel = 'Rho'
-        self.title = str(self.direction.title())+' Call / Put Rho vs Volatility'
-        
-        self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                             yarray4=self.C4, xarray1=self.sigmaA*100, xarray2=self.sigmaA*100, 
-                             xarray3=self.sigmaA*100, xarray4=self.sigmaA*100, label1=self.label1, 
-                             label2=self.label2, label3=self.label3, label4=self.label4, 
-                             xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
-
     
     def call(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
         
