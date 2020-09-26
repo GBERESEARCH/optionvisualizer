@@ -1847,14 +1847,18 @@ class Option():
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)     
             
     
-    def forward(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+    def forward(self, S0=None, T=None, r=None, q=None, sigma=None, direction=None, 
                 cash=None):
         
         self.combo_payoff = 'forward'
         
-        self._initialise_func(S0=S0, K=K, K1=K, K2=K, T=T, T1=T, T2=T, r=r, q=q, 
-                              sigma=sigma, option1='call', option2='put', direction=direction,
-                              cash=cash)
+        self._initialise_func(S0=S0, T=T, r=r, q=q, sigma=sigma, option1='call', 
+                              option2='put', direction=direction, cash=cash)
+        
+        self.K1 = self.S0
+        self.K2 = self.S0
+        self.T1 = self.T
+        self.T2 = self.T
         
         self._return_options(legs=2)
         
