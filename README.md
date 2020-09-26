@@ -53,6 +53,9 @@ Each of the functions comes with default parameters so it can be run without arg
 #### Long Call Price
 ![long_call_price_interactive](images/long_call_price_interactive.png)
 
+#### Long Put Price against Volatility
+![long_put_price_volatility](images/long_put_price_volatility.png)
+
 #### Long Vanna
 ![long_vanna_interactive](images/long_vanna_interactive.png)
 
