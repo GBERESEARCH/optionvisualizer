@@ -35,6 +35,9 @@ Each of the functions comes with default parameters so it can be run without arg
   - iron butterfly
   - iron condor
 
+![short_call](images/short_call.png)
+
+
 ### 2D greeks graphs:
 Charts of 3 options showing price, vol or time against:
   - option value
