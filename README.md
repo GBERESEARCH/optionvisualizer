@@ -19,12 +19,52 @@ Each of the functions comes with default parameters so it can be run without arg
   - Color: sensitivity of gamma to changes in time to maturity; GammaTheta
   - Ultima: sensitivity of vomma to changes in volatility; 3rd derivative of option price wrt volatility
   - Vega Bleed: sensitivity of vega to changes in time to maturity
- 
+
+### 2D greeks graphs:
+#### Charts of 3 options showing price, vol or time against:
+  - option value
+  - delta
+  - gamma
+  - vega
+  - theta
+
+#### Long Call Delta vs Price
+![call_delta_price](images/call_delta_price.png)
+
+#### Long Call Theta vs Price
+![long_call_theta_price](images/long_call_theta_price.png)
+
+#### Charts of 4 options showing price, strike and vol against rho
+#### Short Rho vs Strike
+![short_rho_strike](images/short_rho_strike.png)
+
+
+### 3D greeks graphs:
+#### Each of the greeks above can be plotted showing Time to Expiration against Strike or Volatility
+#### Using matplotlib: 
+
+#### Long Vega
+![long_vega_static](images/long_vega_static.png)
+
+#### Short Gamma
+![short_gamma_static](images/short_gamma_static.png)
+
+#### Or using plotly display a graph that can be rotated and zoomed:
+#### Long Call Price
+![long_call_price_interactive](images/long_call_price_interactive.png)
+
+#### Long Vanna
+![long_vanna_interactive](images/long_vanna_interactive.png)
+
+#### Short Zomma
+![short_zomma_interactive](images/short_zomma_interactive.png) 
+
+
 ### Option strategy Payoff graphs:
   - call / put
   - stock
   - forward
-  - collar
+  - collar 
   - call / put spread
   - backspread
   - ratio vertical spread
@@ -35,28 +75,18 @@ Each of the functions comes with default parameters so it can be run without arg
   - iron butterfly
   - iron condor
 
+#### Short Call:
 ![short_call](images/short_call.png)
 
+#### Long Straddle:
+![straddle](images/straddle.png)
 
-### 2D greeks graphs:
-Charts of 3 options showing price, vol or time against:
-  - option value
-  - delta
-  - gamma
-  - vega
-  - theta
-
-Charts of 4 options showing price, strike and vol against rho
-
-### 3D greeks graphs:
-Each of the greeks above plotted showing Time to Expiration against Strike or Volatility
-Can be plotted as a static graph using matplotlib or as a plotly graph that can be rotated and zoomed
-  
+#### Short Christmas Tree:
+![christmas_tree](images/christmas_tree.png)
 
 The following volumes served as a reference for the formulas and charts:
 * [The Complete Guide to Option Pricing Formulas, 2nd Ed, E. G. Haug]
 * [Option Volatility & Pricing, S. Natenburg]
-
   
 [The Complete Guide to Option Pricing Formulas, 2nd Ed, E. G. Haug]:<https://www.amazon.co.uk/Complete-Guide-Option-Pricing-Formulas/dp/0071389970/>
 [Option Volatility & Pricing, S. Natenburg]:<https://www.amazon.co.uk/Option-Volatility-Pricing-Strategies-Techniques/dp/155738486X/>
