@@ -71,7 +71,7 @@ df_dict = {'df_S':100,
             
             # Payoffs requiring changes to default parameters
             'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
-                              'iron butterfly', 'iron condor'],
+                              'condor', 'iron butterfly', 'iron condor'],
             
             # Those parameters that need changing
             'df_mod_params':['S0', 'K', 'K1', 'K2', 'K3', 'K4'],
@@ -97,6 +97,12 @@ df_dict = {'df_S':100,
                                                'K2':100,
                                                'K3':105,
                                                'K4':105},
+                             'condor':{'S0':100,
+                                       'K':100,
+                                       'K1':90,
+                                       'K2':95,
+                                       'K3':100,
+                                       'K4':105},
                              'iron butterfly':{'S0':100,
                                                'K':100,
                                                'K1':95,
@@ -307,7 +313,20 @@ class Option():
 
     
     def _initialise_func(self, **kwargs):
+        """
         
+
+        Parameters
+        ----------
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self._refresh_params(**kwargs)
         self._refresh_dist()
         
@@ -315,7 +334,20 @@ class Option():
 
 
     def _initialise_graphs(self, **kwargs):
+        """
         
+
+        Parameters
+        ----------
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self._set_params(**kwargs)
         self._refresh_dist()
         
@@ -323,6 +355,20 @@ class Option():
     
 
     def _initialise_barriers(self, **kwargs):
+        """
+        
+
+        Parameters
+        ----------
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self._refresh_params(**kwargs)
         self._refresh_dist()
         self._barrier_factors()
@@ -331,7 +377,20 @@ class Option():
 
 
     def _refresh_params(self, **kwargs):
+        """
+        
 
+        Parameters
+        ----------
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         if self.combo_payoff in self.mod_payoffs:
             for k, v in kwargs.items():
                 if v is None:
@@ -364,6 +423,20 @@ class Option():
    
     
     def _set_params(self, **kwargs):
+        """
+        
+
+        Parameters
+        ----------
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         for k, v in kwargs.items():
             if v is not None:
                 self.__dict__[k] = v
@@ -372,7 +445,15 @@ class Option():
        
         
     def _refresh_dist(self):
+        """
         
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self.b = self.r - self.q
         
         self.carry = np.exp((self.b - self.r) * self.T)
@@ -398,7 +479,15 @@ class Option():
 
     
     def _barrier_factors(self):
+        """
         
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self.mu = (self.b - ((self.sigma ** 2) / 2)) / (self.sigma ** 2)
         self.lamb_da = (np.sqrt(self.mu ** 2 + ((2 * self.r) / self.sigma ** 2)))
         self.z = ((np.log(self.H / self.S) / (self.sigma * np.sqrt(self.T))) + 
@@ -458,19 +547,22 @@ class Option():
         Parameters
         ----------
         S : Float
-            Underlying Stock Price. The default is 100, taken from dictionary of default parameters. 
+            Underlying Stock Price. The default is 100. 
         K : Float
-            Strike Price. The default is 100, taken from dictionary of default parameters.
+            Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months), taken from dictionary of default parameters.
+            Time to Maturity. The default is 0.5 (6 months).
         r : Float
-            Interest Rate. The default is 0.05 (5%), taken from dictionary of default parameters.
+            Interest Rate. The default is 0.05 (5%).
         q : Float
-            Dividend Yield. The default is 0, taken from dictionary of default parameters.
+            Dividend Yield. The default is 0.
         sigma : Float
-            Implied Volatility. The default is 0.2 (20%), taken from dictionary of default parameters.
+            Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
 
         Returns
         -------
@@ -499,7 +591,36 @@ class Option():
 
     def delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
               refresh=None):
-              
+        """
+        Sensitivity of the option price to changes in asset price
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
+
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """      
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -516,7 +637,39 @@ class Option():
     
     def shift_delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
                     shift=None, shift_type=None, refresh=None):
-        
+        """
+        Sensitivity of the option price to changes in asset price
+        Calculated by taking the difference in price for varying shift sizes
+
+        Parameters
+        ----------
+        S : TYPE, optional
+            DESCRIPTION. The default is None.
+        K : TYPE, optional
+            DESCRIPTION. The default is None.
+        T : TYPE, optional
+            DESCRIPTION. The default is None.
+        r : TYPE, optional
+            DESCRIPTION. The default is None.
+        q : TYPE, optional
+            DESCRIPTION. The default is None.
+        sigma : TYPE, optional
+            DESCRIPTION. The default is None.
+        option : TYPE, optional
+            DESCRIPTION. The default is None.
+        shift : TYPE, optional
+            DESCRIPTION. The default is None.
+        shift_type : TYPE, optional
+            DESCRIPTION. The default is None.
+        refresh : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
                                   shift=shift, shift_type=shift_type)
@@ -545,7 +698,36 @@ class Option():
     
     def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
               refresh=None):
-        
+        """
+        Sensitivity of the option price to changes in time to maturity
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
+
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -564,8 +746,39 @@ class Option():
         return self.opt_theta
     
     
-    def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # how much delta will change due to a small change in the underlying asset price        
+    def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+        """
+        How much delta will change due to a small change in the underlying asset price
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
+
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+               
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -577,8 +790,37 @@ class Option():
         return self.opt_gamma
     
     
-    def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        
+    def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+             refresh=None):
+        """
+        Sensitivity of the option price to changes in volatility
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -591,7 +833,35 @@ class Option():
     
     def rho(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
             refresh=None):
-                
+        """
+        Sensitivity of the option price to changes in the risk free rate
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """        
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -607,9 +877,38 @@ class Option():
 
 
     def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # aka DdeltaDvol, DvegaDspot 
-        # how much delta will change due to a small change in volatility
-        # how much vega will change due to a small change in the asset price        
+        """
+        DdeltaDvol, DvegaDspot 
+        How much delta will change due to a small change in volatility
+        How much vega will change due to a small change in the asset price   
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+              
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -623,8 +922,37 @@ class Option():
 
     def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
               refresh=None):
-        # aka DdeltaDtime, Delta Bleed 
-        # how much delta will change due to a small change in time        
+        """
+        DdeltaDtime, Delta Bleed 
+        How much delta will change due to a small change in time to expiration
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+               
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
@@ -643,9 +971,39 @@ class Option():
         return self.opt_charm
                
 
-    def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # DgammaDvol
-        # how much gamma will change due to a small change in volatility
+    def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+        """
+        DgammaDvol
+        Sensitivity of gamma to changes in volatility
+        
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -658,9 +1016,39 @@ class Option():
         return self.opt_zomma
 
 
-    def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # DgammaDspot
-        # how much gamma will change due to a small change in the asset price
+    def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+        """
+        DgammaDspot
+        Sensitivity of gamma to changes in asset price 
+        3rd derivative of option price with respect to spot
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -668,14 +1056,45 @@ class Option():
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
         self.opt_speed = -(self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                                      self.option, self.refresh) * (1 + (self.d1 / (self.sigma * np.sqrt(self.T)))) / self.S)
+                                      self.option, self.refresh) * (1 + (self.d1 / (self.sigma * 
+                                      np.sqrt(self.T)))) / self.S)
         
         return self.opt_speed
 
 
-    def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # DgammaDtime, gamma bleed
-        # how much gamma will change due to a small change in time
+    def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+        """
+        DgammaDtime, Gamma Bleed, Gamma Theta
+        Sensitivity of gamma to changes in time to maturity
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -690,9 +1109,40 @@ class Option():
         return self.opt_color
 
 
-    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # DvegaDvol, vega convexity, volga
-        # how much vega will change due to a small change in implied volatility
+    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+        """
+        DvegaDvol, Vega Convexity, Volga, Vol Gamma
+        How much vega will change due to a small change in implied volatility
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        
+       
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -705,9 +1155,40 @@ class Option():
         return self.opt_vomma
 
 
-    def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # DvommaDvol
-        # how much vomma will change due to a small change in implied volatility
+    def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+               refresh=None):
+        """
+        DvommaDvol
+        How much vomma will change due to a small change in implied volatility
+        3rd derivative of option price wrt volatility
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -722,9 +1203,39 @@ class Option():
         return self.opt_ultima
 
 
-    def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
-        # DvegaDtime
-        # how much vega will change due to a small change in time
+    def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+                   refresh=None):
+        """
+        DvegaDtime
+        How much vega will change due to a small change in time to expiration
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        
         
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
@@ -743,7 +1254,43 @@ class Option():
     def barrier_price(self, S=None, K=None, H=None, R=None, T=None, r=None, q=None, 
                        sigma=None, barrier_direction=None, knock=None, option=None, 
                        refresh=None):
-        
+        """
+  
+    
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        H : TYPE, optional
+            DESCRIPTION. The default is None.
+        R : TYPE, optional
+            DESCRIPTION. The default is None.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        barrier_direction : TYPE, optional
+            DESCRIPTION. The default is None.
+        knock : TYPE, optional
+            DESCRIPTION. The default is None.
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self._initialise_barriers(S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
                                   barrier_direction=barrier_direction, knock=knock, 
                                   option=option)
@@ -831,7 +1378,15 @@ class Option():
 
 
     def _strike_tenor_label(self):
+        """
         
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self.strike_label = dict()
         for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
             if self.__dict__[str(key)] == self.S0:
@@ -846,7 +1401,20 @@ class Option():
 
 
     def _graph_space_prep(self, axis='price'):
-       
+        """
+        
+
+        Parameters
+        ----------
+        axis : TYPE, optional
+            DESCRIPTION. The default is 'price'.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         self.SA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_lower']
         self.SA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_upper']
         self.TA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['TA_lower']
@@ -882,7 +1450,43 @@ class Option():
     def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
                     payoff2=None, label2=None, payoff3=None, label3=None, payoff4=None, 
                     label4=None, xlabel='Stock Price', ylabel='P&L'):
-       
+        """
+        
+
+        Parameters
+        ----------
+        S0 : TYPE, optional
+            DESCRIPTION. The default is None.
+        SA : TYPE, optional
+            DESCRIPTION. The default is None.
+        payoff : TYPE, optional
+            DESCRIPTION. The default is None.
+        label : TYPE, optional
+            DESCRIPTION. The default is None.
+        title : TYPE, optional
+            DESCRIPTION. The default is 'Option Payoff'.
+        payoff2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        payoff3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        payoff4 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label4 : TYPE, optional
+            DESCRIPTION. The default is None.
+        xlabel : TYPE, optional
+            DESCRIPTION. The default is 'Stock Price'.
+        ylabel : TYPE, optional
+            DESCRIPTION. The default is 'P&L'.
+
+        Returns
+        -------
+        None.
+
+        """
         fig, ax = plt.subplots()
         ax.plot(SA, payoff, color='blue', label=label)
         if payoff2 is not None:
@@ -906,7 +1510,47 @@ class Option():
                         xarray4=None, yarray1=None, yarray2=None, yarray3=None, 
                         yarray4=None, label1=None, label2=None, label3=None, label4=None, 
                         xlabel=None, ylabel=None, title='Payoff'):
+        """
         
+
+        Parameters
+        ----------
+        xarray1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        xarray2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        xarray3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        xarray4 : TYPE, optional
+            DESCRIPTION. The default is None.
+        yarray1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        yarray2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        yarray3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        yarray4 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        label4 : TYPE, optional
+            DESCRIPTION. The default is None.
+        xlabel : TYPE, optional
+            DESCRIPTION. The default is None.
+        ylabel : TYPE, optional
+            DESCRIPTION. The default is None.
+        title : TYPE, optional
+            DESCRIPTION. The default is 'Payoff'.
+
+        Returns
+        -------
+        None.
+
+        """
         fig, ax = plt.subplots()
         plt.style.use('seaborn-darkgrid')
         ax.plot(xarray1, yarray1, color='blue', label=label1)
@@ -920,13 +1564,71 @@ class Option():
         plt.show()
    
     
-    def greeks(self, greek=None, y_plot=None, x_plot=None, S0=None, G1=None, G2=None, 
+    def greeks(self, greek=None, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
                axis=None, graphtype=None):
+        """
         
-        self._initialise_func(greek=greek, y_plot=y_plot, x_plot=x_plot, S0=S0, G1=G1, 
+
+        Parameters
+        ----------
+        greek : TYPE, optional
+            DESCRIPTION. The default is None.
+        x_plot : TYPE, optional
+            DESCRIPTION. The default is None.
+        y_plot : TYPE, optional
+            DESCRIPTION. The default is None.
+        S0 : TYPE, optional
+            DESCRIPTION. The default is None.
+        G1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        G2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        G3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        T : TYPE, optional
+            DESCRIPTION. The default is None.
+        T1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        T2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        T3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        time_shift : TYPE, optional
+            DESCRIPTION. The default is None.
+        r : TYPE, optional
+            DESCRIPTION. The default is None.
+        q : TYPE, optional
+            DESCRIPTION. The default is None.
+        sigma : TYPE, optional
+            DESCRIPTION. The default is None.
+        option : TYPE, optional
+            DESCRIPTION. The default is None.
+        direction : TYPE, optional
+            DESCRIPTION. The default is None.
+        interactive : TYPE, optional
+            DESCRIPTION. The default is None.
+        notebook : TYPE, optional
+            DESCRIPTION. The default is None.
+        colorscheme : TYPE, optional
+            DESCRIPTION. The default is None.
+        colorintensity : TYPE, optional
+            DESCRIPTION. The default is None.
+        size : TYPE, optional
+            DESCRIPTION. The default is None.
+        axis : TYPE, optional
+            DESCRIPTION. The default is None.
+        graphtype : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
                               G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
                               r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
@@ -934,7 +1636,7 @@ class Option():
         
         
         if self.graphtype == '2D':
-            self.greeks_graphs_2D(y_plot=self.y_plot, x_plot=self.x_plot, 
+            self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
                                   S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
                                   T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
                                   time_shift=self.time_shift, r=self.r, q=self.q, 
@@ -950,7 +1652,43 @@ class Option():
     def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
                          option=None, interactive=None, notebook=None, colorscheme=None, 
                          colorintensity=None, size=None, direction=None, axis=None):
+        """
         
+
+        Parameters
+        ----------
+        greek : TYPE, optional
+            DESCRIPTION. The default is None.
+        S0 : TYPE, optional
+            DESCRIPTION. The default is None.
+        r : TYPE, optional
+            DESCRIPTION. The default is None.
+        q : TYPE, optional
+            DESCRIPTION. The default is None.
+        sigma : TYPE, optional
+            DESCRIPTION. The default is None.
+        option : TYPE, optional
+            DESCRIPTION. The default is None.
+        interactive : TYPE, optional
+            DESCRIPTION. The default is None.
+        notebook : TYPE, optional
+            DESCRIPTION. The default is None.
+        colorscheme : TYPE, optional
+            DESCRIPTION. The default is None.
+        colorintensity : TYPE, optional
+            DESCRIPTION. The default is None.
+        size : TYPE, optional
+            DESCRIPTION. The default is None.
+        direction : TYPE, optional
+            DESCRIPTION. The default is None.
+        axis : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
                               interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
                               colorintensity=colorintensity, size=size, direction=direction, 
@@ -976,7 +1714,14 @@ class Option():
     
    
     def _vis_greeks_3D(self):
+        """
+        
 
+        Returns
+        -------
+        None.
+
+        """
         if self.direction == 'short':
             self.z = -self.z
         
@@ -1073,8 +1818,50 @@ class Option():
     def greeks_graphs_2D(self, y_plot=None, x_plot=None, S0=None, G1=None, G2=None, 
                              G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
                              r=None, q=None, sigma=None, option=None, direction=None):
+        """
         
-        self._initialise_func(y_plot=y_plot, x_plot=x_plot, S0=S0, G1=G1, G2=G2, 
+
+        Parameters
+        ----------
+        x_plot : TYPE, optional
+            DESCRIPTION. The default is None.
+        y_plot : TYPE, optional
+            DESCRIPTION. The default is None.
+        S0 : TYPE, optional
+            DESCRIPTION. The default is None.
+        G1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        G2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        G3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        T : TYPE, optional
+            DESCRIPTION. The default is None.
+        T1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        T2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        T3 : TYPE, optional
+            DESCRIPTION. The default is None.
+        time_shift : TYPE, optional
+            DESCRIPTION. The default is None.
+        r : TYPE, optional
+            DESCRIPTION. The default is None.
+        q : TYPE, optional
+            DESCRIPTION. The default is None.
+        sigma : TYPE, optional
+            DESCRIPTION. The default is None.
+        option : TYPE, optional
+            DESCRIPTION. The default is None.
+        direction : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
                               G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
                               r=r, q=q, sigma=sigma, option=option, direction=direction)
         
@@ -1085,69 +1872,18 @@ class Option():
         self._2D_general_graph()       
     
           
-    def payoffs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
-                T=None, r=None, q=None, sigma=None, option=None, direction=None, 
-                cash=None, ratio=None, value=None, combo_payoff=None):
-       
-        if combo_payoff == 'call':
-            self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                      value=value)
-        
-        if combo_payoff == 'put':
-            self.put(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                      value=value)
-        
-        if combo_payoff == 'stock':
-            self.stock(S0=S0, direction=direction)
-        
-        if combo_payoff == 'forward':
-            self.forward(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
-                         cash=cash)
-        
-        if combo_payoff == 'collar':
-            self.collar(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                        value=value)
-        
-        if combo_payoff == 'spread':
-            self.spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
-                        direction=direction, value=value)
-            
-        if combo_payoff == 'backspread':
-            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
-                            ratio=ratio, value=value)
-        
-        if combo_payoff == 'ratio vertical spread':
-            self.ratio_vertical_spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
-                                       option=option, ratio=ratio, value=value)
-        
-        if combo_payoff == 'straddle':
-            self.straddle(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                          value=value)
-
-        if combo_payoff == 'strangle':
-            self.strangle(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                          value=value)
-        
-        if combo_payoff == 'butterfly':    
-            self.butterfly(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                           option=option, direction=direction, value=value)
-        
-        if combo_payoff == 'christmas tree':
-            self.christmas_tree(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                                option=option, direction=direction, value=value)    
-        
-        if combo_payoff == 'iron butterfly':
-            self.iron_butterfly(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                                sigma=sigma, direction=direction, value=value)
-            
-        if combo_payoff == 'iron condor':
-            self.iron_condor(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                             sigma=sigma, option=option, direction=direction, value=value)
-            
+    
     
 
     def _2D_general_graph(self):                               
+        """
         
+
+        Returns
+        -------
+        None.
+
+        """
         if self.y_plot in self.y_name_dict.keys():
             for opt in [1, 2, 3]:
                 if self.x_plot == 'price':
@@ -1220,11 +1956,152 @@ class Option():
                                  xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
  
     
-    def call(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
+    def payoffs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
+                T=None, r=None, q=None, sigma=None, option=None, direction=None, 
+                cash=None, ratio=None, value=None, combo_payoff=None):
+        """
+        Displays the graph of the specified combo payoff.
+                
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price of option 1. The default is 100 (individual payoffs 
+                                                          may have own defaults).
+        K1 : Float
+             Strike Price of option 1. The default is 95 (individual payoffs 
+                                                          may have own defaults).
+        K2 : Float
+             Strike Price of option 2. The default is 105 (individual payoffs 
+                                                          may have own defaults).
+        K3 : Float
+             Strike Price of option 3. The default is 105 (individual payoffs 
+                                                          may have own defaults).
+        K4 : Float
+             Strike Price of option 4. The default is 105 (individual payoffs 
+                                                          may have own defaults).
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        cash : Bool
+            Whether to discount forward to present value. The default is False.
+        ratio : Int
+            Multiple of OTM options to be sold for ITM purchased. The default is 2. 
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+        combo_payoff : Str
+            The payoff to be displayed.
+
+        Returns
+        -------
+        Runs the specified combo payoff method.
+
+        """
+        if combo_payoff == 'call':
+            self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                      value=value)
         
+        if combo_payoff == 'put':
+            self.put(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                      value=value)
+        
+        if combo_payoff == 'stock':
+            self.stock(S0=S0, direction=direction)
+        
+        if combo_payoff == 'forward':
+            self.forward(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
+                         cash=cash)
+        
+        if combo_payoff == 'collar':
+            self.collar(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                        value=value)
+        
+        if combo_payoff == 'spread':
+            self.spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+                        direction=direction, value=value)
+            
+        if combo_payoff == 'backspread':
+            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
+                            ratio=ratio, value=value)
+        
+        if combo_payoff == 'ratio vertical spread':
+            self.ratio_vertical_spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
+                                       option=option, ratio=ratio, value=value)
+        
+        if combo_payoff == 'straddle':
+            self.straddle(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                          value=value)
+
+        if combo_payoff == 'strangle':
+            self.strangle(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+                          value=value)
+        
+        if combo_payoff == 'butterfly':    
+            self.butterfly(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+                           option=option, direction=direction, value=value)
+        
+        if combo_payoff == 'christmas tree':
+            self.christmas_tree(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+                                option=option, direction=direction, value=value)    
+        
+        if combo_payoff == 'iron butterfly':
+            self.iron_butterfly(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                                sigma=sigma, direction=direction, value=value)
+            
+        if combo_payoff == 'iron condor':
+            self.iron_condor(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                             sigma=sigma, option=option, direction=direction, value=value)
+            
+    
+    def call(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+             value=None):
+        """
+        Displays the graph of the call.
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price of option 1. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The 
+            default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'call'
         self.option1 = 'call'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                               value=value, option1=self.option1)
         
@@ -1250,11 +2127,44 @@ class Option():
                          label='Payoff', label2='Value')   
                 
         
-    def put(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, value=None):
+    def put(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+            value=None):
+        """
+        Displays the graph of the put.
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price of option 1. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
         
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'put'
         self.option1 = 'put'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                               value=value, option1=self.option1)
         
@@ -1281,9 +2191,28 @@ class Option():
                
         
     def stock(self, S0=None, direction=None):
+        """
+        Displays the graph of the underlying.
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
         
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'stock'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, direction=direction)
         
         self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
@@ -1295,14 +2224,47 @@ class Option():
             payoff = self.S0 - self.SA
             title = 'Short Stock'
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)     
+        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', 
+                         title=title)     
             
     
     def forward(self, S0=None, T=None, r=None, q=None, sigma=None, direction=None, 
                 cash=None):
+        """
+        Displays the graph of the synthetic forward strategy:
+            Long one ATM call
+            Short one ATM put
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        cash : Bool
+            Whether to discount to present value. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
         
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'forward'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, T=T, r=r, q=q, sigma=sigma, option1='call', 
                               option2='put', direction=direction, cash=cash)
         
@@ -1326,14 +2288,51 @@ class Option():
             payoff = -self.C1 + self.C2 + self.C1_0 - self.C2_0 * pv
             title = 'Short Forward'
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', title=title)
+        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', 
+                         title=title)
     
     
     def collar(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                direction=None, value=None):
+        """
+        Displays the graph of the collar strategy:
+            Long one OTM put
+            Short one OTM call
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 98.
+        K2 : Float
+             Strike Price of option 2. The default is 102.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
         
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'collar'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma,
                               option1='put', option2='call', direction=direction, 
                               value=value)
@@ -1363,9 +2362,48 @@ class Option():
     
     def spread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                option=None, direction=None, value=None):
+        """
+        Displays the graph of the spread strategy:
+            Long one ITM option
+            Short one OTM option
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+
+        """
         
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'spread'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, direction=direction, 
                               value=value)
@@ -1401,9 +2439,49 @@ class Option():
    
     def backspread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                    option=None, ratio=None, value=None):
+        """
+        Displays the graph of the backspread strategy:
+            Short one ITM option
+            Long ratio * OTM options
 
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        ratio : Int
+            Multiple of OTM options to be sold for ITM purchased. The default is 2.    
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'backspread'
 
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
                               value=value)
@@ -1432,9 +2510,49 @@ class Option():
         
     def ratio_vertical_spread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, 
                               sigma=None, option=None, ratio=None, value=None):
+        """
+        Displays the graph of the ratio vertical spread strategy:
+            Long one ITM option
+            Short ratio * OTM options
 
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        ratio : Int
+            Multiple of OTM options to be sold for ITM purchased. The default is 2.    
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+        
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'ratio vertical spread'
 
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
                               value=value)
@@ -1463,9 +2581,43 @@ class Option():
     
     def straddle(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
                  value=None):
-       
+        """
+        Displays the graph of the straddle strategy:
+            Long one ATM put
+            Long one ATM call
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price of options 1 and 2. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+        
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.    
+
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'straddle'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K=K, K1=K, K2=K, T=T, T1=T, T2=T, r=r, q=q, 
                               sigma=sigma, option1='put', option2='call', direction=direction, 
                               value=value)
@@ -1494,9 +2646,45 @@ class Option():
     
     def strangle(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                  direction=None, value=None):
+        """
+        Displays the graph of the strangle strategy:
+            Long one OTM put
+            Long one OTM call
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
         
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'strangle'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option1='put', option2='call', direction=direction, 
                               value=value)
@@ -1525,9 +2713,50 @@ class Option():
 
     def butterfly(self, S0=None, K1=None, K2=None, K3=None, T=None, r=None, q=None, 
                   sigma=None, option=None, direction=None, value=None):
+        """
+        Displays the graph of the butterfly strategy:
+            Long one ITM option
+            Short two ATM options
+            Long one OTM option
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 100.
+        K3 : Float
+             Strike Price of option 3. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
         
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'butterfly'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
@@ -1567,9 +2796,50 @@ class Option():
     
     def christmas_tree(self, S0=None, K1=None, K2=None, K3=None, T=None, r=None, 
                        q=None, sigma=None, option=None, direction=None, value=None):
+        """
+        Displays the graph of the christmas tree strategy:
+            Long one ITM option
+            Short one ATM option
+            Short one OTM option
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 100.
+        K3 : Float
+             Strike Price of option 3. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
         
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
         self.combo_payoff = 'christmas tree'
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
@@ -1613,47 +2883,55 @@ class Option():
                          label='Payoff', label2='Value')
 
 
-    def iron_butterfly(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-                       q=None, sigma=None, direction=None, value=None):
+    def condor(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+               q=None, sigma=None, option=None, direction=None, value=None):
+        """
+        Displays the graph of the condor strategy:
+            Long one low strike option
+            Short one option with a higher strike
+            Short one option with a higher strike 
+            Long one option with a higher strike        
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 90.
+        K2 : Float
+             Strike Price of option 2. The default is 95.
+        K3 : Float
+             Strike Price of option 3. The default is 100.
+        K4 : Float
+             Strike Price of option 4. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
         
-        self.combo_payoff = 'iron butterfly'
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults        
+        self.combo_payoff = 'condor'
         
-        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
-                              T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
-                              option2='call', option3='put', option4='call', direction=direction, 
-                              value=value)
-        
-        self._return_options(legs=4)
-        
-        if self.direction == 'long':
-            payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
-                      self.C2_0 - self.C3_0 + self.C4_0)
-            title = 'Long Iron Butterfly'
-            if self.value == True:
-                payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G + self.C1_0 - 
-                           self.C2_0 - self.C3_0 + self.C4_0)
-            else:
-                payoff2 = None
-        
-        if self.direction == 'short':
-            payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
-                      self.C2_0 + self.C3_0 - self.C4_0)
-            title = 'Short Iron Butterfly'
-            if self.value == True:
-                payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G - self.C1_0 + 
-                           self.C2_0 + self.C3_0 - self.C4_0)
-            else:
-                payoff2 = None
-        
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
-                         label='Payoff', label2='Value')
-    
-    
-    def iron_condor(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-                       q=None, sigma=None, option=None, direction=None, value=None):
-        
-        self.combo_payoff = 'iron condor'
-        
+        # Pass parameters to be initialised. If not provided they will be populated with default values 
         self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, option4=option, direction=direction, 
@@ -1690,11 +2968,189 @@ class Option():
        
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
+
+
+    def iron_butterfly(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+                       q=None, sigma=None, direction=None, value=None):
+        """
+        Displays the graph of the iron butterfly strategy:
+            Short one OTM put
+            Long one ATM put
+            Long one ATM call 
+            Short one OTM call
+        Akin to having a long straddle inside a larger short strangle (or vice-versa)
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 95.
+        K2 : Float
+             Strike Price of option 2. The default is 100.
+        K3 : Float
+             Strike Price of option 3. The default is 100.
+        K4 : Float
+             Strike Price of option 4. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
+        self.combo_payoff = 'iron butterfly'
+        
+        # Pass parameters to be initialised. If not provided they will be populated with default values
+        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
+                              T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
+                              option2='call', option3='put', option4='call', direction=direction, 
+                              value=value)
+        
+        self._return_options(legs=4)
+        
+        if self.direction == 'long':
+            payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
+                      self.C2_0 - self.C3_0 + self.C4_0)
+            title = 'Long Iron Butterfly'
+            if self.value == True:
+                payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G + self.C1_0 - 
+                           self.C2_0 - self.C3_0 + self.C4_0)
+            else:
+                payoff2 = None
+        
+        if self.direction == 'short':
+            payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
+                      self.C2_0 + self.C3_0 - self.C4_0)
+            title = 'Short Iron Butterfly'
+            if self.value == True:
+                payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G - self.C1_0 + 
+                           self.C2_0 + self.C3_0 - self.C4_0)
+            else:
+                payoff2 = None
+        
+        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+                         label='Payoff', label2='Value')
+    
+    
+    def iron_condor(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+                       q=None, sigma=None, direction=None, value=None):
+        """
+        Displays the graph of the iron condor strategy:
+            Long one OTM put
+            Short one OTM put with a higher strike
+            Short one OTM call 
+            Long one OTM call with a higher strike
+        Akin to having a long strangle inside a larger short strangle (or vice-versa)   
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100. 
+        K1 : Float
+             Strike Price of option 1. The default is 90.
+        K2 : Float
+             Strike Price of option 2. The default is 95.
+        K3 : Float
+             Strike Price of option 3. The default is 100.
+        K4 : Float
+             Strike Price of option 4. The default is 105.
+        T : Float
+            Time to Maturity. The default is 0.5 (6 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. The default is False.
+
+        Returns
+        -------
+        payoff: Terminal payoff value less initial cost; Array
+        payoff2: Current payoff value less initial cost (optional); Array
+        title: Description of payoff; Str
+        Runs method to graph using Matplotlib.
+
+        """
+        
+        # Specify the combo payoff so that parameter initialisation takes into account specific defaults
+        self.combo_payoff = 'iron condor'
+        
+        # Pass parameters to be initialised. If not provided they will be populated with default values 
+        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
+                              T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
+                              option2='put', option3='call', option4='call', direction=direction, 
+                              value=value)
+        
+        self._return_options(legs=4)
+        
+        if self.direction == 'long':
+            payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
+                      self.C2_0 + self.C3_0 - self.C4_0)
+            if self.value == True:
+                payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G - self.C1_0 + 
+                           self.C2_0 + self.C3_0 - self.C4_0)
+            else:
+                payoff2 = None
+        
+        if self.direction == 'short':
+            payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
+                      self.C2_0 - self.C3_0 + self.C4_0)
+            if self.value == True:
+                payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G + self.C1_0 - 
+                           self.C2_0 - self.C3_0 + self.C4_0)
+            else:
+                payoff2 = None
+                
+        if self.direction == 'long':
+            title = 'Long Iron Condor'
+        if self.direction == 'short':
+            title = 'Short Iron Condor'
+       
+        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+                         label='Payoff', label2='Value')
     
     
     
     def _return_options(self, legs=2):
-       
+        """
+        Calculate option prices to be used in payoff diagrams.
+
+        Parameters
+        ----------
+        legs : Int
+            Number of option legs to calculate. The default is 2.
+
+        Returns
+        -------
+        From 1 to 4 sets of option values:
+            Cx_0: Current option price; Float.
+            Cx: Terminal Option payoff, varying by strike; Array
+            Cx_G: Current option value, varying by strike; Array
+
+        """
+        
+        # array of 1000 equally spaced points between 75% of initial underlying price and 125%
         self.SA = np.linspace(0.75 * self.S0, 1.25 * self.S0, 1000)
                 
         self.C1_0 = self.price(S=self.S0, K=self.K1, T=self.T1, r=self.r, q=self.q, 
