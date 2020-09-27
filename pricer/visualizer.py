@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.axes3d import Axes3D
 import plotly.graph_objects as go
 from plotly.offline import plot
 
@@ -222,7 +223,6 @@ df_dict = {'df_S':100,
                              'charm':'charm'}}
 
 
-
 class Option():
     
     def __init__(self, S=df_dict['df_S'], S0=df_dict['df_S0'], K=df_dict['df_K'], 
@@ -314,17 +314,18 @@ class Option():
     
     def _initialise_func(self, **kwargs):
         """
-        
+        Initialise pricing data.
 
         Parameters
         ----------
-        **kwargs : TYPE
-            DESCRIPTION.
+        **kwargs : Various
+                   Takes any of the arguments of the various methods that use it to refresh data.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Runs methods to fix input parameters and reset defaults if no data provided and recalculate 
+            distributions based on updated data.
 
         """
         self._refresh_params(**kwargs)
@@ -335,17 +336,18 @@ class Option():
 
     def _initialise_graphs(self, **kwargs):
         """
-        
+        Initialise pricing data for graphs.
 
         Parameters
         ----------
-        **kwargs : TYPE
-            DESCRIPTION.
+        **kwargs : Various
+                   Takes any of the arguments of the various methods that use it to refresh data.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Runs methods to fix input parameters (resetting defaults will have taken 
+            place earlier in the process) and recalculate distributions based on updated data.
 
         """
         self._set_params(**kwargs)
@@ -356,17 +358,18 @@ class Option():
 
     def _initialise_barriers(self, **kwargs):
         """
-        
+        Initialise pricing data for graphs.
 
         Parameters
         ----------
-        **kwargs : TYPE
-            DESCRIPTION.
+        **kwargs : Various
+                   Takes any of the arguments of the various methods that use it to refresh data.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Runs methods to fix input parameters and reset defaults if no data provided, calculate 
+            distributions based on updated data and calculate the barrier option specific parameters.
 
         """
         self._refresh_params(**kwargs)
@@ -378,44 +381,56 @@ class Option():
 
     def _refresh_params(self, **kwargs):
         """
-        
+        Set parameters for use in various pricing functions
 
         Parameters
         ----------
-        **kwargs : TYPE
-            DESCRIPTION.
+        **kwargs : Various
+                   Takes any of the arguments of the various methods that use it to refresh data.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Runs methods to fix input parameters and reset defaults if no data provided
 
         """
+        
+        # Certain combo payoffs (found in the mod_payoffs list) require specific default parameters
         if self.combo_payoff in self.mod_payoffs:
             for k, v in kwargs.items():
                 if v is None:
+                    # These parameters are in the mod_params list
                     if k in self.mod_params:
                         try:
+                            # Extract these from the df_combo_dict
                             v = self.df_combo_dict[str(self.combo_payoff)][str(k)]
                         except:
+                            # Otherwise set to the standard default value
                             v = df_dict['df_'+str(k)]
                     if k not in self.mod_params:
                         v = df_dict['df_'+str(k)]
+                    # Now assign this to the object
                     self.__dict__[k] = v
+                # If the parameter has been provided as an input, assign this to the object
                 else:
                     self.__dict__[k] = v
            
         else:
+            # For all the other combo_payoffs
             for k, v in kwargs.items():
+                # If a parameter has not been provided
                 if v is None:
+                    # Set it to the default value and assign to the object
                     v = df_dict['df_'+str(k)]
                     self.__dict__[k] = v
+                # If the parameter has been provided as an input, assign this to the object
                 else:
                     self.__dict__[k] = v
         
-
+        # For each parameter in the list of parameters to be updated that was not supplied as a kwarg 
         for key in list(set(self.df_params_list) - set(kwargs.keys())):
             if key not in kwargs:
+                # Set it to the default value and assign to the object
                 val = df_dict['df_'+str(key)]
                 self.__dict__[key] = val
                 
@@ -424,21 +439,24 @@ class Option():
     
     def _set_params(self, **kwargs):
         """
-        
+        Fix parameters for use in various pricing functions
 
         Parameters
         ----------
-        **kwargs : TYPE
-            DESCRIPTION.
+        **kwargs : Various
+                   Takes any of the arguments of the various methods that use it to refresh data.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Assigns input parameters to the object
 
         """
+        
+        # For each input parameter provided
         for k, v in kwargs.items():
             if v is not None:
+                # Assign to the object
                 self.__dict__[k] = v
     
         return self
@@ -446,14 +464,16 @@ class Option():
         
     def _refresh_dist(self):
         """
-        
+        Calculate various parameters and distributions
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Assigns parameters to the object
 
         """
+        
+        # Cost of carry as risk free rate less dividend yield
         self.b = self.r - self.q
         
         self.carry = np.exp((self.b - self.r) * self.T)
@@ -480,12 +500,12 @@ class Option():
     
     def _barrier_factors(self):
         """
-        
+        Calculate the barrier option specific parameters
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Various
+            Assigns parameters to the object
 
         """
         self.mu = (self.b - ((self.sigma ** 2) / 2)) / (self.sigma ** 2)
@@ -551,7 +571,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -567,10 +587,12 @@ class Option():
         Returns
         -------
         Float
-            Black Scholes Option Price. If combo is set to true the price to be used 
-            in combo graphs so the distributions are refreshed but not the parameters.
+            Black Scholes Option Price.
 
         """
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -601,7 +623,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -617,10 +639,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Delta. 
 
-        """      
+        """    
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -636,46 +661,51 @@ class Option():
     
     
     def shift_delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
-                    shift=None, shift_type=None, refresh=None):
+                    delta_shift=None, delta_shift_type=None, refresh=None):
         """
         Sensitivity of the option price to changes in asset price
         Calculated by taking the difference in price for varying shift sizes
 
         Parameters
         ----------
-        S : TYPE, optional
-            DESCRIPTION. The default is None.
-        K : TYPE, optional
-            DESCRIPTION. The default is None.
-        T : TYPE, optional
-            DESCRIPTION. The default is None.
-        r : TYPE, optional
-            DESCRIPTION. The default is None.
-        q : TYPE, optional
-            DESCRIPTION. The default is None.
-        sigma : TYPE, optional
-            DESCRIPTION. The default is None.
-        option : TYPE, optional
-            DESCRIPTION. The default is None.
-        shift : TYPE, optional
-            DESCRIPTION. The default is None.
-        shift_type : TYPE, optional
-            DESCRIPTION. The default is None.
-        refresh : TYPE, optional
-            DESCRIPTION. The default is None.
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        delta_shift : Float
+            The size of the up and down shift in basis points. The default is 25.
+        delta_shift_type : Str
+            Whether to calculate the change for an upshift, downshift or average of the two. The default is 'avg'.
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Delta.
 
         """
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                                  shift=shift, shift_type=shift_type)
+                                  delta_shift=delta_shift, delta_shift_type=delta_shift_type)
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option,
-                                    shift=shift, shift_type=shift_type, refresh=refresh)
+                                    delta_shift=delta_shift, delta_shift_type=delta_shift_type, 
+                                    refresh=refresh)
         
         down_shift = self.S-(self.shift/10000)*self.S
         up_shift = self.S+(self.shift/10000)*self.S
@@ -708,7 +738,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -724,10 +754,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Theta.
 
         """
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -758,7 +791,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -774,12 +807,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Gamma.
 
         """
                
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -802,7 +836,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -817,10 +851,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Vega.
 
         """
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -843,7 +880,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -858,10 +895,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Rho.
 
         """        
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -889,7 +929,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -904,12 +944,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Vanna.
 
         """
               
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -933,7 +974,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -948,12 +989,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Charm.
 
         """
                
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
         if refresh == 'graph':
@@ -984,7 +1026,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -999,12 +1041,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Zomma.
 
         """
         
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -1030,7 +1073,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -1045,11 +1088,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Speed.
 
         """
         
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -1075,7 +1120,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -1090,12 +1135,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Color.
 
         """
         
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -1122,7 +1168,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -1137,13 +1183,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Vomma.
 
         """
-        
-       
-        
+               
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -1169,7 +1215,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -1184,12 +1230,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Ultima.
 
         """
         
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -1216,7 +1263,7 @@ class Option():
         K : Float
             Strike Price. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -1231,12 +1278,13 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Option Vega Bleed.
 
         """
         
-        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
         if refresh == 'graph':
@@ -1255,7 +1303,7 @@ class Option():
                        sigma=None, barrier_direction=None, knock=None, option=None, 
                        refresh=None):
         """
-  
+        Return the Barrier option price
     
         Parameters
         ----------
@@ -1263,22 +1311,22 @@ class Option():
             Underlying Stock Price. The default is 100. 
         K : Float
             Strike Price. The default is 100.
-        H : TYPE, optional
-            DESCRIPTION. The default is None.
-        R : TYPE, optional
-            DESCRIPTION. The default is None.
+        H : Float
+            Barrier Level. The default is 105.
+        R : Float
+            Rebate. The default is 0.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
             Dividend Yield. The default is 0.
         sigma : Float
             Implied Volatility. The default is 0.2 (20%).
-        barrier_direction : TYPE, optional
-            DESCRIPTION. The default is None.
-        knock : TYPE, optional
-            DESCRIPTION. The default is None.
+        barrier_direction : Str
+            Up or Down. The default is 'up'.
+        knock : Str
+            knock-in or knock-out. The default is 'in'.
         option : Str
             Option type, Put or Call. The default is 'call'
         refresh : Str
@@ -1287,14 +1335,17 @@ class Option():
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Float
+            Barrier option price.
 
         """
+        
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_barriers(S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
                                   barrier_direction=barrier_direction, knock=knock, 
                                   option=option)
         
+        # Down and In Call
         if self.barrier_direction == 'down' and self.knock == 'in' and self.option == 'call':
             self.eta = 1
             self.phi = 1
@@ -1305,6 +1356,7 @@ class Option():
                 self.opt_barrier_payoff = self.A - self.B + self.D + self.E
             
 
+        # Up and In Call    
         if self.barrier_direction == 'up' and self.knock == 'in' and self.option == 'call':
             self.eta = -1
             self.phi = 1
@@ -1315,6 +1367,7 @@ class Option():
                 self.opt_barrier_payoff = self.B - self.C + self.D + self.E
 
 
+        # Down and In Put
         if self.barrier_direction == 'down' and self.knock == 'in' and self.option == 'put':
             self.eta = 1
             self.phi = -1
@@ -1324,7 +1377,8 @@ class Option():
             if self.K < self.H:
                 self.opt_barrier_payoff = self.A + self.E
                 
-         
+                
+        # Up and In Put         
         if self.barrier_direction == 'up' and self.knock == 'in' and self.option == 'put':
             self.eta = -1
             self.phi = -1
@@ -1334,7 +1388,8 @@ class Option():
             if self.K < self.H:
                 self.opt_barrier_payoff = self.C + self.E
                 
-
+                
+        # Down and Out Call
         if self.barrier_direction == 'down' and self.knock == 'out' and self.option == 'call':
             self.eta = 1
             self.phi = 1
@@ -1344,7 +1399,8 @@ class Option():
             if self.K < self.H:
                 self.opt_barrier_payoff = self.B - self.D + self.F
             
-
+            
+        # Up and Out Call
         if self.barrier_direction == 'up' and self.knock == 'out' and self.option == 'call':
             self.eta = -1
             self.phi = 1
@@ -1355,6 +1411,7 @@ class Option():
                 self.opt_barrier_payoff = self.A - self.B + self.C - self.D + self.F
 
 
+        # Down and Out Put
         if self.barrier_direction == 'down' and self.knock == 'out' and self.option == 'put':
             self.eta = 1
             self.phi = -1
@@ -1364,7 +1421,7 @@ class Option():
             if self.K < self.H:
                 self.opt_barrier_payoff = self.F
                 
-         
+        # Up and Out Put         
         if self.barrier_direction == 'up' and self.knock == 'out' and self.option == 'put':
             self.eta = -1
             self.phi = -1
@@ -1376,60 +1433,213 @@ class Option():
 
         return self.opt_barrier_payoff    
 
-
-    def _strike_tenor_label(self):
+    
+    def greeks(self, greek=None, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+               G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
+               q=None, sigma=None, option=None, direction=None, interactive=None, 
+               notebook=None, colorscheme=None, colorintensity=None, size=None, 
+               axis=None, graphtype=None):
         """
+        Plot the chosen 2D or 3D graph
         
+        
+        Parameters
+        ----------
+        greek : Str
+            The sensitivity to be charted. The default is 'delta'.
+        x_plot : Str
+                 The x-axis variable ('price', 'strike', 'vol' or 'time'). The 
+                 default is 'time'.
+        y_plot : Str
+                 The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
+                 The default is 'delta.
+        S0 : Float
+             Underlying Stock Price. The default is 100.
+        G1 : Float
+             Strike Price of option 1. The default is 90.
+        G2 : Float
+             Strike Price of option 2. The default is 100.
+        G3 : Float
+             Strike Price of option 3. The default is 110.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        T1 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        T2 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        T3 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        time_shift : Float
+             Difference between T1 and T2 in rho graphs. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        interactive : Bool
+            Whether to show matplotlib (False) or plotly (True) graph. The default is False.
+        notebook : Bool
+            Whether the function is being run in an IPython notebook and hence whether 
+            it should output in line or to an HTML file. The default is False.
+        colorscheme : Str
+            The matplotlib colormap or plotly colorscale to use. The default is 'jet' 
+            (which works in both).
+        colorintensity : Float
+            The alpha value indicating level of transparency / intensity. The default is 1.
+        size : Tuple
+            Figure size for matplotlib chart. The default is (12, 8).
+        axis : Str
+            Whether the x-axis is 'price' or 'vol'. The default is 'price'.
+        graphtype : TYPE, optional
+            DESCRIPTION. The default is None.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Runs method to display either 2D or 3D greeks graph.
 
-        """
-        self.strike_label = dict()
-        for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
-            if self.__dict__[str(key)] == self.S0:
-                self.strike_label[value] = 'ATM Strike'
-            else:
-                self.strike_label[value] = str(int(self.__dict__[key]))+' Strike' 
-               
-        for k, v in {'T1':'label1', 'T2':'label2', 'T3':'label3'}.items():
-            self.__dict__[v] = str(int(self.__dict__[str(k)]*365))+' Day '+self.strike_label[str(v)]
-                
-        return self            
-
-
-    def _graph_space_prep(self, axis='price'):
         """
         
+        # Pass parameters to be initialised. If not provided they will be populated with default values
+        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
+                              G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
+                              r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
+                              notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
+                              size=size, direction=direction, axis=axis, graphtype=graphtype)
+        
+        # Run 2D greeks method
+        if self.graphtype == '2D':
+            self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
+                                  S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
+                                  T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
+                                  time_shift=self.time_shift, r=self.r, q=self.q, 
+                                  sigma=self.sigma, option=self.option, direction=self.direction)
+        
+        # Run 3D greeks method    
+        if self.graphtype == '3D':
+            self.greeks_graphs_3D(greek=self.greek, S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
+                                  option=self.option, interactive=self.interactive, notebook=self.notebook, 
+                                  colorscheme=self.colorscheme, colorintensity=self.colorintensity, 
+                                  size=self.size, direction=self.direction, axis=self.axis)
+    
+    
+    def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
+                         option=None, interactive=None, notebook=None, colorscheme=None, 
+                         colorintensity=None, size=None, direction=None, axis=None):
+        """
+        
+        Plot chosen 3D greeks graph.
 
         Parameters
         ----------
-        axis : TYPE, optional
-            DESCRIPTION. The default is 'price'.
+        greek : Str
+            The sensitivity to be charted. The default is 'delta'.
+        S0 : Float
+             Underlying Stock Price. The default is 100.
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        interactive : Bool
+            Whether to show matplotlib (False) or plotly(True) graph. The default is False.
+        notebook : Bool
+            Whether the function is being run in an IPython notebook and hence whether 
+            it should output in line or to an HTML file. The default is False.
+        colorscheme : Str
+            The matplotlib colormap or plotly colorscale to use. The default is 'jet' 
+            (which works in both).
+        colorintensity : Float
+            The alpha value indicating level of transparency / intensity. The default is 1.
+        size : Tuple
+            Figure size for matplotlib chart. The default is (12, 8).
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+        axis : Str
+            Whether the x-axis is 'price' or 'vol'. The default is 'price'.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        Runs method to display 3D greeks graph.
 
         """
+        
+        # Pass parameters to be initialised. If not provided they will be populated with default values
+        self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
+                              interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
+                              colorintensity=colorintensity, size=size, direction=direction, 
+                              axis=axis)
+        
+        # Select the input name and method name from the greek dictionary 
+        for greek_label, greek_func in self.greek_dict.items():
+            # If the greek is the same for call or put, set the option value to 'Call / Put'
+            if self.greek in self.equal_greeks:
+                self.option = 'Call / Put'
+            # For the specified greek
+            if self.greek == greek_label:
+                if self.axis == 'price':
+                    # Prepare the graph axes 
+                    self._graph_space_prep(axis='price')
+                    # Select the individual greek method using getattr()
+                    self.z = getattr(self, greek_func)(S=self.x, K=self.S0, T=self.y, 
+                                                       r=self.r, sigma=self.sigma, 
+                                                       option=self.option, refresh='graph')
+                if self.axis == 'vol':
+                    # Prepare the graph axes 
+                    self._graph_space_prep(axis='vol')
+                    # Select the individual greek method using getattr()
+                    self.z = getattr(self, greek_func)(S=self.S0, K=self.S0, T=self.y, 
+                                                       r=self.r, sigma=self.x, 
+                                                       option=self.option, refresh='graph')
+        
+        # Run the 3D visualisation method            
+        self._vis_greeks_3D()            
+    
+    
+    def _graph_space_prep(self, axis='price'):
+        """
+        Prepare the axis ranges to be used in 3D graph.
+
+        Parameters
+        ----------
+        axis : Str
+            Whether the x-axis is 'price' or 'vol'. The default is 'price'.
+
+        Returns
+        -------
+        Various
+            Updated parameters to be used in 3D graph.
+
+        """
+        
+        # Select the strike and Time ranges for each greek from the 3D chart ranges dictionary 
         self.SA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_lower']
         self.SA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_upper']
         self.TA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['TA_lower']
         self.TA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['TA_upper']
+        # Set the volatility range from 5% to 50%
         self.sigmaA_lower = 0.05 
         self.sigmaA_upper = 0.5 
 
-        self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 100)
-        self.TA = np.linspace(self.TA_lower, self.TA_upper, 100)
-        self.sigmaA = np.linspace(self.sigmaA_lower, self.sigmaA_upper, 100)
-
+        # create arrays of 1000 equally spaced points for the ranges of strike prices, 
+        # volatilities and maturities
+        self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 1000)
+        self.TA = np.linspace(self.TA_lower, self.TA_upper, 1000)
+        self.sigmaA = np.linspace(self.sigmaA_lower, self.sigmaA_upper, 1000)
+        
+        # set y-min and y-max labels 
         self.ymin = self.TA_lower
         self.ymax = self.TA_upper
         self.axis_label2 = 'Time to Expiration (Days)'
         
+        # set x-min and x-max labels 
         if axis == 'price':
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.xmin = self.SA_lower
@@ -1445,306 +1655,49 @@ class Option():
             self.axis_label1 = 'Volatility %'    
 
         return self
-
-
-    def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
-                    payoff2=None, label2=None, payoff3=None, label3=None, payoff4=None, 
-                    label4=None, xlabel='Stock Price', ylabel='P&L'):
-        """
-        
-
-        Parameters
-        ----------
-        S0 : TYPE, optional
-            DESCRIPTION. The default is None.
-        SA : TYPE, optional
-            DESCRIPTION. The default is None.
-        payoff : TYPE, optional
-            DESCRIPTION. The default is None.
-        label : TYPE, optional
-            DESCRIPTION. The default is None.
-        title : TYPE, optional
-            DESCRIPTION. The default is 'Option Payoff'.
-        payoff2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        payoff3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        payoff4 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label4 : TYPE, optional
-            DESCRIPTION. The default is None.
-        xlabel : TYPE, optional
-            DESCRIPTION. The default is 'Stock Price'.
-        ylabel : TYPE, optional
-            DESCRIPTION. The default is 'P&L'.
-
-        Returns
-        -------
-        None.
-
-        """
-        fig, ax = plt.subplots()
-        ax.plot(SA, payoff, color='blue', label=label)
-        if payoff2 is not None:
-            ax.plot(SA, payoff2, color='red', label=label2)
-        if payoff3 is not None:
-            ax.plot(SA, payoff3, color='green', label=label3)
-        if payoff4 is not None:
-            ax.plot(SA, payoff4, color='purple', label=label4)
-        ax.axhline(y=0, linewidth=0.5, color='k')
-        ax.axvline(x=S0, linewidth=0.5, color='k')
-        ax.patch.set_edgecolor('black')  
-        ax.patch.set_linewidth('1')          
-        plt.style.use('seaborn-darkgrid')
-        plt.grid(True)
-        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
-        ax.legend()
-        plt.show()
-    
-    
-    def _vis_greeks_mpl(self, xarray1=None, xarray2=None, xarray3=None, 
-                        xarray4=None, yarray1=None, yarray2=None, yarray3=None, 
-                        yarray4=None, label1=None, label2=None, label3=None, label4=None, 
-                        xlabel=None, ylabel=None, title='Payoff'):
-        """
-        
-
-        Parameters
-        ----------
-        xarray1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        xarray2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        xarray3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        xarray4 : TYPE, optional
-            DESCRIPTION. The default is None.
-        yarray1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        yarray2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        yarray3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        yarray4 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        label4 : TYPE, optional
-            DESCRIPTION. The default is None.
-        xlabel : TYPE, optional
-            DESCRIPTION. The default is None.
-        ylabel : TYPE, optional
-            DESCRIPTION. The default is None.
-        title : TYPE, optional
-            DESCRIPTION. The default is 'Payoff'.
-
-        Returns
-        -------
-        None.
-
-        """
-        fig, ax = plt.subplots()
-        plt.style.use('seaborn-darkgrid')
-        ax.plot(xarray1, yarray1, color='blue', label=label1)
-        ax.plot(xarray2, yarray2, color='red', label=label2)
-        ax.plot(xarray3, yarray3, color='green', label=label3)
-        if label4 is not None:
-            ax.plot(xarray4, yarray4, color='orange', label=label4)
-        plt.grid(True)
-        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
-        ax.legend()
-        plt.show()
-   
-    
-    def greeks(self, greek=None, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
-               G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
-               q=None, sigma=None, option=None, direction=None, interactive=None, 
-               notebook=None, colorscheme=None, colorintensity=None, size=None, 
-               axis=None, graphtype=None):
-        """
-        
-
-        Parameters
-        ----------
-        greek : TYPE, optional
-            DESCRIPTION. The default is None.
-        x_plot : TYPE, optional
-            DESCRIPTION. The default is None.
-        y_plot : TYPE, optional
-            DESCRIPTION. The default is None.
-        S0 : TYPE, optional
-            DESCRIPTION. The default is None.
-        G1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        G2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        G3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        T : TYPE, optional
-            DESCRIPTION. The default is None.
-        T1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        T2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        T3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        time_shift : TYPE, optional
-            DESCRIPTION. The default is None.
-        r : TYPE, optional
-            DESCRIPTION. The default is None.
-        q : TYPE, optional
-            DESCRIPTION. The default is None.
-        sigma : TYPE, optional
-            DESCRIPTION. The default is None.
-        option : TYPE, optional
-            DESCRIPTION. The default is None.
-        direction : TYPE, optional
-            DESCRIPTION. The default is None.
-        interactive : TYPE, optional
-            DESCRIPTION. The default is None.
-        notebook : TYPE, optional
-            DESCRIPTION. The default is None.
-        colorscheme : TYPE, optional
-            DESCRIPTION. The default is None.
-        colorintensity : TYPE, optional
-            DESCRIPTION. The default is None.
-        size : TYPE, optional
-            DESCRIPTION. The default is None.
-        axis : TYPE, optional
-            DESCRIPTION. The default is None.
-        graphtype : TYPE, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
-        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
-                              G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
-                              r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
-                              notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
-                              size=size, direction=direction, axis=axis, graphtype=graphtype)
-        
-        
-        if self.graphtype == '2D':
-            self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
-                                  S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                  T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
-                                  time_shift=self.time_shift, r=self.r, q=self.q, 
-                                  sigma=self.sigma, option=self.option, direction=self.direction)
-            
-        if self.graphtype == '3D':
-            self.greeks_graphs_3D(greek=self.greek, S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
-                                  option=self.option, interactive=self.interactive, notebook=self.notebook, 
-                                  colorscheme=self.colorscheme, colorintensity=self.colorintensity, 
-                                  size=self.size, direction=self.direction, axis=self.axis)
-    
-    
-    def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
-                         option=None, interactive=None, notebook=None, colorscheme=None, 
-                         colorintensity=None, size=None, direction=None, axis=None):
-        """
-        
-
-        Parameters
-        ----------
-        greek : TYPE, optional
-            DESCRIPTION. The default is None.
-        S0 : TYPE, optional
-            DESCRIPTION. The default is None.
-        r : TYPE, optional
-            DESCRIPTION. The default is None.
-        q : TYPE, optional
-            DESCRIPTION. The default is None.
-        sigma : TYPE, optional
-            DESCRIPTION. The default is None.
-        option : TYPE, optional
-            DESCRIPTION. The default is None.
-        interactive : TYPE, optional
-            DESCRIPTION. The default is None.
-        notebook : TYPE, optional
-            DESCRIPTION. The default is None.
-        colorscheme : TYPE, optional
-            DESCRIPTION. The default is None.
-        colorintensity : TYPE, optional
-            DESCRIPTION. The default is None.
-        size : TYPE, optional
-            DESCRIPTION. The default is None.
-        direction : TYPE, optional
-            DESCRIPTION. The default is None.
-        axis : TYPE, optional
-            DESCRIPTION. The default is None.
-
-        Returns
-        -------
-        None.
-
-        """
-        self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
-                              interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
-                              colorintensity=colorintensity, size=size, direction=direction, 
-                              axis=axis)
-        
-
-        for greek_label, greek_func in self.greek_dict.items():
-            if self.greek in self.equal_greeks:
-                self.option = 'Call / Put'
-            if self.greek == greek_label:
-                if self.axis == 'price':
-                    self._graph_space_prep(axis='price')
-                    self.z = getattr(self, greek_func)(S=self.x, K=self.S0, T=self.y, 
-                                                       r=self.r, sigma=self.sigma, 
-                                                       option=self.option, refresh='graph')
-                if self.axis == 'vol':
-                    self._graph_space_prep(axis='vol')
-                    self.z = getattr(self, greek_func)(S=self.S0, K=self.S0, T=self.y, 
-                                                       r=self.r, sigma=self.x, 
-                                                       option=self.option, refresh='graph')
-                    
-        self._vis_greeks_3D()            
     
    
     def _vis_greeks_3D(self):
         """
-        
+        Display 3D greeks graph.
 
         Returns
         -------
-        None.
+        If 'interactive' is False, a matplotlib static graph.
+        If 'interactive' is True, a plotly graph that can be rotated and zoomed.
 
         """
+        
+        # Reverse the z-axis data if direction is 'short'
         if self.direction == 'short':
             self.z = -self.z
         
-        
+        # Label the graph based on whether it is different for calls & puts or the same
         if self.option == 'Call / Put':
             titlename = str(str(self.direction.title())+' '+self.option+' Option '+str(self.greek.title()))
         else:    
             titlename = str(str(self.direction.title())+' '+str(self.option.title())+
                             ' Option '+str(self.greek.title()))
            
-
+        # Create a matplotlib graph    
         if self.interactive == False:
         
+            # create figure with specified size tuple
             fig = plt.figure(figsize=self.size)
             ax = fig.add_subplot(111, projection='3d')
+            # apply graph_scale so that if volatility is the x-axis it wil be * 100
             ax.plot_surface(self.x * self.graph_scale,
                             self.y * 365,
                             self.z,
                             rstride=2, cstride=2,
+                            # set the colormap to the chosen colorscheme
                             cmap=plt.get_cmap(self.colorscheme),
+                            # set the alpha value to the chosen colorintensity
                             alpha=self.colorintensity,
                             linewidth=0.25)
+            # Auto scale the z-axis
             ax.set_zlim(auto=True)
+            # Set x-axis to decrease from left to right
             ax.invert_xaxis()
             ax.set_xlabel(self.axis_label1, fontsize=12)
             ax.set_ylabel(self.axis_label2, fontsize=12)
@@ -1752,9 +1705,10 @@ class Option():
             ax.set_title(titlename, fontsize=14)
             plt.show()
 
-
+        # Create a plotly graph
         if self.interactive == True:
             
+            # Set the ranges for the contour values
             contour_x_start = self.ymin
             contour_x_stop = self.ymax * 360
             contour_x_size = contour_x_stop / 18
@@ -1766,9 +1720,11 @@ class Option():
             contour_z_size = int((np.max(self.z) - np.min(self.z)) / 10)
             
             
+            # create plotly figure object
             fig = go.Figure(data=[go.Surface(x=self.y*365, 
                                              y=self.x*self.graph_scale, 
                                              z=self.z, 
+                                             # set the colorscale to the chosen colorscheme
                                              colorscale=self.colorscheme, 
                                              contours = {"x": {"show": True, "start": contour_x_start, 
                                                                "end": contour_x_stop, "size": contour_x_size, "color":"white"},            
@@ -1777,12 +1733,14 @@ class Option():
                                                          "z": {"show": True, "start": contour_z_start, 
                                                                "end": contour_z_stop, "size": contour_z_size}},)])
             
+            # Set initial view position
             camera = dict(
                 eye=dict(x=2, y=1, z=1)
             )
             
-            
+            # Set x-axis to decrease from left to right
             fig.update_scenes(xaxis_autorange="reversed")
+            # Set y-axis to increase from left to right
             fig.update_scenes(yaxis_autorange="reversed")
             fig.update_layout(scene = dict(
                                 xaxis = dict(
@@ -1808,153 +1766,257 @@ class Option():
                               margin=dict(l=65, r=50, b=65, t=90),
                              scene_camera=camera)
             
+            # If running in an iPython notebook the chart will display in line
             if self.notebook == True:
                 fig.show()
+            # Otherwise create an HTML file that opens in a new window
             else:
                 plot(fig, auto_open=True)
  
     
     
-    def greeks_graphs_2D(self, y_plot=None, x_plot=None, S0=None, G1=None, G2=None, 
+    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
                              G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
                              r=None, q=None, sigma=None, option=None, direction=None):
         """
-        
+        Plot chosen 2D greeks graph.
+                
 
         Parameters
         ----------
-        x_plot : TYPE, optional
-            DESCRIPTION. The default is None.
-        y_plot : TYPE, optional
-            DESCRIPTION. The default is None.
-        S0 : TYPE, optional
-            DESCRIPTION. The default is None.
-        G1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        G2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        G3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        T : TYPE, optional
-            DESCRIPTION. The default is None.
-        T1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        T2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        T3 : TYPE, optional
-            DESCRIPTION. The default is None.
-        time_shift : TYPE, optional
-            DESCRIPTION. The default is None.
-        r : TYPE, optional
-            DESCRIPTION. The default is None.
-        q : TYPE, optional
-            DESCRIPTION. The default is None.
-        sigma : TYPE, optional
-            DESCRIPTION. The default is None.
-        option : TYPE, optional
-            DESCRIPTION. The default is None.
-        direction : TYPE, optional
-            DESCRIPTION. The default is None.
+        x_plot : Str
+                 The x-axis variable ('price', 'strike', 'vol' or 'time'). The 
+                 default is 'time'.
+        y_plot : Str
+                 The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
+                 The default is 'delta.
+        S0 : Float
+             Underlying Stock Price. The default is 100.
+        G1 : Float
+             Strike Price of option 1. The default is 90.
+        G2 : Float
+             Strike Price of option 2. The default is 100.
+        G3 : Float
+             Strike Price of option 3. The default is 110.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        T1 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        T2 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        T3 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        time_shift : Float
+             Difference between T1 and T2 in rho graphs. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
 
         Returns
         -------
-        None.
+        Runs method to create data for 2D greeks graph.
 
         """
+        
+        # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
                               G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
                               r=r, q=q, sigma=sigma, option=option, direction=direction)
         
-        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
-        self.sigmaA = np.linspace(0.05, 0.5, 100)
-        self.TA = np.linspace(0.01, 1, 100)
+        # create arrays of 1000 equally spaced points for a range of strike prices, 
+        # volatilities and maturities
+        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 1000)
+        self.sigmaA = np.linspace(0.05, 0.5, 1000)
+        self.TA = np.linspace(0.01, 1, 1000)
     
         self._2D_general_graph()       
-    
-          
-    
     
 
     def _2D_general_graph(self):                               
         """
-        
+        Creates data for 2D greeks graph.
 
         Returns
         -------
-        None.
+        Runs method to graph using Matplotlib.
 
         """
+        # y-axis parameters other than rho require 3 options to be graphed
         if self.y_plot in self.y_name_dict.keys():
             for opt in [1, 2, 3]:
                 if self.x_plot == 'price':
+                    # Use self.__dict__ to access names, C1... etc., dynamically
+                    # Use getattr() with the y-plot value in y_name_dict to access each method, 'delta'... etc., dynamically
+                    # For price we set S to the array SA 
                     self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
                 if self.x_plot == 'vol':
+                    # For vol we set sigma to the array sigmaA
                     self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                               r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
-                if self.x_plot == 'time':        
+                if self.x_plot == 'time':
+                    # For time we set T to the array TA
                     self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
                                                                                    q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
-        
+            
+            # Reverse the option value if direction is 'short'        
             if self.direction == 'short':
                 for opt in [1, 2, 3]:
                     self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
             
+            # Call strike_tenor_label method to assign labels to chosen strikes and tenors
             self._strike_tenor_label()
  
+        # rho requires 4 options to be graphed 
         if self.y_plot == 'rho':
+            # Set T1 and T2 to the specified time and shifted time
             self.T1 = self.T
             self.T2 = self.T + self.time_shift
+            # 2 Tenors
             tenor_type = {1:1, 2:2, 3:1, 4:2}
+            # And call and put for each tenor 
             opt_type = {1:'call', 2:'call', 3:'put', 4:'put'}
             for opt in [1, 2, 3, 4]:
                 if self.x_plot == 'price':
+                    # For price we set S to the array SA
                     self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.SA, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
                 if self.x_plot == 'strike':
+                    # For strike we set K to the array SA
                     self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
                 if self.x_plot == 'vol':
+                    # For vol we set sigma to the array sigmaA
                     self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
-                    
+            
+            # Reverse the option value if direction is 'short'        
             if self.direction == 'short':
                 for opt in [1, 2, 3, 4]:
                     self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
     
+            # Assign the option labels
             self.label1 = str(int(self.T1*365))+' Day Call'
             self.label2 = str(int(self.T2*365))+' Day Call'
             self.label3 = str(int(self.T1*365))+' Day Put'
             self.label4 = str(int(self.T2*365))+' Day Put'
     
-    
+        # Convert the x-plot and y-plot values to axis labels   
         self.xlabel = self.label_dict[str(self.x_plot)]
         self.ylabel = self.label_dict[str(self.y_plot)]
         
+        # If the greek is rho or the same for a call or a put, set the option name to 'Call / Put' 
         if self.y_plot in [self.equal_greeks, 'rho']:
                 self.option = 'Call / Put'     
-            
+        
+        # Create chart title as direction plus option type plus y-plot vs x-plot    
         self.title = (str(self.direction.title())+' '+str(self.option.title())+
                       ' '+self.y_plot.title()+' vs '+self.x_plot.title())   
-            
+        
+        # Set the x-axis array as price, vol or time
         self.x_name = str(self.x_plot)
         if self.x_name in self.x_name_dict.keys():
             self.xarray = (self.__dict__[str(self.x_name_dict[self.x_name])] * 
                            self.x_scale_dict[self.x_name])
-
+        
+        # Plot 3 option charts    
         if self.y_plot in self.y_name_dict.keys():        
             self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                 xarray1=self.xarray, xarray2=self.xarray, xarray3=self.xarray, 
-                                 label1=self.label1, label2=self.label2, label3=self.label3, 
-                                 xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)       
-    
+                                 xarray=self.xarray, label1=self.label1, label2=self.label2, 
+                                 label3=self.label3, xlabel=self.xlabel, ylabel=self.ylabel, 
+                                 title=self.title)       
+        # Plot Rho charts    
         if self.y_plot == 'rho':
             self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                 yarray4=self.C4, xarray1=self.xarray, xarray2=self.xarray, 
-                                 xarray3=self.xarray, xarray4=self.xarray, label1=self.label1, 
+                                 yarray4=self.C4, xarray=self.xarray, label1=self.label1, 
                                  label2=self.label2, label3=self.label3, label4=self.label4, 
                                  xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
  
+    
+    def _strike_tenor_label(self):
+        """
+        Assign labels to chosen strikes and tenors in 2D greeks graph
+
+        Returns
+        -------
+        Str
+            Labels for each of the 3 options in 2D greeks graph.
+
+        """
+        self.strike_label = dict()
+        for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
+            # If the strike is 100% change name to 'ATM'
+            if self.__dict__[str(key)] == self.S0:
+                self.strike_label[value] = 'ATM Strike'
+            else:
+                self.strike_label[value] = str(int(self.__dict__[key]))+' Strike' 
+               
+        for k, v in {'T1':'label1', 'T2':'label2', 'T3':'label3'}.items():
+            # Make each label value the number of days to maturity plus the strike level
+            self.__dict__[v] = str(int(self.__dict__[str(k)]*365))+' Day '+self.strike_label[str(v)]
+                
+        return self            
+
+
+    def _vis_greeks_mpl(self, xarray=None, yarray1=None, yarray2=None, yarray3=None, 
+                        yarray4=None, label1=None, label2=None, label3=None, label4=None, 
+                        xlabel=None, ylabel=None, title='Payoff'):
+        """
+        Display the 2D greeks chart using matplotlib
+
+        Parameters
+        ----------
+        xarray : Array
+            x-axis values. 
+        yarray1 : Array
+            y-axis values for option 1. 
+        yarray2 : Array
+            y-axis values for option 2.
+        yarray3 : Array
+            y-axis values for option 3.
+        yarray4 : Array
+            y-axis values for option 4.
+        label1 : Str
+            Option 1 label.
+        label2 : Str
+            Option 2 label.
+        label3 : Str
+            Option 3 label.
+        label4 : Str
+            Option 4 label.
+        xlabel : Str
+            x-axis label.
+        ylabel : Str
+            y-axis label.
+        title : Str
+            Chart title.
+
+        Returns
+        -------
+        2D Greeks chart.
+
+        """
+        fig, ax = plt.subplots()
+        # Set style to Seaborn Darkgrid
+        plt.style.use('seaborn-darkgrid')
+        ax.plot(xarray, yarray1, color='blue', label=label1)
+        ax.plot(xarray, yarray2, color='red', label=label2)
+        ax.plot(xarray, yarray3, color='green', label=label3)
+        # 4th option only used in Rho graphs
+        if label4 is not None:
+            ax.plot(xarray, yarray4, color='orange', label=label4)
+        plt.grid(True)
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        ax.legend()
+        plt.show()
+
     
     def payoffs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, direction=None, 
@@ -1982,7 +2044,7 @@ class Option():
              Strike Price of option 4. The default is 105 (individual payoffs 
                                                           may have own defaults).
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2075,7 +2137,7 @@ class Option():
         K : Float
             Strike Price of option 1. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2139,7 +2201,7 @@ class Option():
         K : Float
             Strike Price of option 1. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2240,7 +2302,7 @@ class Option():
         S0 : Float
              Underlying Stock Price. The default is 100. 
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2308,7 +2370,7 @@ class Option():
         K2 : Float
              Strike Price of option 2. The default is 102.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2376,7 +2438,7 @@ class Option():
         K2 : Float
              Strike Price of option 2. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2453,7 +2515,7 @@ class Option():
         K2 : Float
              Strike Price of option 2. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2524,7 +2586,7 @@ class Option():
         K2 : Float
              Strike Price of option 2. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2593,7 +2655,7 @@ class Option():
         K : Float
             Strike Price of options 1 and 2. The default is 100.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2660,7 +2722,7 @@ class Option():
         K2 : Float
              Strike Price of option 2. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2730,7 +2792,7 @@ class Option():
         K3 : Float
              Strike Price of option 3. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2813,7 +2875,7 @@ class Option():
         K3 : Float
              Strike Price of option 3. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2905,7 +2967,7 @@ class Option():
         K4 : Float
              Strike Price of option 4. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -2958,13 +3020,13 @@ class Option():
                 payoff2 = None
                 
         if self.option == 'call' and self.direction == 'long':
-            title = 'Long Iron Condor with Calls'
+            title = 'Long Condor with Calls'
         if self.option == 'put' and self.direction == 'long':
-            title = 'Long Iron Condor with Puts'
+            title = 'Long Condor with Puts'
         if self.option == 'call' and self.direction == 'short':
-            title = 'Short Iron Condor with Calls'
+            title = 'Short Condor with Calls'
         if self.option == 'put' and self.direction == 'short':
-            title = 'Short Iron Condor with Puts'    
+            title = 'Short Condor with Puts'    
        
         self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
@@ -2993,7 +3055,7 @@ class Option():
         K4 : Float
              Strike Price of option 4. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -3072,7 +3134,7 @@ class Option():
         K4 : Float
              Strike Price of option 4. The default is 105.
         T : Float
-            Time to Maturity. The default is 0.5 (6 months).
+            Time to Maturity. The default is 0.25 (3 months).
         r : Float
             Interest Rate. The default is 0.05 (5%).
         q : Float
@@ -3131,6 +3193,54 @@ class Option():
                          label='Payoff', label2='Value')
     
     
+    def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
+                    payoff2=None, label2=None, xlabel='Stock Price', ylabel='P&L'):
+        """
+        Display the payoff diagrams using matplotlib
+
+        Parameters
+        ----------
+        S0 : Float
+             Underlying Stock Price. The default is 100.
+        SA : Array
+             Range of Strikes to provide x-axis values. The default is 75% to 125%.
+        payoff : Array
+            Terminal payoff value less initial cost.
+        label : Str
+            Label for terminal payoff. The default is 'Payoff'
+        title : Str
+            Chart title giving name of combo. The default is 'Option Payoff'
+        payoff2 : Array
+            Current payoff value less initial cost.
+        label2 : Str
+            Label for current payoff value.
+        xlabel : Str
+            The x-axis label. The default is 'Stock Price'.
+        ylabel : Str
+            The y-axis label. The default is 'P&L'.
+
+        Returns
+        -------
+        2D Payoff Graph.
+
+        """
+        fig, ax = plt.subplots()
+        ax.plot(SA, payoff, color='blue', label=label)
+        if payoff2 is not None:
+            ax.plot(SA, payoff2, color='red', label=label2)
+        # Set a horizontal line at zero P&L 
+        ax.axhline(y=0, linewidth=0.5, color='k')
+        #Set a vertical line at ATM strike
+        ax.axvline(x=S0, linewidth=0.5, color='k')
+        # Apply a black border to the chart
+        ax.patch.set_edgecolor('black')  
+        ax.patch.set_linewidth('1')          
+        plt.style.use('seaborn-darkgrid')
+        plt.grid(True)
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        ax.legend()
+        plt.show()
+    
     
     def _return_options(self, legs=2):
         """
@@ -3150,7 +3260,7 @@ class Option():
 
         """
         
-        # array of 1000 equally spaced points between 75% of initial underlying price and 125%
+        # create array of 1000 equally spaced points between 75% of initial underlying price and 125%
         self.SA = np.linspace(0.75 * self.S0, 1.25 * self.S0, 1000)
                 
         self.C1_0 = self.price(S=self.S0, K=self.K1, T=self.T1, r=self.r, q=self.q, 
@@ -3187,9 +3297,3 @@ class Option():
         return self
         
     
-
-
-
-        
-        
-        
