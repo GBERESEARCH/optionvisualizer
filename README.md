@@ -1,8 +1,8 @@
-# optionpricer
+# optionvisualizer
 ## Option pricing, risk and visualisation tools
 
-A tool to calculate option prices and sensitivities and visualize these. 
-Each of the functions comes with default parameters so it can be run without arguments for ease of illustration or they can be specified individually
+A tool to visualize option prices and sensitivities. 
+Each of the functions comes with default parameters so can be run without arguments for ease of illustration or they can be specified individually.
 
 ### Black-Scholes option pricing and sensitivities:
   - Price: option price 
