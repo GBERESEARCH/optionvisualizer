@@ -15,10 +15,11 @@ LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 
 INSTALL_REQUIRES = [
-      'matplotlib',
-      'numpy',
-      'plotly',
-      'scipy'
+      	'numpy',
+	'scipy',
+	'matplotlib',      	
+	'plotly',
+	'spyder'
 ]
 
 setup(name=PACKAGE_NAME,
