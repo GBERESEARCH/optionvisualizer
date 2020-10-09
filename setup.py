@@ -5,8 +5,8 @@ HERE = pathlib.Path(__file__).parent
 
 VERSION = '0.1.0'
 PACKAGE_NAME = 'optionvisualizer'
-AUTHOR = '...'
-AUTHOR_EMAIL = '...'
+AUTHOR = 'GBERESEARCH'
+AUTHOR_EMAIL = 'gberesearch@gmail.com'
 URL = 'https://github.com/GBERESEARCH/optionvisualizer'
 
 LICENSE = 'MIT'
@@ -18,8 +18,7 @@ INSTALL_REQUIRES = [
       	'numpy',
 	'scipy',
 	'matplotlib',      	
-	'plotly',
-	'spyder'
+	'plotly'
 ]
 
 setup(name=PACKAGE_NAME,
