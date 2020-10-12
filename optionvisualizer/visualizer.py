@@ -22,8 +22,8 @@ df_dict = {'df_S':100,
            'df_T2':0.25,
            'df_T3':0.25,
            'df_T4':0.25,
-           'df_r':0.05,
-           'df_b':0.05,
+           'df_r':0.005,
+           'df_b':0.005,
            'df_q':0,
            'df_sigma':0.2,
            'df_eta':1,
@@ -588,7 +588,7 @@ class Option():
     def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
               refresh=None):
         """
-        Return the Black Scholes Option Price
+        Black Scholes Option Price
 
         Parameters
         ----------
@@ -808,7 +808,7 @@ class Option():
     def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
               refresh=None):
         """
-        How much delta will change due to a small change in the underlying asset price
+        Sensitivity of delta to changes in the underlying asset price
 
         Parameters
         ----------
@@ -945,8 +945,8 @@ class Option():
     def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, refresh=None):
         """
         DdeltaDvol, DvegaDspot 
-        How much delta will change due to a small change in volatility
-        How much vega will change due to a small change in the asset price   
+        Sensitivity of delta to changes in volatility
+        Sensitivity of vega to changes in the asset price   
 
         Parameters
         ----------
@@ -985,13 +985,59 @@ class Option():
         self.opt_vanna = ((-self.carry * self.d2) / self.sigma) * self.nd1 
 
         return self.opt_vanna               
-           
+ 
+
+    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+              refresh=None):
+        """
+        DvegaDvol, Vega Convexity, Volga, Vol Gamma
+        Sensitivity of vega to changes in volatility
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place.
+
+        Returns
+        -------
+        Float
+            Option Vomma.
+
+        """
+               
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        
+        self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
+                                    self.option, self.refresh) * ((self.d1 * self.d2) / (self.sigma)))
+        
+        return self.opt_vomma
+
 
     def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
               refresh=None):
         """
         DdeltaDtime, Delta Bleed 
-        How much delta will change due to a small change in time to expiration
+        Sensitivity of delta to changes in time to maturity
 
         Parameters
         ----------
@@ -1181,57 +1227,12 @@ class Option():
         return self.opt_color
 
 
-    def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
-              refresh=None):
-        """
-        DvegaDvol, Vega Convexity, Volga, Vol Gamma
-        How much vega will change due to a small change in implied volatility
-
-        Parameters
-        ----------
-        S : Float
-            Underlying Stock Price. The default is 100. 
-        K : Float
-            Strike Price. The default is 100.
-        T : Float
-            Time to Maturity. The default is 0.25 (3 months).
-        r : Float
-            Interest Rate. The default is 0.05 (5%).
-        q : Float
-            Dividend Yield. The default is 0.
-        sigma : Float
-            Implied Volatility. The default is 0.2 (20%).
-        option : Str
-            Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within a graph call; within graphs the
-            parameters have already been refreshed so the initialise graphs function fixes them in place.
-
-        Returns
-        -------
-        Float
-            Option Vomma.
-
-        """
-               
-        # If refresh is set to 'graph' the price is to be used in combo graphs so 
-        # the distributions are refreshed but not the parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
-        
-        self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                                    self.option, self.refresh) * ((self.d1 * self.d2) / (self.sigma)))
-        
-        return self.opt_vomma
-
 
     def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
                refresh=None):
         """
         DvommaDvol
-        How much vomma will change due to a small change in implied volatility
+        Sensitivity of vomma to changes in volatility
         3rd derivative of option price wrt volatility
 
         Parameters
@@ -1280,7 +1281,7 @@ class Option():
                    refresh=None):
         """
         DvegaDtime
-        How much vega will change due to a small change in time to expiration
+        Sensitivity of vega to changes in time to expiration
 
         Parameters
         ----------
