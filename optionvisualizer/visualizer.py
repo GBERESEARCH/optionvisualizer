@@ -7,7 +7,6 @@ from plotly.offline import plot
 
 # Dictionary of default parameters
 df_dict = {'df_S':100, 
-           'df_S0':100,
            'df_K':100,
            'df_K1':95,
            'df_K2':105,
@@ -57,65 +56,93 @@ df_dict = {'df_S':100,
            'df_axis':'price',
 
             # List of default parameters used when refreshing 
-            'df_params_list':['S', 'S0', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 
-                              'G2', 'G3', 'H', 'R', 'T', 'T1', 'T2', 'T3', 'T4', 
-                              'r', 'b', 'q', 'sigma', 'eta', 'phi', 'barrier_direction', 
-                              'knock', 'option', 'option1', 'option2', 'option3', 
-                              'option4', 'direction', 'value', 'ratio', 'refresh', 
-                              'delta_shift', 'delta_shift_type', 'greek', 'interactive', 
-                              'notebook', 'colorscheme', 'colorintensity', 'size', 
-                              'graphtype', 'cash', 'axis'],
+            'df_params_list':['S', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 'G2', 'G3', 
+                              'H', 'R', 'T', 'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 
+                              'sigma', 'eta', 'phi', 'barrier_direction', 'knock', 
+                              'option', 'option1', 'option2', 'option3', 'option4', 
+                              'direction', 'value', 'ratio', 'refresh', 'delta_shift', 
+                              'delta_shift_type', 'greek', 'interactive', 'notebook', 
+                              'colorscheme', 'colorintensity', 'size', 'graphtype', 
+                              'cash', 'axis'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
                               'color', 'ultima', 'vega bleed'],
             
             # Payoffs requiring changes to default parameters
-            'df_mod_payoffs':['collar', 'straddle', 'butterfly', 'christmas tree',
-                              'condor', 'iron butterfly', 'iron condor'],
+            'df_mod_payoffs':['call', 'put', 'collar', 'straddle', 'butterfly', 
+                              'christmas tree', 'condor', 'iron butterfly', 'iron condor'],
             
             # Those parameters that need changing
-            'df_mod_params':['S0', 'K', 'K1', 'K2', 'K3', 'K4'],
+            'df_mod_params':['S', 'K', 'K1', 'K2', 'K3', 'K4'],
             
             # Combo parameter values differing from standard defaults
-            'df_combo_dict':{'collar':{'S0':100,
+            'df_combo_dict':{'call':{'S':100,
+                                     'K':100,
+                                     'K1':100,
+                                     'T1':0.25},
+                             'put':{'S':100,
+                                    'K':100,
+                                    'K1':100,
+                                    'T1':0.25},
+                             'collar':{'S':100,
                                        'K':100,
                                        'K1':98,
-                                       'K2':102},
-                             'straddle':{'S0':100,
+                                       'K2':102,
+                                       'T1':0.25,
+                                       'T2':0.25},
+                             'straddle':{'S':100,
                                          'K':100,
                                          'K1':100,
-                                         'K2':100},
-                             'butterfly':{'S0':100,
+                                         'K2':100,
+                                         'T1':0.25,
+                                         'T2':0.25},
+                             'butterfly':{'S':100,
                                           'K':100,
                                           'K1':95,
                                           'K2':100,
                                           'K3':105,
-                                          'K4':105},
-                             'christmas tree':{'S0':100,
+                                          'T1':0.25,
+                                          'T2':0.25,
+                                          'T3':0.25},
+                             'christmas tree':{'S':100,
                                                'K':100,
                                                'K1':95,
                                                'K2':100,
                                                'K3':105,
-                                               'K4':105},
-                             'condor':{'S0':100,
+                                               'T1':0.25,
+                                               'T2':0.25,
+                                               'T3':0.25},
+                             'condor':{'S':100,
                                        'K':100,
                                        'K1':90,
                                        'K2':95,
                                        'K3':100,
-                                       'K4':105},
-                             'iron butterfly':{'S0':100,
+                                       'K4':105,
+                                       'T1':0.25,
+                                       'T2':0.25,
+                                       'T3':0.25,
+                                       'T4':0.25},
+                             'iron butterfly':{'S':100,
                                                'K':100,
                                                'K1':95,
                                                'K2':100,
                                                'K3':100,
-                                               'K4':105},
-                             'iron condor':{'S0':100,
+                                               'K4':105,
+                                               'T1':0.25,
+                                               'T2':0.25,
+                                               'T3':0.25,
+                                               'T4':0.25},
+                             'iron condor':{'S':100,
                                             'K':100,
                                             'K1':90,
                                             'K2':95,
                                             'K3':100,
-                                            'K4':105}},
+                                            'K4':105,
+                                            'T1':0.25,
+                                            'T2':0.25,
+                                            'T3':0.25,
+                                            'T4':0.25}},
             
             # Dictionary mapping function parameters to x axis labels for 2D graphs
             'df_x_name_dict':{'price':'SA', 
@@ -225,7 +252,7 @@ df_dict = {'df_S':100,
 
 class Option():
     
-    def __init__(self, S=df_dict['df_S'], S0=df_dict['df_S0'], K=df_dict['df_K'], 
+    def __init__(self, S=df_dict['df_S'], K=df_dict['df_K'], 
                  K1=df_dict['df_K1'], K2=df_dict['df_K2'], K3=df_dict['df_K3'], 
                  K4=df_dict['df_K4'], G1=df_dict['df_G1'], G2=df_dict['df_G2'], 
                  G3=df_dict['df_G3'], H=df_dict['df_H'], R=df_dict['df_R'], T=df_dict['df_T'], 
@@ -251,7 +278,6 @@ class Option():
                  greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
 
         self.S = S # Spot price
-        self.S0 = S0 # Spot price
         self.K = K # Strike price
         self.K1 = K1 # Strike price for combo payoffs
         self.K2 = K2 # Strike price for combo payoffs
@@ -1434,7 +1460,7 @@ class Option():
         return self.opt_barrier_payoff    
 
     
-    def greeks(self, greek=None, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+    def greeks(self, greek=None, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
@@ -1453,7 +1479,7 @@ class Option():
         y_plot : Str
                  The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
                  The default is 'delta.
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100.
         G1 : Float
              Strike Price of option 1. The default is 90.
@@ -1505,7 +1531,7 @@ class Option():
         """
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, 
+        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, 
                               G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
                               r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
@@ -1514,20 +1540,20 @@ class Option():
         # Run 2D greeks method
         if self.graphtype == '2D':
             self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
-                                  S0=self.S0, G1=self.G1, G2=self.G2, G3=self.G3, 
+                                  S=self.S, G1=self.G1, G2=self.G2, G3=self.G3, 
                                   T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
                                   time_shift=self.time_shift, r=self.r, q=self.q, 
                                   sigma=self.sigma, option=self.option, direction=self.direction)
         
         # Run 3D greeks method    
         if self.graphtype == '3D':
-            self.greeks_graphs_3D(greek=self.greek, S0=self.S0, r=self.r, q=self.q, sigma=self.sigma, 
+            self.greeks_graphs_3D(greek=self.greek, S=self.S, r=self.r, q=self.q, sigma=self.sigma, 
                                   option=self.option, interactive=self.interactive, notebook=self.notebook, 
                                   colorscheme=self.colorscheme, colorintensity=self.colorintensity, 
                                   size=self.size, direction=self.direction, axis=self.axis)
     
     
-    def greeks_graphs_3D(self, greek=None, S0=None, r=None, q=None, sigma=None, 
+    def greeks_graphs_3D(self, greek=None, S=None, r=None, q=None, sigma=None, 
                          option=None, interactive=None, notebook=None, colorscheme=None, 
                          colorintensity=None, size=None, direction=None, axis=None):
         """
@@ -1538,7 +1564,7 @@ class Option():
         ----------
         greek : Str
             The sensitivity to be charted. The default is 'delta'.
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100.
         r : Float
             Interest Rate. The default is 0.05 (5%).
@@ -1572,7 +1598,7 @@ class Option():
         """
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(greek=greek, S0=S0, r=r, q=q, sigma=sigma, option=option, 
+        self._initialise_func(greek=greek, S=S, r=r, q=q, sigma=sigma, option=option, 
                               interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
                               colorintensity=colorintensity, size=size, direction=direction, 
                               axis=axis)
@@ -1588,14 +1614,14 @@ class Option():
                     # Prepare the graph axes 
                     self._graph_space_prep(axis='price')
                     # Select the individual greek method using getattr()
-                    self.z = getattr(self, greek_func)(S=self.x, K=self.S0, T=self.y, 
+                    self.z = getattr(self, greek_func)(S=self.x, K=self.S, T=self.y, 
                                                        r=self.r, sigma=self.sigma, 
                                                        option=self.option, refresh='graph')
                 if self.axis == 'vol':
                     # Prepare the graph axes 
                     self._graph_space_prep(axis='vol')
                     # Select the individual greek method using getattr()
-                    self.z = getattr(self, greek_func)(S=self.S0, K=self.S0, T=self.y, 
+                    self.z = getattr(self, greek_func)(S=self.S, K=self.S, T=self.y, 
                                                        r=self.r, sigma=self.x, 
                                                        option=self.option, refresh='graph')
         
@@ -1630,7 +1656,7 @@ class Option():
 
         # create arrays of 1000 equally spaced points for the ranges of strike prices, 
         # volatilities and maturities
-        self.SA = np.linspace(self.SA_lower * self.S0, self.SA_upper * self.S0, 1000)
+        self.SA = np.linspace(self.SA_lower * self.S, self.SA_upper * self.S, 1000)
         self.TA = np.linspace(self.TA_lower, self.TA_upper, 1000)
         self.sigmaA = np.linspace(self.sigmaA_lower, self.sigmaA_upper, 1000)
         
@@ -1775,7 +1801,7 @@ class Option():
  
     
     
-    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S0=None, G1=None, G2=None, 
+    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                              G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
                              r=None, q=None, sigma=None, option=None, direction=None):
         """
@@ -1790,7 +1816,7 @@ class Option():
         y_plot : Str
                  The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
                  The default is 'delta.
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100.
         G1 : Float
              Strike Price of option 1. The default is 90.
@@ -1826,13 +1852,13 @@ class Option():
         """
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S0=S0, G1=G1, G2=G2, 
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, 
                               G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
                               r=r, q=q, sigma=sigma, option=option, direction=direction)
         
         # create arrays of 1000 equally spaced points for a range of strike prices, 
         # volatilities and maturities
-        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 1000)
+        self.SA = np.linspace(0.8 * self.S, 1.2 * self.S, 1000)
         self.sigmaA = np.linspace(0.05, 0.5, 1000)
         self.TA = np.linspace(0.01, 1, 1000)
     
@@ -1859,11 +1885,11 @@ class Option():
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
                 if self.x_plot == 'vol':
                     # For vol we set sigma to the array sigmaA
-                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                               r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
                 if self.x_plot == 'time':
                     # For time we set T to the array TA
-                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
                                                                                    q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
             
             # Reverse the option value if direction is 'short'        
@@ -1890,11 +1916,11 @@ class Option():
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
                 if self.x_plot == 'strike':
                     # For strike we set K to the array SA
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
                 if self.x_plot == 'vol':
                     # For vol we set sigma to the array sigmaA
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
             
             # Reverse the option value if direction is 'short'        
@@ -1953,7 +1979,7 @@ class Option():
         self.strike_label = dict()
         for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
             # If the strike is 100% change name to 'ATM'
-            if self.__dict__[str(key)] == self.S0:
+            if self.__dict__[str(key)] == self.S:
                 self.strike_label[value] = 'ATM Strike'
             else:
                 self.strike_label[value] = str(int(self.__dict__[key]))+' Strike' 
@@ -2018,7 +2044,7 @@ class Option():
         plt.show()
 
     
-    def payoffs(self, S0=None, K=None, K1=None, K2=None, K3=None, K4=None, 
+    def payoffs(self, S=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, direction=None, 
                 cash=None, ratio=None, value=None, combo_payoff=None):
         """
@@ -2026,7 +2052,7 @@ class Option():
                 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K : Float
             Strike Price of option 1. The default is 100 (individual payoffs 
@@ -2070,69 +2096,69 @@ class Option():
 
         """
         if combo_payoff == 'call':
-            self.call(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+            self.call(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                       value=value)
         
         if combo_payoff == 'put':
-            self.put(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+            self.put(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                       value=value)
         
         if combo_payoff == 'stock':
-            self.stock(S0=S0, direction=direction)
+            self.stock(S=S, direction=direction)
         
         if combo_payoff == 'forward':
-            self.forward(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
+            self.forward(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
                          cash=cash)
         
         if combo_payoff == 'collar':
-            self.collar(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+            self.collar(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                         value=value)
         
         if combo_payoff == 'spread':
-            self.spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
+            self.spread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
                         direction=direction, value=value)
             
         if combo_payoff == 'backspread':
-            self.backspread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
+            self.backspread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
                             ratio=ratio, value=value)
         
         if combo_payoff == 'ratio vertical spread':
-            self.ratio_vertical_spread(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
+            self.ratio_vertical_spread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
                                        option=option, ratio=ratio, value=value)
         
         if combo_payoff == 'straddle':
-            self.straddle(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+            self.straddle(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                           value=value)
 
         if combo_payoff == 'strangle':
-            self.strangle(S0=S0, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+            self.strangle(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                           value=value)
         
         if combo_payoff == 'butterfly':    
-            self.butterfly(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+            self.butterfly(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
                            option=option, direction=direction, value=value)
         
         if combo_payoff == 'christmas tree':
-            self.christmas_tree(S0=S0, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
+            self.christmas_tree(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
                                 option=option, direction=direction, value=value)    
         
         if combo_payoff == 'iron butterfly':
-            self.iron_butterfly(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+            self.iron_butterfly(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
                                 sigma=sigma, direction=direction, value=value)
             
         if combo_payoff == 'iron condor':
-            self.iron_condor(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+            self.iron_condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
                              sigma=sigma, option=option, direction=direction, value=value)
             
     
-    def call(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+    def call(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
              value=None):
         """
         Displays the graph of the call.
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K : Float
             Strike Price of option 1. The default is 100.
@@ -2164,11 +2190,13 @@ class Option():
         self.option1 = 'call'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+        self._initialise_func(S=S, K1=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                               value=value, option1=self.option1)
         
+        # Calculate option prices
         self._return_options(legs=1)
         
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = self.C1 - self.C1_0
             title = 'Long Call'
@@ -2184,19 +2212,20 @@ class Option():
                 payoff2 = -self.C1_G + self.C1_0
             else:
                 payoff2 = None
-                
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff        
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')   
                 
         
-    def put(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+    def put(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
             value=None):
         """
         Displays the graph of the put.
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K : Float
             Strike Price of option 1. The default is 100.
@@ -2227,11 +2256,13 @@ class Option():
         self.option1 = 'put'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
+        self._initialise_func(S=S, K1=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
                               value=value, option1=self.option1)
         
+        # Calculate option prices
         self._return_options(legs=1)
         
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = self.C1 - self.C1_0
             title = 'Long Put'
@@ -2247,18 +2278,19 @@ class Option():
                 payoff2 = -self.C1_G + self.C1_0
             else:
                 payoff2 = None
-                
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff        
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')   
                
         
-    def stock(self, S0=None, direction=None):
+    def stock(self, S=None, direction=None):
         """
         Displays the graph of the underlying.
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         direction : Str
             Whether the payoff is long or short. The default is 'long'.
@@ -2275,22 +2307,26 @@ class Option():
         self.combo_payoff = 'stock'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, direction=direction)
+        self._initialise_func(S=S, direction=direction)
         
-        self.SA = np.linspace(0.8 * self.S0, 1.2 * self.S0, 100)
+        # Define strike range
+        self.SA = np.linspace(0.75 * self.S, 1.25 * self.S, 1000)
         
+        # Create payoff based on option type
         if self.direction == 'long':
-            payoff = self.SA - self.S0
+            payoff = self.SA - self.S
             title = 'Long Stock'
+        
         if self.direction == 'short':
-            payoff = self.S0 - self.SA
+            payoff = self.S - self.SA
             title = 'Short Stock'
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, label='Payoff', 
                          title=title)     
             
     
-    def forward(self, S0=None, T=None, r=None, q=None, sigma=None, direction=None, 
+    def forward(self, S=None, T=None, r=None, q=None, sigma=None, direction=None, 
                 cash=None):
         """
         Displays the graph of the synthetic forward strategy:
@@ -2299,7 +2335,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         T : Float
             Time to Maturity. The default is 0.25 (3 months).
@@ -2327,21 +2363,25 @@ class Option():
         self.combo_payoff = 'forward'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, T=T, r=r, q=q, sigma=sigma, option1='call', 
+        self._initialise_func(S=S, T=T, r=r, q=q, sigma=sigma, option1='call', 
                               option2='put', direction=direction, cash=cash)
         
-        self.K1 = self.S0
-        self.K2 = self.S0
+        # Set both strikes to spot and both maturities to input maturity 
+        self.K1 = self.S
+        self.K2 = self.S
         self.T1 = self.T
         self.T2 = self.T
         
+        # Calculate option prices
         self._return_options(legs=2)
         
+        # Whether to discount the payoff
         if self.cash == False:
             pv = 1
         else:
             pv = self.discount
         
+        # Create payoff based on option type
         if self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C1_0 + self.C2_0) * pv
             title = 'Long Forward'
@@ -2350,11 +2390,12 @@ class Option():
             payoff = -self.C1 + self.C2 + self.C1_0 - self.C2_0 * pv
             title = 'Short Forward'
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, label='Payoff', 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, label='Payoff', 
                          title=title)
     
     
-    def collar(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+    def collar(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                direction=None, value=None):
         """
         Displays the graph of the collar strategy:
@@ -2363,7 +2404,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 98.
@@ -2395,34 +2436,37 @@ class Option():
         self.combo_payoff = 'collar'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma,
+        self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma,
                               option1='put', option2='call', direction=direction, 
                               value=value)
 
+        # Calculate option prices
         self._return_options(legs=2)
         
+        # Create payoff based on option type
         if self.direction == 'long':
-            payoff = self.SA - self.S0 + self.C1 - self.C2 - self.C1_0 + self.C2_0
+            payoff = self.SA - self.S + self.C1 - self.C2 - self.C1_0 + self.C2_0
             title = 'Long Collar'
             if self.value == True:
-                payoff2 = self.SA - self.S0 + self.C1_G - self.C2_G - self.C1_0 + self.C2_0
+                payoff2 = self.SA - self.S + self.C1_G - self.C2_G - self.C1_0 + self.C2_0
             else:
                 payoff2 = None
                 
         if self.direction == 'short':
-            payoff = -self.SA + self.S0 - self.C1 + self.C2 + self.C1_0 - self.C2_0
+            payoff = -self.SA + self.S - self.C1 + self.C2 + self.C1_0 - self.C2_0
             title = 'Short Collar'
             if self.value == True:
-                payoff2 = -self.SA + self.S0 - self.C1_G + self.C2_G + self.C1_0 - self.C2_0
+                payoff2 = -self.SA + self.S - self.C1_G + self.C2_G + self.C1_0 - self.C2_0
             else:
                 payoff2 = None
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
 
     
     
-    def spread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+    def spread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                option=None, direction=None, value=None):
         """
         Displays the graph of the spread strategy:
@@ -2431,7 +2475,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -2466,12 +2510,14 @@ class Option():
         self.combo_payoff = 'spread'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
+        self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=2)
  
+        # Create payoff based on option type
         if self.direction == 'long':        
             payoff = self.C1 - self.C2 - self.C1_0 + self.C2_0
             if self.value == True:
@@ -2485,7 +2531,8 @@ class Option():
                 payoff2 = -self.C1_G + self.C2_G + self.C1_0 - self.C2_0
             else:
                 payoff2 = None
-                
+        
+        # Create title based on option type and direction       
         if self.option == 'call' and self.direction == 'long':
             title = 'Bull Call Spread'
         if self.option == 'put' and self.direction == 'long':
@@ -2495,11 +2542,12 @@ class Option():
         if self.option == 'put' and self.direction == 'short':
             title = 'Bear Put Spread' 
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
         
    
-    def backspread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+    def backspread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                    option=None, ratio=None, value=None):
         """
         Displays the graph of the backspread strategy:
@@ -2508,7 +2556,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -2544,12 +2592,14 @@ class Option():
         self.combo_payoff = 'backspread'
 
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
+        self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=2)
         
+        # Create payoff based on option type
         if self.option == 'call':
             title = 'Call Backspread'
             payoff = -self.C1 + (self.ratio * self.C2) + self.C1_0 - (self.ratio * self.C2_0)
@@ -2565,12 +2615,13 @@ class Option():
                 payoff2 = self.ratio * self.C1_G - self.C2_G - self.ratio * self.C1_0 + self.C2_0
             else:
                 payoff2 = None
-                
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff        
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
         
         
-    def ratio_vertical_spread(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, 
+    def ratio_vertical_spread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, 
                               sigma=None, option=None, ratio=None, value=None):
         """
         Displays the graph of the ratio vertical spread strategy:
@@ -2579,7 +2630,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -2615,12 +2666,14 @@ class Option():
         self.combo_payoff = 'ratio vertical spread'
 
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
+        self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=2)
         
+        # Create payoff based on option type
         if self.option == 'call':
             title = 'Call Ratio Vertical Spread'
             payoff = self.C1 - self.ratio * self.C2 - self.C1_0 + self.ratio * self.C2_0
@@ -2637,11 +2690,12 @@ class Option():
             else:
                 payoff2 = None
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
         
     
-    def straddle(self, S0=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
+    def straddle(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
                  value=None):
         """
         Displays the graph of the straddle strategy:
@@ -2650,7 +2704,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K : Float
             Strike Price of options 1 and 2. The default is 100.
@@ -2680,12 +2734,14 @@ class Option():
         self.combo_payoff = 'straddle'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K=K, K1=K, K2=K, T=T, T1=T, T2=T, r=r, q=q, 
+        self._initialise_func(S=S, K=K, K1=K, K2=K, T=T, T1=T, T2=T, r=r, q=q, 
                               sigma=sigma, option1='put', option2='call', direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=2)
         
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = self.C1 + self.C2 - self.C1_0 - self.C2_0
             title = 'Long Straddle'
@@ -2701,12 +2757,13 @@ class Option():
                 payoff2 = -self.C1_G - self.C2_G + self.C1_0 + self.C2_0
             else:
                 payoff2 = None
-            
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, 
+        
+        # Visualize payoff    
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, 
                          payoff2=payoff2, label='Payoff', label2='Value')    
   
     
-    def strangle(self, S0=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
+    def strangle(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
                  direction=None, value=None):
         """
         Displays the graph of the strangle strategy:
@@ -2715,7 +2772,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -2747,12 +2804,14 @@ class Option():
         self.combo_payoff = 'strangle'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
+        self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option1='put', option2='call', direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=2)
         
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = self.C1 + self.C2 - self.C1_0 - self.C2_0
             title = 'Long Strangle'
@@ -2769,11 +2828,12 @@ class Option():
             else:
                 payoff2 = None
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')    
 
 
-    def butterfly(self, S0=None, K1=None, K2=None, K3=None, T=None, r=None, q=None, 
+    def butterfly(self, S=None, K1=None, K2=None, K3=None, T=None, r=None, q=None, 
                   sigma=None, option=None, direction=None, value=None):
         """
         Displays the graph of the butterfly strategy:
@@ -2783,7 +2843,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -2819,13 +2879,15 @@ class Option():
         self.combo_payoff = 'butterfly'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
+        self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=3)
-              
+        
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = (self.C1 - 2*self.C2 + self.C3 - self.C1_0 + 2*self.C2_0 - self.C3_0)
             if self.value == True:
@@ -2833,16 +2895,14 @@ class Option():
             else:
                 payoff2 = None
                 
-        elif self.direction == 'short':    
+        if self.direction == 'short':    
             payoff = (-self.C1 + 2*self.C2 - self.C3 + self.C1_0 - 2*self.C2_0 + self.C3_0)
             if self.value == True:
                 payoff2 = (-self.C1_G + 2*self.C2_G - self.C3_G + self.C1_0 - 2*self.C2_0 + self.C3_0)
             else:
                 payoff2 = None
         
-        else:         
-            print('Check Inputs')
-                
+        # Create title based on option type and direction                 
         if self.option == 'call' and self.direction == 'long':
             title = 'Long Butterfly with Calls'
         if self.option == 'put' and self.direction == 'long':
@@ -2851,12 +2911,13 @@ class Option():
             title = 'Short Butterfly with Calls'
         if self.option == 'put' and self.direction == 'short':
             title = 'Short Butterfly with Puts'
-                
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
 
     
-    def christmas_tree(self, S0=None, K1=None, K2=None, K3=None, T=None, r=None, 
+    def christmas_tree(self, S=None, K1=None, K2=None, K3=None, T=None, r=None, 
                        q=None, sigma=None, option=None, direction=None, value=None):
         """
         Displays the graph of the christmas tree strategy:
@@ -2866,7 +2927,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -2902,13 +2963,15 @@ class Option():
         self.combo_payoff = 'christmas tree'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
+        self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=3)
         
+        # Create payoff based on option type and direction
         if self.option == 'call' and self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C3 - self.C1_0 + self.C2_0 + self.C3_0)
             title = 'Long Christmas Tree with Calls'
@@ -2940,12 +3003,13 @@ class Option():
                 payoff2 = (self.C1_G + self.C2_G - self.C3_G - self.C1_0 - self.C2_0 + self.C3_0)
             else:
                 payoff2 = None
-            
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff    
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
 
 
-    def condor(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+    def condor(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
                q=None, sigma=None, option=None, direction=None, value=None):
         """
         Displays the graph of the condor strategy:
@@ -2956,7 +3020,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 90.
@@ -2994,13 +3058,15 @@ class Option():
         self.combo_payoff = 'condor'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values 
-        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
+        self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, option4=option, direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=4)
         
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
                       self.C2_0 + self.C3_0 - self.C4_0)
@@ -3018,7 +3084,8 @@ class Option():
                            self.C2_0 - self.C3_0 + self.C4_0)
             else:
                 payoff2 = None
-                
+        
+        # Create title based on option type and direction        
         if self.option == 'call' and self.direction == 'long':
             title = 'Long Condor with Calls'
         if self.option == 'put' and self.direction == 'long':
@@ -3027,12 +3094,13 @@ class Option():
             title = 'Short Condor with Calls'
         if self.option == 'put' and self.direction == 'short':
             title = 'Short Condor with Puts'    
-       
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
 
 
-    def iron_butterfly(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+    def iron_butterfly(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
                        q=None, sigma=None, direction=None, value=None):
         """
         Displays the graph of the iron butterfly strategy:
@@ -3044,7 +3112,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 95.
@@ -3080,13 +3148,15 @@ class Option():
         self.combo_payoff = 'iron butterfly'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
+        self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
                               option2='call', option3='put', option4='call', direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=4)
         
+        # Create payoff based on direction
         if self.direction == 'long':
             payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
                       self.C2_0 - self.C3_0 + self.C4_0)
@@ -3107,11 +3177,12 @@ class Option():
             else:
                 payoff2 = None
         
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
     
     
-    def iron_condor(self, S0=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
+    def iron_condor(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
                        q=None, sigma=None, direction=None, value=None):
         """
         Displays the graph of the iron condor strategy:
@@ -3123,7 +3194,7 @@ class Option():
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100. 
         K1 : Float
              Strike Price of option 1. The default is 90.
@@ -3159,13 +3230,15 @@ class Option():
         self.combo_payoff = 'iron condor'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values 
-        self._initialise_func(S0=S0, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
+        self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
                               option2='put', option3='call', option4='call', direction=direction, 
                               value=value)
         
+        # Calculate option prices
         self._return_options(legs=4)
         
+        # Create payoff based on direction and value flag
         if self.direction == 'long':
             payoff = (self.C1 - self.C2 - self.C3 + self.C4 - self.C1_0 + 
                       self.C2_0 + self.C3_0 - self.C4_0)
@@ -3175,7 +3248,7 @@ class Option():
             else:
                 payoff2 = None
         
-        if self.direction == 'short':
+        elif self.direction == 'short':
             payoff = (-self.C1 + self.C2 + self.C3 - self.C4 + self.C1_0 - 
                       self.C2_0 - self.C3_0 + self.C4_0)
             if self.value == True:
@@ -3183,24 +3256,27 @@ class Option():
                            self.C2_0 - self.C3_0 + self.C4_0)
             else:
                 payoff2 = None
-                
+              
+        # Create graph title based on direction 
         if self.direction == 'long':
             title = 'Long Iron Condor'
+        
         if self.direction == 'short':
             title = 'Short Iron Condor'
-       
-        self._vis_payoff(S0=self.S0, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
+        
+        # Visualize payoff
+        self._vis_payoff(S=self.S, SA=self.SA, payoff=payoff, title=title, payoff2=payoff2, 
                          label='Payoff', label2='Value')
+
     
-    
-    def _vis_payoff(self, S0=None, SA=None, payoff=None, label=None, title='Option Payoff', 
+    def _vis_payoff(self, S=None, SA=None, payoff=None, label=None, title='Option Payoff', 
                     payoff2=None, label2=None, xlabel='Stock Price', ylabel='P&L'):
         """
         Display the payoff diagrams using matplotlib
 
         Parameters
         ----------
-        S0 : Float
+        S : Float
              Underlying Stock Price. The default is 100.
         SA : Array
              Range of Strikes to provide x-axis values. The default is 75% to 125%.
@@ -3224,21 +3300,40 @@ class Option():
         2D Payoff Graph.
 
         """
+        
+        # Create the figure and axes objects
         fig, ax = plt.subplots()
+        
+        # Plot the terminal payoff
         ax.plot(SA, payoff, color='blue', label=label)
+        
+        # If the value flag is selected, plot the payoff with the current time to maturity
         if payoff2 is not None:
             ax.plot(SA, payoff2, color='red', label=label2)
+        
         # Set a horizontal line at zero P&L 
         ax.axhline(y=0, linewidth=0.5, color='k')
+        
         #Set a vertical line at ATM strike
-        ax.axvline(x=S0, linewidth=0.5, color='k')
+        ax.axvline(x=S, linewidth=0.5, color='k')
+        
         # Apply a black border to the chart
         ax.patch.set_edgecolor('black')  
         ax.patch.set_linewidth('1')          
+        
+        # Use seaborn darkgrid style 
         plt.style.use('seaborn-darkgrid')
+        
+        # Apply a grid
         plt.grid(True)
+        
+        # Set x and y axis labels and title
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        
+        # Create a legend
         ax.legend()
+        
+        # Display the chart
         plt.show()
     
     
@@ -3260,39 +3355,65 @@ class Option():
 
         """
         
+        # Store initial spot value
+        self.S0 = self.S
+        
         # create array of 1000 equally spaced points between 75% of initial underlying price and 125%
-        self.SA = np.linspace(0.75 * self.S0, 1.25 * self.S0, 1000)
-                
-        self.C1_0 = self.price(S=self.S0, K=self.K1, T=self.T1, r=self.r, q=self.q, 
+        self.SA = np.linspace(0.75 * self.S, 1.25 * self.S, 1000)
+        
+        # Calculate the current price of option 1       
+        self.C1_0 = self.price(S=self.S, K=self.K1, T=self.T1, r=self.r, q=self.q, 
                                sigma=self.sigma, option=self.option1, refresh='graph')
+        
+        # Calculate the prices at maturity for the range of strikes in SA of option 1
         self.C1 = self.price(S=self.SA, K=self.K1, T=0, r=self.r, q=self.q, sigma=self.sigma, 
                              option=self.option1, refresh='graph')
+        
+        # Calculate the current prices for the range of strikes in SA of option 1
         self.C1_G = self.price(S=self.SA, K=self.K1, T=self.T1, r=self.r, q=self.q, 
                                sigma=self.sigma, option=self.option1, refresh='graph')
         
         if legs > 1:
-            self.C2_0 = self.price(S=self.S0, K=self.K2, T=self.T2, r=self.r, q=self.q, 
+            # Calculate the current price of option 2
+            self.C2_0 = self.price(S=self.S, K=self.K2, T=self.T2, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option2, refresh='graph')
+            
+            # Calculate the prices at maturity for the range of strikes in SA of option 2
             self.C2 = self.price(S=self.SA, K=self.K2, T=0, r=self.r, q=self.q, sigma=self.sigma, 
                                  option=self.option2, refresh='graph')
+            
+            # Calculate the current prices for the range of strikes in SA of option 2
             self.C2_G = self.price(S=self.SA, K=self.K2, T=self.T2, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option2, refresh='graph')
 
         if legs > 2:
-            self.C3_0 = self.price(S=self.S0, K=self.K3, T=self.T3, r=self.r, q=self.q, 
+            # Calculate the current price of option 3
+            self.C3_0 = self.price(S=self.S, K=self.K3, T=self.T3, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option3, refresh='graph')
+            
+            # Calculate the prices at maturity for the range of strikes in SA of option 3
             self.C3 = self.price(S=self.SA, K=self.K3, T=0, r=self.r, q=self.q, 
                                  sigma=self.sigma, option=self.option3, refresh='graph')
+            
+            # Calculate the current prices for the range of strikes in SA of option 3
             self.C3_G = self.price(S=self.SA, K=self.K3, T=self.T3, r=self.r, q=self.q, sigma=self.sigma, 
                                    option=self.option3, refresh='graph')
         
         if legs > 3:
-            self.C4_0 = self.price(S=self.S0, K=self.K4, T=self.T4, r=self.r, q=self.q, 
+            # Calculate the current price of option 4
+            self.C4_0 = self.price(S=self.S, K=self.K4, T=self.T4, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option4, refresh='graph')
+            
+            # Calculate the prices at maturity for the range of strikes in SA of option 4
             self.C4 = self.price(S=self.SA, K=self.K4, T=0, r=self.r, q=self.q, sigma=self.sigma, 
                                  option=self.option4, refresh='graph')
+            
+            # Calculate the current prices for the range of strikes in SA of option 4
             self.C4_G = self.price(S=self.SA, K=self.K4, T=self.T4, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option4, refresh='graph')
+        
+        # Restore Spot value
+        self.S = self.S0
         
         return self
         
