@@ -2142,6 +2142,10 @@ class Option():
         if combo_payoff == 'christmas tree':
             self.christmas_tree(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
                                 option=option, direction=direction, value=value)    
+
+        if combo_payoff == 'condor':
+            self.condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                        sigma=sigma, option=option, direction=direction, value=value)
         
         if combo_payoff == 'iron butterfly':
             self.iron_butterfly(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
@@ -2149,7 +2153,7 @@ class Option():
             
         if combo_payoff == 'iron condor':
             self.iron_condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                             sigma=sigma, option=option, direction=direction, value=value)
+                             sigma=sigma, direction=direction, value=value)
             
     
     def call(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
@@ -3363,7 +3367,7 @@ class Option():
         self.SA = np.linspace(0.75 * self.S, 1.25 * self.S, 1000)
         
         # Calculate the current price of option 1       
-        self.C1_0 = self.price(S=self.S, K=self.K1, T=self.T1, r=self.r, q=self.q, 
+        self.C1_0 = self.price(S=self.S0, K=self.K1, T=self.T1, r=self.r, q=self.q, 
                                sigma=self.sigma, option=self.option1, refresh='graph')
         
         # Calculate the prices at maturity for the range of strikes in SA of option 1
@@ -3376,7 +3380,7 @@ class Option():
         
         if legs > 1:
             # Calculate the current price of option 2
-            self.C2_0 = self.price(S=self.S, K=self.K2, T=self.T2, r=self.r, q=self.q, 
+            self.C2_0 = self.price(S=self.S0, K=self.K2, T=self.T2, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option2, refresh='graph')
             
             # Calculate the prices at maturity for the range of strikes in SA of option 2
@@ -3389,7 +3393,7 @@ class Option():
 
         if legs > 2:
             # Calculate the current price of option 3
-            self.C3_0 = self.price(S=self.S, K=self.K3, T=self.T3, r=self.r, q=self.q, 
+            self.C3_0 = self.price(S=self.S0, K=self.K3, T=self.T3, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option3, refresh='graph')
             
             # Calculate the prices at maturity for the range of strikes in SA of option 3
@@ -3402,7 +3406,7 @@ class Option():
         
         if legs > 3:
             # Calculate the current price of option 4
-            self.C4_0 = self.price(S=self.S, K=self.K4, T=self.T4, r=self.r, q=self.q, 
+            self.C4_0 = self.price(S=self.S0, K=self.K4, T=self.T4, r=self.r, q=self.q, 
                                    sigma=self.sigma, option=self.option4, refresh='graph')
             
             # Calculate the prices at maturity for the range of strikes in SA of option 4
