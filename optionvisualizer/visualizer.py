@@ -935,9 +935,9 @@ class Option():
                                     refresh=refresh)
         
         if self.option == 'call':
-            self.opt_rho = (self.T * self.K * np.exp(-self.r * self.T) * self.Nd2) / 100
+            self.opt_rho = (self.T * self.K * np.exp(-self.r * self.T) * self.Nd2) / 10000
         if self.option == 'put':
-            self.opt_rho = (-self.T * self.K * np.exp(-self.r * self.T) * self.minusNd2) / 100
+            self.opt_rho = (-self.T * self.K * np.exp(-self.r * self.T) * self.minusNd2) / 10000
             
         return self.opt_rho
 
@@ -1281,7 +1281,7 @@ class Option():
                    refresh=None):
         """
         DvegaDtime
-        Sensitivity of vega to changes in time to expiration
+        Sensitivity of vega to changes in time to maturity.
 
         Parameters
         ----------
