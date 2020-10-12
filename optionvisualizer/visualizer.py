@@ -47,13 +47,14 @@ df_dict = {'df_S':100,
            'df_notebook':True,
            'df_colorscheme':'jet',
            'df_colorintensity':1,
-           'df_size':(12, 10),
+           'df_size':(15, 12),
            'df_graphtype':'2D',
            'df_y_plot':'delta',
            'df_x_plot':'time',
            'df_time_shift':0.25,
            'df_cash':False,
            'df_axis':'price',
+           'df_spacegrain':100,
 
             # List of default parameters used when refreshing 
             'df_params_list':['S', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 'G2', 'G3', 
@@ -63,7 +64,7 @@ df_dict = {'df_S':100,
                               'direction', 'value', 'ratio', 'refresh', 'delta_shift', 
                               'delta_shift_type', 'greek', 'interactive', 'notebook', 
                               'colorscheme', 'colorintensity', 'size', 'graphtype', 
-                              'cash', 'axis'],
+                              'cash', 'axis', 'spacegrain'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
@@ -74,7 +75,8 @@ df_dict = {'df_S':100,
                               'christmas tree', 'condor', 'iron butterfly', 'iron condor'],
             
             # Those parameters that need changing
-            'df_mod_params':['S', 'K', 'K1', 'K2', 'K3', 'K4'],
+            'df_mod_params':['S', 'K', 'K1', 'K2', 'K3', 'K4', 'T', 'T1', 'T2', 
+                             'T3', 'T4'],
             
             # Combo parameter values differing from standard defaults
             'df_combo_dict':{'call':{'S':100,
@@ -272,10 +274,11 @@ class Option():
                  x_plot=df_dict['df_x_plot'], x_name_dict=df_dict['df_x_name_dict'], 
                  x_scale_dict=df_dict['df_x_scale_dict'], y_name_dict=df_dict['df_y_name_dict'], 
                  time_shift=df_dict['df_time_shift'], cash=df_dict['df_cash'], axis=df_dict['df_axis'], 
-                 df_combo_dict=df_dict['df_combo_dict'], df_params_list=df_dict['df_params_list'], 
-                 equal_greeks=df_dict['df_equal_greeks'], mod_payoffs=df_dict['df_mod_payoffs'], 
-                 mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
-                 greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
+                 spacegrain=df_dict['df_spacegrain'], df_combo_dict=df_dict['df_combo_dict'], 
+                 df_params_list=df_dict['df_params_list'], equal_greeks=df_dict['df_equal_greeks'], 
+                 mod_payoffs=df_dict['df_mod_payoffs'], mod_params=df_dict['df_mod_params'], 
+                 label_dict=df_dict['df_label_dict'], greek_dict=df_dict['df_greek_dict'], 
+                 df_dict=df_dict):
 
         self.S = S # Spot price
         self.K = K # Strike price
@@ -330,6 +333,7 @@ class Option():
         self.time_shift = time_shift # Time between periods used in 2D greeks graph
         self.cash = cash # Whether to graph forward at cash or discount
         self.axis = axis # Price or Vol against Time in 3D graphs
+        self.spacegrain = spacegrain # Number of points in each axis linspace argument for 3D graphs
         self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
         self.mod_params = mod_params # Parameters of these payoffs that need changing
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
@@ -1465,7 +1469,7 @@ class Option():
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
-               axis=None, greek=None, graphtype=None):
+               axis=None, spacegrain=None, greek=None, graphtype=None):
         """
         Plot the chosen 2D or 3D graph
         
@@ -1536,8 +1540,8 @@ class Option():
                               T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, r=r, 
                               q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
-                              size=size, direction=direction, axis=axis, greek=greek, 
-                              graphtype=graphtype)
+                              size=size, direction=direction, axis=axis, spacegrain=spacegrain, 
+                              greek=greek, graphtype=graphtype)
         
         # Run 2D greeks method
         if self.graphtype == '2D':
@@ -1550,9 +1554,11 @@ class Option():
         # Run 3D greeks method    
         if self.graphtype == '3D':
             self.greeks_graphs_3D(S=self.S, r=self.r, q=self.q, sigma=self.sigma, 
-                                  option=self.option, interactive=self.interactive, notebook=self.notebook, 
-                                  colorscheme=self.colorscheme, colorintensity=self.colorintensity, 
-                                  size=self.size, direction=self.direction, axis=self.axis, greek=self.greek)
+                                  option=self.option, interactive=self.interactive, 
+                                  notebook=self.notebook, colorscheme=self.colorscheme, 
+                                  colorintensity=self.colorintensity, size=self.size, 
+                                  direction=self.direction, axis=self.axis, spacegrain=self.spacegrain, 
+                                  greek=self.greek)
     
     
     def greeks_graphs_2D(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
@@ -1633,16 +1639,19 @@ class Option():
         if self.y_plot in self.y_name_dict.keys():
             for opt in [1, 2, 3]:
                 if self.x_plot == 'price':
+                    
                     # Use self.__dict__ to access names, C1... etc., dynamically
                     # Use getattr() with the y-plot value in y_name_dict to access each method, 'delta'... etc., dynamically
                     # For price we set S to the array SA 
                     self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
                 if self.x_plot == 'vol':
+                    
                     # For vol we set sigma to the array sigmaA
                     self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
                                                                               r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
                 if self.x_plot == 'time':
+                    
                     # For time we set T to the array TA
                     self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
                                                                                    q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
@@ -1657,23 +1666,29 @@ class Option():
  
         # rho requires 4 options to be graphed 
         if self.y_plot == 'rho':
+            
             # Set T1 and T2 to the specified time and shifted time
             self.T1 = self.T
             self.T2 = self.T + self.time_shift
+            
             # 2 Tenors
             tenor_type = {1:1, 2:2, 3:1, 4:2}
+            
             # And call and put for each tenor 
             opt_type = {1:'call', 2:'call', 3:'put', 4:'put'}
             for opt in [1, 2, 3, 4]:
                 if self.x_plot == 'price':
+                    
                     # For price we set S to the array SA
                     self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.SA, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
                 if self.x_plot == 'strike':
+                    
                     # For strike we set K to the array SA
                     self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
                                                                              r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
                 if self.x_plot == 'vol':
+                    
                     # For vol we set sigma to the array sigmaA
                     self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
                                                                              r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
@@ -1736,6 +1751,7 @@ class Option():
         """
         self.strike_label = dict()
         for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
+            
             # If the strike is 100% change name to 'ATM'
             if self.__dict__[str(key)] == self.S0:
                 self.strike_label[value] = 'ATM Strike'
@@ -1743,6 +1759,7 @@ class Option():
                 self.strike_label[value] = str(int(self.__dict__[key]))+' Strike' 
                
         for k, v in {'T1':'label1', 'T2':'label2', 'T3':'label3'}.items():
+            
             # Make each label value the number of days to maturity plus the strike level
             self.__dict__[v] = str(int(self.__dict__[str(k)]*365))+' Day '+self.strike_label[str(v)]
                 
@@ -1822,7 +1839,8 @@ class Option():
     
     def greeks_graphs_3D(self, S=None, r=None, q=None, sigma=None, 
                          option=None, interactive=None, notebook=None, colorscheme=None, 
-                         colorintensity=None, size=None, direction=None, axis=None, greek=None):
+                         colorintensity=None, size=None, direction=None, axis=None, 
+                         spacegrain=None, greek=None):
         """
         
         Plot chosen 3D greeks graph.
@@ -1868,25 +1886,30 @@ class Option():
         self._initialise_func(greek=greek, S=S, r=r, q=q, sigma=sigma, option=option, 
                               interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
                               colorintensity=colorintensity, size=size, direction=direction, 
-                              axis=axis)
+                              axis=axis, spacegrain=spacegrain)
         
         # Select the input name and method name from the greek dictionary 
         for greek_label, greek_func in self.greek_dict.items():
+            
             # If the greek is the same for call or put, set the option value to 'Call / Put'
             if self.greek in self.equal_greeks:
                 self.option = 'Call / Put'
+            
             # For the specified greek
             if self.greek == greek_label:
+
+                # Prepare the graph axes                 
+                self._graph_space_prep()
+ 
                 if self.axis == 'price':
-                    # Prepare the graph axes 
-                    self._graph_space_prep(axis='price')
+                    
                     # Select the individual greek method using getattr()
                     self.z = getattr(self, greek_func)(S=self.x, K=self.S, T=self.y, 
                                                        r=self.r, sigma=self.sigma, 
                                                        option=self.option, refresh='graph')
+                
                 if self.axis == 'vol':
-                    # Prepare the graph axes 
-                    self._graph_space_prep(axis='vol')
+                    
                     # Select the individual greek method using getattr()
                     self.z = getattr(self, greek_func)(S=self.S, K=self.S, T=self.y, 
                                                        r=self.r, sigma=self.x, 
@@ -1896,7 +1919,7 @@ class Option():
         self._vis_greeks_3D()            
     
     
-    def _graph_space_prep(self, axis='price'):
+    def _graph_space_prep(self):
         """
         Prepare the axis ranges to be used in 3D graph.
 
@@ -1917,15 +1940,16 @@ class Option():
         self.SA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['SA_upper']
         self.TA_lower = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['TA_lower']
         self.TA_upper = self.df_dict['df_3D_chart_ranges'][str(self.greek)]['TA_upper']
+        
         # Set the volatility range from 5% to 50%
         self.sigmaA_lower = 0.05 
         self.sigmaA_upper = 0.5 
 
-        # create arrays of 1000 equally spaced points for the ranges of strike prices, 
+        # create arrays of 100 equally spaced points for the ranges of strike prices, 
         # volatilities and maturities
-        self.SA = np.linspace(self.SA_lower * self.S, self.SA_upper * self.S, 1000)
-        self.TA = np.linspace(self.TA_lower, self.TA_upper, 1000)
-        self.sigmaA = np.linspace(self.sigmaA_lower, self.sigmaA_upper, 1000)
+        self.SA = np.linspace(self.SA_lower * self.S, self.SA_upper * self.S, int(self.spacegrain))
+        self.TA = np.linspace(self.TA_lower, self.TA_upper, int(self.spacegrain))
+        self.sigmaA = np.linspace(self.sigmaA_lower, self.sigmaA_upper, int(self.spacegrain))
         
         # set y-min and y-max labels 
         self.ymin = self.TA_lower
@@ -1933,14 +1957,14 @@ class Option():
         self.axis_label2 = 'Time to Expiration (Days)'
         
         # set x-min and x-max labels 
-        if axis == 'price':
+        if self.axis == 'price':
             self.x, self.y = np.meshgrid(self.SA, self.TA)
             self.xmin = self.SA_lower
             self.xmax = self.SA_upper
             self.graph_scale = 1
             self.axis_label1 = 'Underlying Value'            
             
-        if axis == 'vol':
+        if self.axis == 'vol':
             self.x, self.y = np.meshgrid(self.sigmaA, self.TA)
             self.xmin = self.sigmaA_lower
             self.xmax = self.sigmaA_upper    
@@ -1978,24 +2002,38 @@ class Option():
             # create figure with specified size tuple
             fig = plt.figure(figsize=self.size)
             ax = fig.add_subplot(111, projection='3d')
+            
             # apply graph_scale so that if volatility is the x-axis it wil be * 100
             ax.plot_surface(self.x * self.graph_scale,
                             self.y * 365,
                             self.z,
                             rstride=2, cstride=2,
+                            
                             # set the colormap to the chosen colorscheme
                             cmap=plt.get_cmap(self.colorscheme),
+                            
                             # set the alpha value to the chosen colorintensity
                             alpha=self.colorintensity,
                             linewidth=0.25)
+            
             # Auto scale the z-axis
             ax.set_zlim(auto=True)
+            
+            # Set fontsize of axis ticks
+            ax.tick_params(axis='both', which='major', labelsize=14)
+            
             # Set x-axis to decrease from left to right
             ax.invert_xaxis()
-            ax.set_xlabel(self.axis_label1, fontsize=12)
-            ax.set_ylabel(self.axis_label2, fontsize=12)
-            ax.set_zlabel(str(self.greek.title()), fontsize=12)
-            ax.set_title(titlename, fontsize=14)
+            
+            # Label axes
+            ax.set_xlabel(self.axis_label1, fontsize=14, labelpad=15)
+            ax.set_ylabel(self.axis_label2, fontsize=14, labelpad=15)
+            ax.set_zlabel(str(self.greek.title()), fontsize=14, labelpad=15)
+            
+            # Specify title
+            ax.set_title(titlename, fontsize=18)
+            
+            # Display graph
             plt.show()
 
         # Create a plotly graph
@@ -2017,8 +2055,11 @@ class Option():
             fig = go.Figure(data=[go.Surface(x=self.y*365, 
                                              y=self.x*self.graph_scale, 
                                              z=self.z, 
+
                                              # set the colorscale to the chosen colorscheme
                                              colorscale=self.colorscheme, 
+                                             
+                                             # Define the contours
                                              contours = {"x": {"show": True, "start": contour_x_start, 
                                                                "end": contour_x_stop, "size": contour_x_size, "color":"white"},            
                                                          "y": {"show": True, "start": contour_y_start, 
@@ -2051,17 +2092,27 @@ class Option():
                                     gridcolor="white",
                                     showbackground=True,
                                     zerolinecolor="white",),
+                                # Label axes
                                 xaxis_title=self.axis_label2,
                                 yaxis_title=self.axis_label1,
                                 zaxis_title=str(self.greek.title()),),
-                              title=titlename, autosize=False, 
+                              title={'text':titlename,
+                                     'y':0.9,
+                                     'x':0.5,
+                                     'xanchor':'center',
+                                     'yanchor':'top',
+                                     'font':dict(#family="Courier New, monospace",
+                                               size=20,
+                                               color="black")},
+                              autosize=False, 
                               width=800, height=800,
                               margin=dict(l=65, r=50, b=65, t=90),
-                             scene_camera=camera)
+                              scene_camera=camera)
             
             # If running in an iPython notebook the chart will display in line
             if self.notebook == True:
                 fig.show()
+            
             # Otherwise create an HTML file that opens in a new window
             else:
                 plot(fig, auto_open=True)
