@@ -1461,11 +1461,11 @@ class Option():
         return self.opt_barrier_payoff    
 
     
-    def greeks(self, greek=None, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
+    def greeks(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
-               axis=None, graphtype=None):
+               axis=None, greek=None, graphtype=None):
         """
         Plot the chosen 2D or 3D graph
         
@@ -1532,11 +1532,12 @@ class Option():
         """
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(greek=greek, x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, 
-                              G2=G2, G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift,
-                              r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, G3=G3, 
+                              T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, r=r, 
+                              q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
-                              size=size, direction=direction, axis=axis, graphtype=graphtype)
+                              size=size, direction=direction, axis=axis, greek=greek, 
+                              graphtype=graphtype)
         
         # Run 2D greeks method
         if self.graphtype == '2D':
@@ -1548,15 +1549,280 @@ class Option():
         
         # Run 3D greeks method    
         if self.graphtype == '3D':
-            self.greeks_graphs_3D(greek=self.greek, S=self.S, r=self.r, q=self.q, sigma=self.sigma, 
+            self.greeks_graphs_3D(S=self.S, r=self.r, q=self.q, sigma=self.sigma, 
                                   option=self.option, interactive=self.interactive, notebook=self.notebook, 
                                   colorscheme=self.colorscheme, colorintensity=self.colorintensity, 
-                                  size=self.size, direction=self.direction, axis=self.axis)
+                                  size=self.size, direction=self.direction, axis=self.axis, greek=self.greek)
     
     
-    def greeks_graphs_3D(self, greek=None, S=None, r=None, q=None, sigma=None, 
+    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
+                         G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
+                         r=None, q=None, sigma=None, option=None, direction=None):
+        """
+        Plot chosen 2D greeks graph.
+                
+
+        Parameters
+        ----------
+        x_plot : Str
+                 The x-axis variable ('price', 'strike', 'vol' or 'time'). The 
+                 default is 'time'.
+        y_plot : Str
+                 The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
+                 The default is 'delta.
+        S : Float
+             Underlying Stock Price. The default is 100.
+        G1 : Float
+             Strike Price of option 1. The default is 90.
+        G2 : Float
+             Strike Price of option 2. The default is 100.
+        G3 : Float
+             Strike Price of option 3. The default is 110.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        T1 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        T2 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        T3 : Float
+             Time to Maturity of option 1. The default is 0.25 (3 months).
+        time_shift : Float
+             Difference between T1 and T2 in rho graphs. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. The default is 'long'.
+
+        Returns
+        -------
+        Runs method to create data for 2D greeks graph.
+
+        """
+        
+        # Pass parameters to be initialised. If not provided they will be populated with default values
+        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, 
+                              G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
+                              r=r, q=q, sigma=sigma, option=option, direction=direction)
+        
+        # create arrays of 1000 equally spaced points for a range of strike prices, 
+        # volatilities and maturities
+        self.SA = np.linspace(0.8 * self.S, 1.2 * self.S, 1000)
+        self.sigmaA = np.linspace(0.05, 0.5, 1000)
+        self.TA = np.linspace(0.01, 1, 1000)
+        self.S0 = self.S
+    
+        self._2D_general_graph()       
+    
+
+    def _2D_general_graph(self):                               
+        """
+        Creates data for 2D greeks graph.
+
+        Returns
+        -------
+        Runs method to graph using Matplotlib.
+
+        """
+        # y-axis parameters other than rho require 3 options to be graphed
+        if self.y_plot in self.y_name_dict.keys():
+            for opt in [1, 2, 3]:
+                if self.x_plot == 'price':
+                    # Use self.__dict__ to access names, C1... etc., dynamically
+                    # Use getattr() with the y-plot value in y_name_dict to access each method, 'delta'... etc., dynamically
+                    # For price we set S to the array SA 
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
+                                                                             r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
+                if self.x_plot == 'vol':
+                    # For vol we set sigma to the array sigmaA
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
+                                                                              r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
+                if self.x_plot == 'time':
+                    # For time we set T to the array TA
+                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S0, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
+                                                                                   q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
+            
+            # Reverse the option value if direction is 'short'        
+            if self.direction == 'short':
+                for opt in [1, 2, 3]:
+                    self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
+            
+            # Call strike_tenor_label method to assign labels to chosen strikes and tenors
+            self._strike_tenor_label()
+ 
+        # rho requires 4 options to be graphed 
+        if self.y_plot == 'rho':
+            # Set T1 and T2 to the specified time and shifted time
+            self.T1 = self.T
+            self.T2 = self.T + self.time_shift
+            # 2 Tenors
+            tenor_type = {1:1, 2:2, 3:1, 4:2}
+            # And call and put for each tenor 
+            opt_type = {1:'call', 2:'call', 3:'put', 4:'put'}
+            for opt in [1, 2, 3, 4]:
+                if self.x_plot == 'price':
+                    # For price we set S to the array SA
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.SA, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
+                                                                             r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
+                if self.x_plot == 'strike':
+                    # For strike we set K to the array SA
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
+                                                                             r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
+                if self.x_plot == 'vol':
+                    # For vol we set sigma to the array sigmaA
+                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S0, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
+                                                                             r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
+            
+            # Reverse the option value if direction is 'short'        
+            if self.direction == 'short':
+                for opt in [1, 2, 3, 4]:
+                    self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
+    
+            # Assign the option labels
+            self.label1 = str(int(self.T1*365))+' Day Call'
+            self.label2 = str(int(self.T2*365))+' Day Call'
+            self.label3 = str(int(self.T1*365))+' Day Put'
+            self.label4 = str(int(self.T2*365))+' Day Put'
+    
+        # Convert the x-plot and y-plot values to axis labels   
+        self.xlabel = self.label_dict[str(self.x_plot)]
+        self.ylabel = self.label_dict[str(self.y_plot)]
+        
+        # If the greek is rho or the same for a call or a put, set the option name to 'Call / Put' 
+        if self.y_plot in [self.equal_greeks, 'rho']:
+                self.option = 'Call / Put'     
+        
+        # Create chart title as direction plus option type plus y-plot vs x-plot    
+        self.title = (str(self.direction.title())+' '+str(self.option.title())+
+                      ' '+self.y_plot.title()+' vs '+self.x_plot.title())   
+        
+        # Set the x-axis array as price, vol or time
+        self.x_name = str(self.x_plot)
+        if self.x_name in self.x_name_dict.keys():
+            self.xarray = (self.__dict__[str(self.x_name_dict[self.x_name])] * 
+                           self.x_scale_dict[self.x_name])
+        
+        # Plot 3 option charts    
+        if self.y_plot in self.y_name_dict.keys():        
+            self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                                 xarray=self.xarray, label1=self.label1, label2=self.label2, 
+                                 label3=self.label3, xlabel=self.xlabel, ylabel=self.ylabel, 
+                                 title=self.title)       
+        # Plot Rho charts    
+        elif self.y_plot == 'rho':
+            self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
+                                 yarray4=self.C4, xarray=self.xarray, label1=self.label1, 
+                                 label2=self.label2, label3=self.label3, label4=self.label4, 
+                                 xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
+ 
+        else:
+            print("Graph not printed")
+    
+    
+    def _strike_tenor_label(self):
+        """
+        Assign labels to chosen strikes and tenors in 2D greeks graph
+
+        Returns
+        -------
+        Str
+            Labels for each of the 3 options in 2D greeks graph.
+
+        """
+        self.strike_label = dict()
+        for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
+            # If the strike is 100% change name to 'ATM'
+            if self.__dict__[str(key)] == self.S0:
+                self.strike_label[value] = 'ATM Strike'
+            else:
+                self.strike_label[value] = str(int(self.__dict__[key]))+' Strike' 
+               
+        for k, v in {'T1':'label1', 'T2':'label2', 'T3':'label3'}.items():
+            # Make each label value the number of days to maturity plus the strike level
+            self.__dict__[v] = str(int(self.__dict__[str(k)]*365))+' Day '+self.strike_label[str(v)]
+                
+        return self            
+
+
+    def _vis_greeks_mpl(self, xarray=None, yarray1=None, yarray2=None, yarray3=None, 
+                        yarray4=None, label1=None, label2=None, label3=None, label4=None, 
+                        xlabel=None, ylabel=None, title='Payoff'):
+        """
+        Display the 2D greeks chart using matplotlib
+
+        Parameters
+        ----------
+        xarray : Array
+            x-axis values. 
+        yarray1 : Array
+            y-axis values for option 1. 
+        yarray2 : Array
+            y-axis values for option 2.
+        yarray3 : Array
+            y-axis values for option 3.
+        yarray4 : Array
+            y-axis values for option 4.
+        label1 : Str
+            Option 1 label.
+        label2 : Str
+            Option 2 label.
+        label3 : Str
+            Option 3 label.
+        label4 : Str
+            Option 4 label.
+        xlabel : Str
+            x-axis label.
+        ylabel : Str
+            y-axis label.
+        title : Str
+            Chart title.
+
+        Returns
+        -------
+        2D Greeks chart.
+
+        """
+        
+        # Create the figure and axes objects
+        fig, ax = plt.subplots()
+        
+        # Set style to Seaborn Darkgrid
+        plt.style.use('seaborn-darkgrid')
+        
+        # Plot the 1st option
+        ax.plot(xarray, yarray1, color='blue', label=label1)
+        
+        # Plot the 2nd option
+        ax.plot(xarray, yarray2, color='red', label=label2)
+        
+        # Plot the 3rd option
+        ax.plot(xarray, yarray3, color='green', label=label3)
+        
+        # 4th option only used in Rho graphs
+        if label4 is not None:
+            ax.plot(xarray, yarray4, color='orange', label=label4)
+        
+        # Apply a grid
+        plt.grid(True)
+        
+        # Set x and y axis labels and title
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+ 
+        # Create a legend 
+        ax.legend()
+        
+        # Display the chart
+        plt.show()
+    
+    
+    def greeks_graphs_3D(self, S=None, r=None, q=None, sigma=None, 
                          option=None, interactive=None, notebook=None, colorscheme=None, 
-                         colorintensity=None, size=None, direction=None, axis=None):
+                         colorintensity=None, size=None, direction=None, axis=None, greek=None):
         """
         
         Plot chosen 3D greeks graph.
@@ -1799,251 +2065,7 @@ class Option():
             # Otherwise create an HTML file that opens in a new window
             else:
                 plot(fig, auto_open=True)
- 
-    
-    
-    def greeks_graphs_2D(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
-                             G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
-                             r=None, q=None, sigma=None, option=None, direction=None):
-        """
-        Plot chosen 2D greeks graph.
-                
-
-        Parameters
-        ----------
-        x_plot : Str
-                 The x-axis variable ('price', 'strike', 'vol' or 'time'). The 
-                 default is 'time'.
-        y_plot : Str
-                 The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
-                 The default is 'delta.
-        S : Float
-             Underlying Stock Price. The default is 100.
-        G1 : Float
-             Strike Price of option 1. The default is 90.
-        G2 : Float
-             Strike Price of option 2. The default is 100.
-        G3 : Float
-             Strike Price of option 3. The default is 110.
-        T : Float
-            Time to Maturity. The default is 0.25 (3 months).
-        T1 : Float
-             Time to Maturity of option 1. The default is 0.25 (3 months).
-        T2 : Float
-             Time to Maturity of option 1. The default is 0.25 (3 months).
-        T3 : Float
-             Time to Maturity of option 1. The default is 0.25 (3 months).
-        time_shift : Float
-             Difference between T1 and T2 in rho graphs. The default is 0.25 (3 months).
-        r : Float
-            Interest Rate. The default is 0.05 (5%).
-        q : Float
-            Dividend Yield. The default is 0.
-        sigma : Float
-            Implied Volatility. The default is 0.2 (20%).
-        option : Str
-            Option type, Put or Call. The default is 'call'
-        direction : Str
-            Whether the payoff is long or short. The default is 'long'.
-
-        Returns
-        -------
-        Runs method to create data for 2D greeks graph.
-
-        """
-        
-        # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, 
-                              G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
-                              r=r, q=q, sigma=sigma, option=option, direction=direction)
-        
-        # create arrays of 1000 equally spaced points for a range of strike prices, 
-        # volatilities and maturities
-        self.SA = np.linspace(0.8 * self.S, 1.2 * self.S, 1000)
-        self.sigmaA = np.linspace(0.05, 0.5, 1000)
-        self.TA = np.linspace(0.01, 1, 1000)
-    
-        self._2D_general_graph()       
-    
-
-    def _2D_general_graph(self):                               
-        """
-        Creates data for 2D greeks graph.
-
-        Returns
-        -------
-        Runs method to graph using Matplotlib.
-
-        """
-        # y-axis parameters other than rho require 3 options to be graphed
-        if self.y_plot in self.y_name_dict.keys():
-            for opt in [1, 2, 3]:
-                if self.x_plot == 'price':
-                    # Use self.__dict__ to access names, C1... etc., dynamically
-                    # Use getattr() with the y-plot value in y_name_dict to access each method, 'delta'... etc., dynamically
-                    # For price we set S to the array SA 
-                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.SA, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
-                                                                             r=self.r, q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
-                if self.x_plot == 'vol':
-                    # For vol we set sigma to the array sigmaA
-                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S, K=self.__dict__['G'+str(opt)], T=self.__dict__['T'+str(opt)], 
-                                                                              r=self.r, q=self.q, sigma=self.sigmaA, option=self.option, refresh='graph')
-                if self.x_plot == 'time':
-                    # For time we set T to the array TA
-                    self.__dict__['C'+str(opt)] = getattr(self, self.y_name_dict[self.y_plot])(S=self.S, K=self.__dict__['G'+str(opt)], T=self.TA, r=self.r, 
-                                                                                   q=self.q, sigma=self.sigma, option=self.option, refresh='graph')
-            
-            # Reverse the option value if direction is 'short'        
-            if self.direction == 'short':
-                for opt in [1, 2, 3]:
-                    self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
-            
-            # Call strike_tenor_label method to assign labels to chosen strikes and tenors
-            self._strike_tenor_label()
- 
-        # rho requires 4 options to be graphed 
-        if self.y_plot == 'rho':
-            # Set T1 and T2 to the specified time and shifted time
-            self.T1 = self.T
-            self.T2 = self.T + self.time_shift
-            # 2 Tenors
-            tenor_type = {1:1, 2:2, 3:1, 4:2}
-            # And call and put for each tenor 
-            opt_type = {1:'call', 2:'call', 3:'put', 4:'put'}
-            for opt in [1, 2, 3, 4]:
-                if self.x_plot == 'price':
-                    # For price we set S to the array SA
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.SA, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
-                                                                             r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
-                if self.x_plot == 'strike':
-                    # For strike we set K to the array SA
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S, K=self.SA, T=self.__dict__['T'+str(tenor_type[opt])],
-                                                                             r=self.r, q=self.q, sigma=self.sigma, option=opt_type[opt], refresh='graph')
-                if self.x_plot == 'vol':
-                    # For vol we set sigma to the array sigmaA
-                    self.__dict__['C'+str(opt)] = getattr(self, str(self.y_plot))(S=self.S, K=self.G2, T=self.__dict__['T'+str(tenor_type[opt])], 
-                                                                             r=self.r, sigma=self.sigmaA, option=opt_type[opt], refresh='graph')
-            
-            # Reverse the option value if direction is 'short'        
-            if self.direction == 'short':
-                for opt in [1, 2, 3, 4]:
-                    self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
-    
-            # Assign the option labels
-            self.label1 = str(int(self.T1*365))+' Day Call'
-            self.label2 = str(int(self.T2*365))+' Day Call'
-            self.label3 = str(int(self.T1*365))+' Day Put'
-            self.label4 = str(int(self.T2*365))+' Day Put'
-    
-        # Convert the x-plot and y-plot values to axis labels   
-        self.xlabel = self.label_dict[str(self.x_plot)]
-        self.ylabel = self.label_dict[str(self.y_plot)]
-        
-        # If the greek is rho or the same for a call or a put, set the option name to 'Call / Put' 
-        if self.y_plot in [self.equal_greeks, 'rho']:
-                self.option = 'Call / Put'     
-        
-        # Create chart title as direction plus option type plus y-plot vs x-plot    
-        self.title = (str(self.direction.title())+' '+str(self.option.title())+
-                      ' '+self.y_plot.title()+' vs '+self.x_plot.title())   
-        
-        # Set the x-axis array as price, vol or time
-        self.x_name = str(self.x_plot)
-        if self.x_name in self.x_name_dict.keys():
-            self.xarray = (self.__dict__[str(self.x_name_dict[self.x_name])] * 
-                           self.x_scale_dict[self.x_name])
-        
-        # Plot 3 option charts    
-        if self.y_plot in self.y_name_dict.keys():        
-            self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                 xarray=self.xarray, label1=self.label1, label2=self.label2, 
-                                 label3=self.label3, xlabel=self.xlabel, ylabel=self.ylabel, 
-                                 title=self.title)       
-        # Plot Rho charts    
-        if self.y_plot == 'rho':
-            self._vis_greeks_mpl(yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                                 yarray4=self.C4, xarray=self.xarray, label1=self.label1, 
-                                 label2=self.label2, label3=self.label3, label4=self.label4, 
-                                 xlabel=self.xlabel, ylabel=self.ylabel, title=self.title)
- 
-    
-    def _strike_tenor_label(self):
-        """
-        Assign labels to chosen strikes and tenors in 2D greeks graph
-
-        Returns
-        -------
-        Str
-            Labels for each of the 3 options in 2D greeks graph.
-
-        """
-        self.strike_label = dict()
-        for key, value in {'G1':'label1', 'G2':'label2', 'G3':'label3'}.items():
-            # If the strike is 100% change name to 'ATM'
-            if self.__dict__[str(key)] == self.S:
-                self.strike_label[value] = 'ATM Strike'
-            else:
-                self.strike_label[value] = str(int(self.__dict__[key]))+' Strike' 
-               
-        for k, v in {'T1':'label1', 'T2':'label2', 'T3':'label3'}.items():
-            # Make each label value the number of days to maturity plus the strike level
-            self.__dict__[v] = str(int(self.__dict__[str(k)]*365))+' Day '+self.strike_label[str(v)]
-                
-        return self            
-
-
-    def _vis_greeks_mpl(self, xarray=None, yarray1=None, yarray2=None, yarray3=None, 
-                        yarray4=None, label1=None, label2=None, label3=None, label4=None, 
-                        xlabel=None, ylabel=None, title='Payoff'):
-        """
-        Display the 2D greeks chart using matplotlib
-
-        Parameters
-        ----------
-        xarray : Array
-            x-axis values. 
-        yarray1 : Array
-            y-axis values for option 1. 
-        yarray2 : Array
-            y-axis values for option 2.
-        yarray3 : Array
-            y-axis values for option 3.
-        yarray4 : Array
-            y-axis values for option 4.
-        label1 : Str
-            Option 1 label.
-        label2 : Str
-            Option 2 label.
-        label3 : Str
-            Option 3 label.
-        label4 : Str
-            Option 4 label.
-        xlabel : Str
-            x-axis label.
-        ylabel : Str
-            y-axis label.
-        title : Str
-            Chart title.
-
-        Returns
-        -------
-        2D Greeks chart.
-
-        """
-        fig, ax = plt.subplots()
-        # Set style to Seaborn Darkgrid
-        plt.style.use('seaborn-darkgrid')
-        ax.plot(xarray, yarray1, color='blue', label=label1)
-        ax.plot(xarray, yarray2, color='red', label=label2)
-        ax.plot(xarray, yarray3, color='green', label=label3)
-        # 4th option only used in Rho graphs
-        if label4 is not None:
-            ax.plot(xarray, yarray4, color='orange', label=label4)
-        plt.grid(True)
-        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
-        ax.legend()
-        plt.show()
-
+   
     
     def payoffs(self, S=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, direction=None, 
