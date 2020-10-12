@@ -796,11 +796,11 @@ class Option():
         if self.option == 'call':
             self.opt_theta = ((-self.S * self.carry * self.nd1 * self.sigma ) / 
                               (2 * np.sqrt(self.T)) - (self.b - self.r) * self.S * self.carry * 
-                              self.Nd1 - self.r * self.K * np.exp(-self.r * self.T) * self.Nd2)
+                              self.Nd1 - self.r * self.K * np.exp(-self.r * self.T) * self.Nd2) / 100 
         if self.option == 'put':   
             self.opt_theta = ((-self.S * self.carry * self.nd1 * self.sigma ) / 
                               (2 * np.sqrt(self.T)) + (self.b - self.r) * self.S * self.carry * 
-                              self.minusNd1 + self.r * self.K * np.exp(-self.r * self.T) * self.minusNd2)
+                              self.minusNd1 + self.r * self.K * np.exp(-self.r * self.T) * self.minusNd2) / 100
 
         return self.opt_theta
     
@@ -889,7 +889,7 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
 
-        self.opt_vega = self.S * self.carry * self.nd1 * np.sqrt(self.T)
+        self.opt_vega = (self.S * self.carry * self.nd1 * np.sqrt(self.T)) / 100
         
         return self.opt_vega
     
@@ -935,9 +935,9 @@ class Option():
                                     refresh=refresh)
         
         if self.option == 'call':
-            self.opt_rho = self.T * self.K * np.exp(-self.r * self.T) * self.Nd2
+            self.opt_rho = (self.T * self.K * np.exp(-self.r * self.T) * self.Nd2) / 100
         if self.option == 'put':
-            self.opt_rho = -self.T * self.K * np.exp(-self.r * self.T) * self.minusNd2
+            self.opt_rho = (-self.T * self.K * np.exp(-self.r * self.T) * self.minusNd2) / 100
             
         return self.opt_rho
 
@@ -982,7 +982,7 @@ class Option():
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
-        self.opt_vanna = ((-self.carry * self.d2) / self.sigma) * self.nd1 
+        self.opt_vanna = (((-self.carry * self.d2) / self.sigma) * self.nd1) / 100 
 
         return self.opt_vanna               
  
@@ -1028,7 +1028,7 @@ class Option():
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
         self.opt_vomma = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                                    self.option, self.refresh) * ((self.d1 * self.d2) / (self.sigma)))
+                                    self.option, self.refresh) * ((self.d1 * self.d2) / (self.sigma))) / 100
         
         return self.opt_vomma
 
@@ -1077,11 +1077,11 @@ class Option():
         if self.option == 'call':
             self.opt_charm = (-self.carry * ((self.nd1 * ((self.b / (self.sigma * np.sqrt(self.T))) - 
                                                           (self.d2 / (2 * self.T)))) + 
-                                             ((self.b - self.r) * self.Nd1)))
+                                             ((self.b - self.r) * self.Nd1))) / 100
         if self.option == 'put':
             self.opt_charm = (-self.carry * ((self.nd1 * ((self.b / (self.sigma * np.sqrt(self.T))) - 
                                                           (self.d2 / (2 * self.T)))) - 
-                                             ((self.b - self.r) * self.minusNd1)))
+                                             ((self.b - self.r) * self.minusNd1))) / 100
         return self.opt_charm
                
 
@@ -1126,7 +1126,7 @@ class Option():
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
         
         self.opt_zomma = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                                     self.option, self.refresh) * ((self.d1 * self.d2 - 1) / self.sigma))
+                                     self.option, self.refresh) * ((self.d1 * self.d2 - 1) / self.sigma)) / 100
         
         return self.opt_zomma
 
@@ -1222,7 +1222,7 @@ class Option():
         self.opt_color = (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
                                      self.option, self.refresh) * ((self.r - self.b) + 
                                     ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) + 
-                                    ((1 - self.d1 * self.d2) / (2 * self.T))))
+                                    ((1 - self.d1 * self.d2) / (2 * self.T)))) / 100
         
         return self.opt_color
 
@@ -1272,7 +1272,7 @@ class Option():
         self.opt_ultima = (self.vomma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
                                       self.option, self.refresh) * ((1 / self.sigma) * 
                                      (self.d1 * self.d2 - (self.d1 / self.d2) - 
-                                     (self.d2 / self.d1) - 1)))
+                                     (self.d2 / self.d1) - 1))) / 100
         
         return self.opt_ultima
 
@@ -1320,7 +1320,7 @@ class Option():
         self.opt_vega_bleed = (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
                                self.option, self.refresh) * (self.r - self.b + 
                              ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) - 
-                              ((1 + (self.d1 * self.d2) ) / (2 * self.T))))
+                              ((1 + (self.d1 * self.d2) ) / (2 * self.T)))) / 100
 
         return self.opt_vega_bleed
 
