@@ -429,30 +429,39 @@ class Option():
         if self.combo_payoff in self.mod_payoffs:
             for k, v in kwargs.items():
                 if v is None:
+                    
                     # These parameters are in the mod_params list
                     if k in self.mod_params:
                         try:
+                            
                             # Extract these from the df_combo_dict
                             v = self.df_combo_dict[str(self.combo_payoff)][str(k)]
                         except:
+                            
                             # Otherwise set to the standard default value
                             v = df_dict['df_'+str(k)]
                     if k not in self.mod_params:
                         v = df_dict['df_'+str(k)]
+                    
                     # Now assign this to the object
                     self.__dict__[k] = v
+                
                 # If the parameter has been provided as an input, assign this to the object
                 else:
                     self.__dict__[k] = v
            
         else:
+            
             # For all the other combo_payoffs
             for k, v in kwargs.items():
+                
                 # If a parameter has not been provided
                 if v is None:
+                    
                     # Set it to the default value and assign to the object
                     v = df_dict['df_'+str(k)]
                     self.__dict__[k] = v
+                
                 # If the parameter has been provided as an input, assign this to the object
                 else:
                     self.__dict__[k] = v
@@ -460,6 +469,7 @@ class Option():
         # For each parameter in the list of parameters to be updated that was not supplied as a kwarg 
         for key in list(set(self.df_params_list) - set(kwargs.keys())):
             if key not in kwargs:
+                
                 # Set it to the default value and assign to the object
                 val = df_dict['df_'+str(key)]
                 self.__dict__[key] = val
@@ -1805,11 +1815,11 @@ class Option():
 
         """
         
-        # Create the figure and axes objects
-        fig, ax = plt.subplots()
-        
         # Set style to Seaborn Darkgrid
         plt.style.use('seaborn-darkgrid')
+        
+        # Create the figure and axes objects
+        fig, ax = plt.subplots()
         
         # Plot the 1st option
         ax.plot(xarray, yarray1, color='blue', label=label1)
@@ -3379,6 +3389,9 @@ class Option():
 
         """
         
+        # Use seaborn darkgrid style 
+        plt.style.use('seaborn-darkgrid')
+        
         # Create the figure and axes objects
         fig, ax = plt.subplots()
         
@@ -3398,9 +3411,6 @@ class Option():
         # Apply a black border to the chart
         ax.patch.set_edgecolor('black')  
         ax.patch.set_linewidth('1')          
-        
-        # Use seaborn darkgrid style 
-        plt.style.use('seaborn-darkgrid')
         
         # Apply a grid
         plt.grid(True)
