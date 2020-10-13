@@ -1,9 +1,11 @@
 import pathlib
+import runpy
 from setuptools import setup, find_packages
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = '0.1.0'
+version_meta = runpy.run_path("./version.py")
+VERSION = version_meta["__version__"]
 PACKAGE_NAME = 'optionvisualizer'
 AUTHOR = 'GBERESEARCH'
 AUTHOR_EMAIL = 'gberesearch@gmail.com'
@@ -14,12 +16,10 @@ DESCRIPTION = 'Option Pricing, Risk Management and Visualisation tools'
 LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 
-INSTALL_REQUIRES = [
-      	'numpy',
-	'scipy',
-	'matplotlib',      	
-	'plotly'
-]
+def parse_requirements(filename):
+    """Load requirements from a pip requirements file."""
+    lineiter = (line.strip() for line in open(filename))
+    return [line for line in lineiter if line and not line.startswith("#")]
 
 setup(name=PACKAGE_NAME,
       version=VERSION,
@@ -30,6 +30,6 @@ setup(name=PACKAGE_NAME,
       license=LICENSE,
       author_email=AUTHOR_EMAIL,
       url=URL,
-      install_requires=INSTALL_REQUIRES,
+      install_requires=parse_requirements("requirements.txt"),
       packages=find_packages()
       )

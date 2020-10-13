@@ -1536,8 +1536,8 @@ class Option():
             Figure size for matplotlib chart. The default is (12, 8).
         axis : Str
             Whether the x-axis is 'price' or 'vol'. The default is 'price'.
-        graphtype : TYPE, optional
-            DESCRIPTION. The default is None.
+        graphtype : Str
+            Whether to plot 2D or 3D graph. The default is 2D.
 
         Returns
         -------
