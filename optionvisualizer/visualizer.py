@@ -40,8 +40,11 @@ df_dict = {'df_S':100,
            'df_ratio':2,
            'df_refresh':'Std',
            'df_combo_payoff':'straddle',
-           'df_delta_shift':25,
-           'df_delta_shift_type':'avg',
+           'df_price_shift':0.25,
+           'df_price_shift_type':'avg',
+           'df_vol_shift':0.001,           
+           'df_ttm_shift':1/365,
+           'df_rate_shift':0.0001,
            'df_greek':'delta',
            'df_interactive':False,
            'df_notebook':True,
@@ -61,10 +64,10 @@ df_dict = {'df_S':100,
                               'H', 'R', 'T', 'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 
                               'sigma', 'eta', 'phi', 'barrier_direction', 'knock', 
                               'option', 'option1', 'option2', 'option3', 'option4', 
-                              'direction', 'value', 'ratio', 'refresh', 'delta_shift', 
-                              'delta_shift_type', 'greek', 'interactive', 'notebook', 
-                              'colorscheme', 'colorintensity', 'size', 'graphtype', 
-                              'cash', 'axis', 'spacegrain'],
+                              'direction', 'value', 'ratio', 'refresh', 'price_shift', 
+                              'price_shift_type', 'vol_shift','ttm_shift', 'rate_shift', 
+                              'greek', 'interactive', 'notebook', 'colorscheme', 'colorintensity', 
+                              'size', 'graphtype', 'cash', 'axis', 'spacegrain'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
@@ -266,8 +269,9 @@ class Option():
                  option2=df_dict['df_option2'], option3=df_dict['df_option3'], 
                  option4=df_dict['df_option4'], direction=df_dict['df_direction'], 
                  value=df_dict['df_value'], ratio=df_dict['df_ratio'], refresh=df_dict['df_refresh'], 
-                 combo_payoff=df_dict['df_combo_payoff'], delta_shift=df_dict['df_delta_shift'], 
-                 delta_shift_type=df_dict['df_delta_shift_type'], greek=df_dict['df_greek'], 
+                 combo_payoff=df_dict['df_combo_payoff'], price_shift=df_dict['df_price_shift'], 
+                 price_shift_type=df_dict['df_price_shift_type'], vol_shift=df_dict['df_vol_shift'], 
+                 ttm_shift=df_dict['df_ttm_shift'], rate_shift=df_dict['df_rate_shift'], greek=df_dict['df_greek'], 
                  interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
                  colorscheme=df_dict['df_colorscheme'], colorintensity=df_dict['df_colorintensity'], 
                  size=df_dict['df_size'], graphtype=df_dict['df_graphtype'], y_plot=df_dict['df_y_plot'], 
@@ -313,8 +317,11 @@ class Option():
         self.value = value # Flag whether to plot Intrinsic Value against payoff
         self.ratio = ratio # Ratio used in Backspread and Ratio Vertical Spread 
         self.refresh = refresh # Flag whether to refresh default values in price formula
-        self.delta_shift = delta_shift # Size of shift used in shift_delta function
-        self.delta_shift_type = delta_shift_type # Shift type - Up, Down or Avg
+        self.price_shift = price_shift # Size of price shift used in shift_greeks function
+        self.price_shift_type = price_shift_type # Shift type - Up, Down or Avg
+        self.vol_shift = vol_shift # Size of vol shift used in shift_greeks function
+        self.ttm_shift = ttm_shift # Size of time shift used in shift_greeks function
+        self.rate_shift = rate_shift # Size of interest rate shift used in shift_greeks function
         self.df_dict = df_dict # Dictionary of parameter defaults
         self.df_combo_dict = df_combo_dict # Dictionary of payoffs with different default parameters
         self.df_params_list = df_params_list # List of default parameters
@@ -701,7 +708,7 @@ class Option():
     
     
     def shift_delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
-                    delta_shift=None, delta_shift_type=None, refresh=None):
+                    price_shift=None, price_shift_type=None, refresh=None):
         """
         Sensitivity of the option price to changes in asset price
         Calculated by taking the difference in price for varying shift sizes
@@ -722,9 +729,9 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        delta_shift : Float
+        price_shift : Float
             The size of the up and down shift in basis points. The default is 25.
-        delta_shift_type : Str
+        price_shift_type : Str
             Whether to calculate the change for an upshift, downshift or average of the two. The default is 'avg'.
         refresh : Str
             Whether the function is being called directly or used within a graph call; within graphs the
@@ -741,14 +748,14 @@ class Option():
         # the distributions are refreshed but not the parameters.
         if refresh == 'Std' or refresh is None:
             self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                                  delta_shift=delta_shift, delta_shift_type=delta_shift_type)
+                                  price_shift=price_shift, price_shift_type=price_shift_type)
         if refresh == 'graph':
             self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option,
-                                    delta_shift=delta_shift, delta_shift_type=delta_shift_type, 
+                                    price_shift=price_shift, price_shift_type=price_shift_type, 
                                     refresh=refresh)
         
-        down_shift = self.S-(self.shift/10000)*self.S
-        up_shift = self.S+(self.shift/10000)*self.S
+        down_shift = self.S-(self.price_shift/10000)*self.S
+        up_shift = self.S+(self.price_shift/10000)*self.S
         opt_price = self.price(S=self.S, K=self.K, T=self.T, r=self.r, q=self.q, 
                                sigma=self.sigma, option=self.option)
         op_shift_down = self.price(S=down_shift, K=self.K, T=self.T, r=self.r, 
@@ -764,6 +771,212 @@ class Option():
             self.opt_delta_shift = (op_shift_up - op_shift_down) * 2
         
         return self.opt_delta_shift
+    
+    
+    def numerical_greeks(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
+                     greek=None, price_shift=None, vol_shift=None, ttm_shift=None, refresh=None):
+        """
+        Sensitivities of the option price calculated numerically using shifts in parameters.
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        greek : Str
+            Sensitivity to return. Select from 'delta', 'gamma', 'vega', 'theta',
+            'rho', 'vomma', 'vanna', 'zomma', 'speed', 'color', 'ultima', 'vega_bleed',
+            'charm'. The default is 'delta'
+        price_shift : Float
+            The size of the price shift in decimal terms. The default is 0.25.
+        vol_shift : Float
+            The size of the volatility shift in decimal terms. The default is 0.001.
+        ttm_shift : Float
+            The size of the time to maturity shift in decimal terms. The default is 1/365.    
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
+
+        Returns
+        -------
+        Float
+            Option Delta.
+
+        """
+        
+        
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                  greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
+                                  ttm_shift=ttm_shift)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
+                                    ttm_shift=ttm_shift, refresh=refresh)
+        
+        self.S0 = self.S
+        self.sigma0 = self.sigma
+        self.T0 = self.T
+        self.r0 = self.r
+        self.q0 = self.q
+        
+        if self.greek == 'delta':
+            result = ((self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (2 * self.price_shift))
+        
+        if self.greek == 'gamma':
+            result = ((self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      (2 * self.price(S=self.S0, K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) +
+                       self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (self.price_shift ** 2))
+            
+        if self.greek == 'vega':
+            result = ((self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0+self.vol_shift), option=self.option, refresh='graph') - 
+                      self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                 sigma=(self.sigma0-self.vol_shift), option=self.option, refresh='graph')) / 
+                      (2 * self.vol_shift)) / 100
+        
+        if self.greek == 'theta':
+            result = ((self.price(S=self.S0, K=self.K, T=(self.T0-self.ttm_shift), r=self.r0, 
+                                  q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
+                                 q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (self.ttm_shift * 100)) 
+        
+        if self.greek == 'rho':
+            result = ((self.price(S=self.S0, K=self.K, T=self.T0, r=(self.r0+self.rate_shift), 
+                                  q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      self.price(S=self.S0, K=self.K, T=self.T0, r=(self.r0-self.rate_shift), 
+                                 q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (2 * self.rate_shift * 10000))
+                      
+        if self.greek == 'vomma':
+            result = ((self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0+self.vol_shift), option=self.option, refresh='graph') - 
+                      (2 * self.price(S=self.S0, K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) +
+                       self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0-self.vol_shift), option=self.option, refresh='graph')) / 
+                      (self.vol_shift ** 2)) / 10000              
+        
+        if self.greek == 'vanna':
+            result = ((1 / (4 * self.price_shift * self.vol_shift)) *
+                      (self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0+self.vol_shift), option=self.option, refresh='graph') - 
+                      self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                 sigma=(self.sigma0-self.vol_shift), option=self.option, refresh='graph') - 
+                      self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0+self.vol_shift), option=self.option, refresh='graph') + 
+                      self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                 sigma=(self.sigma0-self.vol_shift), option=self.option, refresh='graph'))) / 100
+        
+        if self.greek == 'charm':
+            result = (((self.price(S=(self.S0 + self.price_shift), K=self.K, T=(self.T0-self.ttm_shift), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      self.price(S=(self.S0 - self.price_shift), K=self.K, T=(self.T0-self.ttm_shift), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (2 * self.price_shift)) -
+                      ((self.price(S=(self.S0 + self.price_shift), K=self.K, T=(self.T0), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      self.price(S=(self.S0 - self.price_shift), K=self.K, T=(self.T0), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (2 * self.price_shift))) / (self.ttm_shift * 100)
+        
+        if self.greek == 'zomma':
+            result = (((self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=(self.sigma0+self.vol_shift), 
+                                 option=self.option, refresh='graph') - 
+                      (2 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                      sigma=(self.sigma0+self.vol_shift), option=self.option, 
+                                      refresh='graph')) +
+                       self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=(self.sigma0+self.vol_shift), 
+                                 option=self.option, refresh='graph')) -
+                      self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=(self.sigma0-self.vol_shift), 
+                                 option=self.option, refresh='graph') + 
+                      (2 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                      sigma=(self.sigma0-self.vol_shift), option=self.option, 
+                                      refresh='graph')) -
+                       self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=(self.sigma0-self.vol_shift), 
+                                 option=self.option, refresh='graph')) / 
+                      (2 * self.vol_shift * (self.price_shift ** 2)) / 100)
+        
+        if self.greek == 'speed':
+            result = (1 / (self.price_shift ** 3) *
+                      (self.price(S=(self.S0 + (2 * self.price_shift)), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      (3 * self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) +
+                       3 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                      sigma=self.sigma0, option=self.option, refresh='graph') -
+                       self.price(S=(self.S0-self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')))
+                
+        if self.greek == 'color':
+            result = (((self.price(S=(self.S0 + self.price_shift), K=self.K, T=(self.T0-self.ttm_shift), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      (2 * self.price(S=self.S0, K=self.K, T=(self.T0-self.ttm_shift), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) +
+                       self.price(S=(self.S0 - self.price_shift), K=self.K, T=(self.T0-self.ttm_shift), 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (self.price_shift ** 2)) - 
+                      ((self.price(S=(self.S0 + self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph') - 
+                      (2 * self.price(S=self.S0, K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) +
+                       self.price(S=(self.S0 - self.price_shift), K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=self.sigma0, option=self.option, refresh='graph')) / 
+                      (self.price_shift ** 2) )) / (self.ttm_shift * 100)
+            
+        if self.greek == 'ultima':
+            result = (1 / (self.vol_shift ** 3) *
+                      (self.price(S=self.S0, K=self.K, T=self.T0, 
+                                 r=self.r0, q=self.q0, sigma=(self.sigma0 + (2 * self.vol_shift)),
+                                 option=self.option, refresh='graph') - 
+                      (3 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                      sigma=(self.sigma0 + self.vol_shift), option=self.option, 
+                                      refresh='graph')) +
+                       3 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                      sigma=self.sigma0, option=self.option, refresh='graph') -
+                       self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0 - self.vol_shift), option=self.option, 
+                                  refresh='graph'))) * (self.vol_shift ** 2)
+        
+        if self.greek == 'vega_bleed':
+            result = (((self.price(S=self.S0, K=self.K, T=(self.T0-self.ttm_shift), r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0+self.vol_shift), option=self.option, refresh='graph') - 
+                      self.price(S=self.S0, K=self.K, T=(self.T0-self.ttm_shift), r=self.r0, q=self.q0, 
+                                 sigma=(self.sigma0-self.vol_shift), option=self.option, refresh='graph')) / 
+                      (2 * self.vol_shift)) - 
+                      ((self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                  sigma=(self.sigma0+self.vol_shift), option=self.option, refresh='graph') - 
+                      self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, q=self.q0, 
+                                 sigma=(self.sigma0-self.vol_shift), option=self.option, refresh='graph')) / 
+                      (2 * self.vol_shift))) / (self.ttm_shift * 10000)
+        
+        return result
     
     
     def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
@@ -1487,7 +1700,9 @@ class Option():
         Parameters
         ----------
         greek : Str
-            The sensitivity to be charted. The default is 'delta'.
+            The sensitivity to be charted. Select from 'delta', 'gamma', 'vega', 
+            'theta', 'rho', 'vomma', 'vanna', 'zomma', 'speed', 'color', 'ultima', 
+            'vega_bleed', 'charm'. The default is 'delta'
         x_plot : Str
                  The x-axis variable ('price', 'strike', 'vol' or 'time'). The 
                  default is 'time'.
@@ -1858,7 +2073,9 @@ class Option():
         Parameters
         ----------
         greek : Str
-            The sensitivity to be charted. The default is 'delta'.
+            The sensitivity to be charted. Select from 'delta', 'gamma', 'vega', 
+            'theta', 'rho', 'vomma', 'vanna', 'zomma', 'speed', 'color', 'ultima', 
+            'vega_bleed', 'charm'. The default is 'delta'
         S : Float
              Underlying Stock Price. The default is 100.
         r : Float
