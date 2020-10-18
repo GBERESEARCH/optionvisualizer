@@ -2,7 +2,7 @@
 ## Option pricing, risk and visualisation tools
 
 A tool to visualize option prices and sensitivities. 
-Each of the functions comes with default parameters so can be run without arguments for ease of illustration or they can be specified individually.
+Each of the functions comes with default parameters so can be run without arguments for ease of illustration or they can be specified individually. Sensitivities can be calculated both analytically and numerically.
 
 ### Black-Scholes option pricing and sensitivities:
   - Price: option price 
