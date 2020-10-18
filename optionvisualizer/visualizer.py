@@ -46,6 +46,7 @@ df_dict = {'df_S':100,
            'df_ttm_shift':1/365,
            'df_rate_shift':0.0001,
            'df_greek':'delta',
+           'df_num_sens':False,
            'df_interactive':False,
            'df_notebook':True,
            'df_colorscheme':'jet',
@@ -66,8 +67,9 @@ df_dict = {'df_S':100,
                               'option', 'option1', 'option2', 'option3', 'option4', 
                               'direction', 'value', 'ratio', 'refresh', 'price_shift', 
                               'price_shift_type', 'vol_shift','ttm_shift', 'rate_shift', 
-                              'greek', 'interactive', 'notebook', 'colorscheme', 'colorintensity', 
-                              'size', 'graphtype', 'cash', 'axis', 'spacegrain'],
+                              'greek', 'num_sens', 'interactive', 'notebook', 'colorscheme', 
+                              'colorintensity', 'size', 'graphtype', 'cash', 'axis', 
+                              'spacegrain'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
@@ -271,7 +273,8 @@ class Option():
                  value=df_dict['df_value'], ratio=df_dict['df_ratio'], refresh=df_dict['df_refresh'], 
                  combo_payoff=df_dict['df_combo_payoff'], price_shift=df_dict['df_price_shift'], 
                  price_shift_type=df_dict['df_price_shift_type'], vol_shift=df_dict['df_vol_shift'], 
-                 ttm_shift=df_dict['df_ttm_shift'], rate_shift=df_dict['df_rate_shift'], greek=df_dict['df_greek'], 
+                 ttm_shift=df_dict['df_ttm_shift'], rate_shift=df_dict['df_rate_shift'], 
+                 greek=df_dict['df_greek'], num_sens=df_dict['df_num_sens'],
                  interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
                  colorscheme=df_dict['df_colorscheme'], colorintensity=df_dict['df_colorintensity'], 
                  size=df_dict['df_size'], graphtype=df_dict['df_graphtype'], y_plot=df_dict['df_y_plot'], 
@@ -326,6 +329,7 @@ class Option():
         self.df_combo_dict = df_combo_dict # Dictionary of payoffs with different default parameters
         self.df_params_list = df_params_list # List of default parameters
         self.greek = greek # Option greek to display e.g. delta
+        self.num_sens = num_sens # Whether to calculate numerical or analytical sensitivity
         self.interactive = interactive # Whether to display static mpl 3D graph or plotly interactive graph
         self.notebook = notebook # Whether running in iPython notebook or not, False creates a popup html page 
         self.colorscheme = colorscheme # Color palette to use in 3D graphs
@@ -705,9 +709,6 @@ class Option():
             self.opt_delta = self.carry * (self.Nd1 - 1)
             
         return self.opt_delta
-    
-    
-    
     
     
     def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
@@ -1185,7 +1186,6 @@ class Option():
         return self.opt_color
 
 
-
     def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, option=None, 
                refresh=None):
         """
@@ -1283,8 +1283,8 @@ class Option():
         return self.opt_vega_bleed
 
 
-    def analytical_greeks(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-                          option=None, greek=None, refresh=None):
+    def analytical_sensitivities(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
+                                 option=None, greek=None, refresh=None):
         """
         Sensitivities of the option calculated analytically from closed form solutions.
         
@@ -1401,9 +1401,9 @@ class Option():
         return self.opt_delta_shift
     
     
-    def numerical_greeks(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-                         option=None, greek=None, price_shift=None, vol_shift=None, 
-                         ttm_shift=None, refresh=None):
+    def numerical_sensitivities(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
+                                option=None, greek=None, price_shift=None, vol_shift=None, 
+                                ttm_shift=None, refresh=None):
         """
         Sensitivities of the option calculated numerically using shifts in parameters.
 
@@ -1607,6 +1607,74 @@ class Option():
                       (2 * self.vol_shift))) / (self.ttm_shift * 10000)
         
         return result
+
+
+    def sensitivities(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
+                      option=None, greek=None, price_shift=None, vol_shift=None, 
+                      ttm_shift=None, num_sens=None, refresh=None):
+        """
+        Sensitivities of the option.
+
+        Parameters
+        ----------
+        S : Float
+            Underlying Stock Price. The default is 100. 
+        K : Float
+            Strike Price. The default is 100.
+        T : Float
+            Time to Maturity. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. The default is 0.
+        sigma : Float
+            Implied Volatility. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. The default is 'call'
+        greek : Str
+            Sensitivity to return. Select from 'delta', 'gamma', 'vega', 'theta',
+            'rho', 'vomma', 'vanna', 'zomma', 'speed', 'color', 'ultima', 'vega bleed',
+            'charm'. The default is 'delta'
+        price_shift : Float
+            The size of the price shift in decimal terms. The default is 0.25.
+        vol_shift : Float
+            The size of the volatility shift in decimal terms. The default is 0.001.
+        ttm_shift : Float
+            The size of the time to maturity shift in decimal terms. The default is 1/365. 
+        num_sens : Bool
+            Whether to calculate numerical or analytical sensitivity. The default is False.
+        refresh : Str
+            Whether the function is being called directly or used within a graph call; within graphs the
+            parameters have already been refreshed so the initialise graphs function fixes them in place. 
+
+        Returns
+        -------
+        Float
+            Option Sensitivity.
+
+        """
+
+        # If refresh is set to 'graph' the price is to be used in combo graphs so 
+        # the distributions are refreshed but not the parameters.
+        if refresh == 'Std' or refresh is None:
+            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                  greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
+                                  ttm_shift=ttm_shift, num_sens=num_sens)
+        if refresh == 'graph':
+            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                    greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
+                                    ttm_shift=ttm_shift, num_sens=num_sens, refresh=refresh)
+            
+        if self.num_sens == False:
+            return self.analytical_sensitivities(S=self.S, K=self.K, T=self.T, r=self.r, 
+                                                 q=self.q, sigma=self.sigma, option=self.option, 
+                                                 greek=self.greek, refresh=self.refresh)
+        else:
+            return self.numerical_sensitivities(S=self.S, K=self.K, T=self.T, r=self.r, 
+                                                q=self.q, sigma=self.sigma, option=self.option, 
+                                                greek=self.greek, price_shift=self.price_shift, 
+                                                vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
+                                                refresh=self.refresh)
 
 
     def barrier_price(self, S=None, K=None, H=None, R=None, T=None, r=None, q=None, 
