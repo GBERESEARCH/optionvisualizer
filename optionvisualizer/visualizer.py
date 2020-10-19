@@ -2340,7 +2340,7 @@ class Option():
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
  
         # Create a legend 
-        ax.legend(loc=0)
+        ax.legend(loc=0, fontsize=10)
         
         # Display the chart
         plt.show()
@@ -3956,7 +3956,7 @@ class Option():
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         
         # Create a legend
-        ax.legend(loc=0)
+        ax.legend(loc=0, fontsize=10)
         
         # Display the chart
         plt.show()
