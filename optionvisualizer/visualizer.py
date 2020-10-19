@@ -60,6 +60,7 @@ df_dict = {'df_S':100,
            'df_axis':'price',
            'df_spacegrain':100,
            'df_risk':True,
+           'df_mpl_style':'seaborn-darkgrid',
 
             # List of default parameters used when refreshing 
             'df_params_list':['S', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 'G2', 'G3', 
@@ -70,7 +71,7 @@ df_dict = {'df_S':100,
                               'price_shift_type', 'vol_shift','ttm_shift', 'rate_shift', 
                               'greek', 'num_sens', 'interactive', 'notebook', 'colorscheme', 
                               'colorintensity', 'size', 'graphtype', 'cash', 'axis', 
-                              'spacegrain', 'risk'],
+                              'spacegrain', 'risk', 'mpl_style'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
@@ -282,11 +283,11 @@ class Option():
                  x_plot=df_dict['df_x_plot'], x_name_dict=df_dict['df_x_name_dict'], 
                  x_scale_dict=df_dict['df_x_scale_dict'], y_name_dict=df_dict['df_y_name_dict'], 
                  time_shift=df_dict['df_time_shift'], cash=df_dict['df_cash'], axis=df_dict['df_axis'], 
-                 spacegrain=df_dict['df_spacegrain'], risk=df_dict['df_risk'], df_combo_dict=df_dict['df_combo_dict'], 
-                 df_params_list=df_dict['df_params_list'], equal_greeks=df_dict['df_equal_greeks'], 
-                 mod_payoffs=df_dict['df_mod_payoffs'], mod_params=df_dict['df_mod_params'], 
-                 label_dict=df_dict['df_label_dict'], greek_dict=df_dict['df_greek_dict'], 
-                 df_dict=df_dict):
+                 spacegrain=df_dict['df_spacegrain'], risk=df_dict['df_risk'], mpl_style=df_dict['df_mpl_style'], 
+                 df_combo_dict=df_dict['df_combo_dict'], df_params_list=df_dict['df_params_list'], 
+                 equal_greeks=df_dict['df_equal_greeks'], mod_payoffs=df_dict['df_mod_payoffs'], 
+                 mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
+                 greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
 
         self.S = S # Spot price
         self.K = K # Strike price
@@ -347,6 +348,7 @@ class Option():
         self.axis = axis # Price or Vol against Time in 3D graphs
         self.spacegrain = spacegrain # Number of points in each axis linspace argument for 3D graphs
         self.risk = risk # Whether to show risk or payoff graphs in visualize method
+        self.mpl_style = mpl_style # Matplotlib style template for 2D risk charts and payoffs
         self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
         self.mod_params = mod_params # Parameters of these payoffs that need changing
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
@@ -1819,7 +1821,8 @@ class Option():
                   G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, time_shift=None, 
                   interactive=None, notebook=None, colorscheme=None, colorintensity=None, 
                   size=None, axis=None, spacegrain=None, K=None, K1=None, K2=None, 
-                  K3=None, K4=None, cash=None, ratio=None, value=None, combo_payoff=None):
+                  K3=None, K4=None, cash=None, ratio=None, value=None, combo_payoff=None, 
+                  mpl_style=None):
         """
         Plot the chosen graph of risk or payoff.
         
@@ -1913,7 +1916,9 @@ class Option():
             Whether to show the current value as well as the terminal payoff. Used in payoff graphs. 
             The default is False.
         combo_payoff : Str
-            The payoff to be displayed. Used in payoff graphs. The default is 'straddle'. 
+            The payoff to be displayed. Used in payoff graphs. The default is 'straddle'.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.
    
         Returns
         -------
@@ -1929,7 +1934,7 @@ class Option():
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
                               size=size,  axis=axis, spacegrain=spacegrain, K=K, 
                               K1=K1, K2=K2, K3=K3, K4=K4, cash=cash, ratio=ratio, 
-                              value=value, combo_payoff=combo_payoff)
+                              value=value, combo_payoff=combo_payoff, mpl_style=mpl_style)
         
         if self.risk == True:
             return self.greeks(x_plot=self.x_plot, y_plot=self.y_plot, S=self.S, 
@@ -1940,19 +1945,21 @@ class Option():
                                notebook=self.notebook, colorscheme=self.colorscheme, 
                                colorintensity=self.colorintensity, size=self.size, 
                                axis=self.axis, spacegrain=self.spacegrain, greek=self.greek, 
-                               graphtype=self.graphtype)
+                               graphtype=self.graphtype, mpl_style=self.mpl_style)
         
         if self.risk == False:
-            return self.payoffs(S=S, K=K, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                                sigma=sigma, option=option, direction=direction, 
-                                cash=cash, ratio=ratio, value=value, combo_payoff=combo_payoff)
+            return self.payoffs(S=self.S, K=self.K, K1=self.K1, K2=self.K2, K3=self.K3, 
+                                K4=self.K4, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
+                                option=self.option, direction=self.direction, cash=self.cash, 
+                                ratio=self.ratio, value=self.value, combo_payoff=self.combo_payoff, 
+                                mpl_style=self.mpl_style)
         
     
     def greeks(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
                notebook=None, colorscheme=None, colorintensity=None, size=None, 
-               axis=None, spacegrain=None, greek=None, graphtype=None):
+               axis=None, spacegrain=None, greek=None, graphtype=None, mpl_style=None):
         """
         Plot the chosen 2D or 3D graph
         
@@ -2015,6 +2022,8 @@ class Option():
             Number of points in each axis linspace argument for 3D graphs. The default is 100.    
         graphtype : Str
             Whether to plot 2D or 3D graph. The default is 2D.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.    
 
         Returns
         -------
@@ -2028,7 +2037,7 @@ class Option():
                               q=q, sigma=sigma, option=option, interactive=interactive, 
                               notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
                               size=size, direction=direction, axis=axis, spacegrain=spacegrain, 
-                              greek=greek, graphtype=graphtype)
+                              greek=greek, graphtype=graphtype, mpl_style=mpl_style)
         
         # Run 2D greeks method
         if self.graphtype == '2D':
@@ -2036,7 +2045,8 @@ class Option():
                                   S=self.S, G1=self.G1, G2=self.G2, G3=self.G3, 
                                   T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
                                   time_shift=self.time_shift, r=self.r, q=self.q, 
-                                  sigma=self.sigma, option=self.option, direction=self.direction)
+                                  sigma=self.sigma, option=self.option, direction=self.direction, 
+                                  mpl_style=self.mpl_style)
         
         # Run 3D greeks method    
         if self.graphtype == '3D':
@@ -2050,7 +2060,8 @@ class Option():
     
     def greeks_graphs_2D(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                          G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
-                         r=None, q=None, sigma=None, option=None, direction=None):
+                         r=None, q=None, sigma=None, option=None, direction=None, 
+                         mpl_style=None):
         """
         Plot chosen 2D greeks graph.
                 
@@ -2091,6 +2102,8 @@ class Option():
             Option type, Put or Call. The default is 'call'
         direction : Str
             Whether the payoff is long or short. The default is 'long'.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.    
 
         Returns
         -------
@@ -2101,7 +2114,8 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, 
                               G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
-                              r=r, q=q, sigma=sigma, option=option, direction=direction)
+                              r=r, q=q, sigma=sigma, option=option, direction=direction, 
+                              mpl_style=mpl_style)
         
         # create arrays of 1000 equally spaced points for a range of strike prices, 
         # volatilities and maturities
@@ -2293,11 +2307,15 @@ class Option():
         """
         
         # Set style to Seaborn Darkgrid
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use(self.mpl_style)
         
         # Create the figure and axes objects
         fig, ax = plt.subplots()
         
+        # If plotting against time, show time to maturity reducing left to right
+        if self.x_plot == 'time':
+            ax.invert_xaxis()
+            
         # Plot the 1st option
         ax.plot(xarray, yarray1, color='blue', label=label1)
         
@@ -2314,11 +2332,15 @@ class Option():
         # Apply a grid
         plt.grid(True)
         
+        # Apply a black border to the chart
+        ax.patch.set_edgecolor('black')  
+        ax.patch.set_linewidth('1')
+        
         # Set x and y axis labels and title
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
  
         # Create a legend 
-        ax.legend()
+        ax.legend(loc=0)
         
         # Display the chart
         plt.show()
@@ -2611,7 +2633,7 @@ class Option():
     
     def payoffs(self, S=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, direction=None, 
-                cash=None, ratio=None, value=None, combo_payoff=None):
+                cash=None, ratio=None, value=None, combo_payoff=None, mpl_style=None):
         """
         Displays the graph of the specified combo payoff.
                 
@@ -2654,74 +2676,77 @@ class Option():
             Whether to show the current value as well as the terminal payoff. The default is False.
         combo_payoff : Str
             The payoff to be displayed.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
         Runs the specified combo payoff method.
 
         """
+        
         if combo_payoff == 'call':
             self.call(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                      value=value)
+                      value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'put':
             self.put(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                      value=value)
+                      value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'stock':
-            self.stock(S=S, direction=direction)
+            self.stock(S=S, direction=direction, mpl_style=mpl_style)
         
         if combo_payoff == 'forward':
             self.forward(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
-                         cash=cash)
+                         cash=cash, mpl_style=mpl_style)
         
         if combo_payoff == 'collar':
             self.collar(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                        value=value)
+                        value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'spread':
             self.spread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
-                        direction=direction, value=value)
+                        direction=direction, value=value, mpl_style=mpl_style)
             
         if combo_payoff == 'backspread':
             self.backspread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
-                            ratio=ratio, value=value)
+                            ratio=ratio, value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'ratio vertical spread':
             self.ratio_vertical_spread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
-                                       option=option, ratio=ratio, value=value)
+                                       option=option, ratio=ratio, value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'straddle':
             self.straddle(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                          value=value)
+                          value=value, mpl_style=mpl_style)
 
         if combo_payoff == 'strangle':
             self.strangle(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                          value=value)
+                          value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'butterfly':    
             self.butterfly(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                           option=option, direction=direction, value=value)
+                           option=option, direction=direction, value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'christmas tree':
             self.christmas_tree(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                                option=option, direction=direction, value=value)    
+                                option=option, direction=direction, value=value, mpl_style=mpl_style)    
 
         if combo_payoff == 'condor':
             self.condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                        sigma=sigma, option=option, direction=direction, value=value)
+                        sigma=sigma, option=option, direction=direction, value=value, mpl_style=mpl_style)
         
         if combo_payoff == 'iron butterfly':
             self.iron_butterfly(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                                sigma=sigma, direction=direction, value=value)
+                                sigma=sigma, direction=direction, value=value, mpl_style=mpl_style)
             
         if combo_payoff == 'iron condor':
             self.iron_condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                             sigma=sigma, direction=direction, value=value)
+                             sigma=sigma, direction=direction, value=value, mpl_style=mpl_style)
             
     
     def call(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
-             value=None):
+             value=None, mpl_style=None):
         """
         Displays the graph of the call.
 
@@ -2744,6 +2769,8 @@ class Option():
         value : Bool
             Whether to show the current value as well as the terminal payoff. The 
             default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -2760,7 +2787,7 @@ class Option():
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                              value=value, option1=self.option1)
+                              value=value, option1=self.option1, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=1)
@@ -2788,7 +2815,7 @@ class Option():
                 
         
     def put(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
-            value=None):
+            value=None, mpl_style=None):
         """
         Displays the graph of the put.
 
@@ -2810,6 +2837,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'. 
 
         Returns
         -------
@@ -2826,7 +2855,7 @@ class Option():
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                              value=value, option1=self.option1)
+                              value=value, option1=self.option1, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=1)
@@ -2853,7 +2882,7 @@ class Option():
                          label='Payoff', label2='Value')   
                
         
-    def stock(self, S=None, direction=None):
+    def stock(self, S=None, direction=None, mpl_style=None):
         """
         Displays the graph of the underlying.
 
@@ -2863,6 +2892,8 @@ class Option():
              Underlying Stock Price. The default is 100. 
         direction : Str
             Whether the payoff is long or short. The default is 'long'.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'. 
 
         Returns
         -------
@@ -2876,7 +2907,7 @@ class Option():
         self.combo_payoff = 'stock'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S=S, direction=direction)
+        self._initialise_func(S=S, direction=direction, mpl_style=mpl_style)
         
         # Define strike range
         self.SA = np.linspace(0.75 * self.S, 1.25 * self.S, 1000)
@@ -2896,7 +2927,7 @@ class Option():
             
     
     def forward(self, S=None, T=None, r=None, q=None, sigma=None, direction=None, 
-                cash=None):
+                cash=None, mpl_style=None):
         """
         Displays the graph of the synthetic forward strategy:
             Long one ATM call
@@ -2918,6 +2949,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         cash : Bool
             Whether to discount to present value. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -2933,7 +2966,7 @@ class Option():
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, T=T, r=r, q=q, sigma=sigma, option1='call', 
-                              option2='put', direction=direction, cash=cash)
+                              option2='put', direction=direction, cash=cash, mpl_style=mpl_style)
         
         # Set both strikes to spot and both maturities to input maturity 
         self.K1 = self.S
@@ -2965,7 +2998,7 @@ class Option():
     
     
     def collar(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-               direction=None, value=None):
+               direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the collar strategy:
             Long one OTM put
@@ -2991,6 +3024,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3007,7 +3042,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma,
                               option1='put', option2='call', direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
 
         # Calculate option prices
         self._return_options(legs=2)
@@ -3036,7 +3071,7 @@ class Option():
     
     
     def spread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-               option=None, direction=None, value=None):
+               option=None, direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the spread strategy:
             Long one ITM option
@@ -3064,6 +3099,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3081,7 +3118,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3117,7 +3154,7 @@ class Option():
         
    
     def backspread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-                   option=None, ratio=None, value=None):
+                   option=None, ratio=None, value=None, mpl_style=None):
         """
         Displays the graph of the backspread strategy:
             Short one ITM option
@@ -3147,6 +3184,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3163,7 +3202,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3191,7 +3230,7 @@ class Option():
         
         
     def ratio_vertical_spread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, 
-                              sigma=None, option=None, ratio=None, value=None):
+                              sigma=None, option=None, ratio=None, value=None, mpl_style=None):
         """
         Displays the graph of the ratio vertical spread strategy:
             Long one ITM option
@@ -3221,6 +3260,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3237,7 +3278,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3265,7 +3306,7 @@ class Option():
         
     
     def straddle(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
-                 value=None):
+                 value=None, mpl_style=None):
         """
         Displays the graph of the straddle strategy:
             Long one ATM put
@@ -3289,6 +3330,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
         
         Returns
         -------
@@ -3305,7 +3348,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K=K, K1=K, K2=K, T=T, T1=T, T2=T, r=r, q=q, 
                               sigma=sigma, option1='put', option2='call', direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3333,7 +3376,7 @@ class Option():
   
     
     def strangle(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-                 direction=None, value=None):
+                 direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the strangle strategy:
             Long one OTM put
@@ -3359,6 +3402,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3375,7 +3420,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option1='put', option2='call', direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3403,7 +3448,7 @@ class Option():
 
 
     def butterfly(self, S=None, K1=None, K2=None, K3=None, T=None, r=None, q=None, 
-                  sigma=None, option=None, direction=None, value=None):
+                  sigma=None, option=None, direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the butterfly strategy:
             Long one ITM option
@@ -3434,6 +3479,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3451,7 +3498,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=3)
@@ -3487,7 +3534,8 @@ class Option():
 
     
     def christmas_tree(self, S=None, K1=None, K2=None, K3=None, T=None, r=None, 
-                       q=None, sigma=None, option=None, direction=None, value=None):
+                       q=None, sigma=None, option=None, direction=None, value=None, 
+                       mpl_style=None):
         """
         Displays the graph of the christmas tree strategy:
             Long one ITM option
@@ -3518,6 +3566,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3535,7 +3585,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=3)
@@ -3579,7 +3629,7 @@ class Option():
 
 
     def condor(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-               q=None, sigma=None, option=None, direction=None, value=None):
+               q=None, sigma=None, option=None, direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the condor strategy:
             Long one low strike option
@@ -3613,6 +3663,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3630,7 +3682,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, option4=option, direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=4)
@@ -3670,7 +3722,7 @@ class Option():
 
 
     def iron_butterfly(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-                       q=None, sigma=None, direction=None, value=None):
+                       q=None, sigma=None, direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the iron butterfly strategy:
             Short one OTM put
@@ -3703,6 +3755,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3720,7 +3774,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
                               option2='call', option3='put', option4='call', direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=4)
@@ -3752,7 +3806,7 @@ class Option():
     
     
     def iron_condor(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-                       q=None, sigma=None, direction=None, value=None):
+                       q=None, sigma=None, direction=None, value=None, mpl_style=None):
         """
         Displays the graph of the iron condor strategy:
             Long one OTM put
@@ -3785,6 +3839,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         value : Bool
             Whether to show the current value as well as the terminal payoff. The default is False.
+        mpl_style : Str
+            Matplotlib style template for 2D risk charts and payoffs. The default is 'seaborn-darkgrid'.     
 
         Returns
         -------
@@ -3802,7 +3858,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
                               option2='put', option3='call', option4='call', direction=direction, 
-                              value=value)
+                              value=value, mpl_style=mpl_style)
         
         # Calculate option prices
         self._return_options(legs=4)
@@ -3871,7 +3927,7 @@ class Option():
         """
         
         # Use seaborn darkgrid style 
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use(self.mpl_style)
         
         # Create the figure and axes objects
         fig, ax = plt.subplots()
@@ -3900,7 +3956,7 @@ class Option():
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         
         # Create a legend
-        ax.legend()
+        ax.legend(loc=0)
         
         # Display the chart
         plt.show()
