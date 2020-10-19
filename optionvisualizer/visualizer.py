@@ -59,6 +59,7 @@ df_dict = {'df_S':100,
            'df_cash':False,
            'df_axis':'price',
            'df_spacegrain':100,
+           'df_risk':True,
 
             # List of default parameters used when refreshing 
             'df_params_list':['S', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 'G2', 'G3', 
@@ -69,7 +70,7 @@ df_dict = {'df_S':100,
                               'price_shift_type', 'vol_shift','ttm_shift', 'rate_shift', 
                               'greek', 'num_sens', 'interactive', 'notebook', 'colorscheme', 
                               'colorintensity', 'size', 'graphtype', 'cash', 'axis', 
-                              'spacegrain'],
+                              'spacegrain', 'risk'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
@@ -281,7 +282,7 @@ class Option():
                  x_plot=df_dict['df_x_plot'], x_name_dict=df_dict['df_x_name_dict'], 
                  x_scale_dict=df_dict['df_x_scale_dict'], y_name_dict=df_dict['df_y_name_dict'], 
                  time_shift=df_dict['df_time_shift'], cash=df_dict['df_cash'], axis=df_dict['df_axis'], 
-                 spacegrain=df_dict['df_spacegrain'], df_combo_dict=df_dict['df_combo_dict'], 
+                 spacegrain=df_dict['df_spacegrain'], risk=df_dict['df_risk'], df_combo_dict=df_dict['df_combo_dict'], 
                  df_params_list=df_dict['df_params_list'], equal_greeks=df_dict['df_equal_greeks'], 
                  mod_payoffs=df_dict['df_mod_payoffs'], mod_params=df_dict['df_mod_params'], 
                  label_dict=df_dict['df_label_dict'], greek_dict=df_dict['df_greek_dict'], 
@@ -345,6 +346,7 @@ class Option():
         self.cash = cash # Whether to graph forward at cash or discount
         self.axis = axis # Price or Vol against Time in 3D graphs
         self.spacegrain = spacegrain # Number of points in each axis linspace argument for 3D graphs
+        self.risk = risk # Whether to show risk or payoff graphs in visualize method
         self.mod_payoffs = mod_payoffs # Combo payoffs needing different default parameters
         self.mod_params = mod_params # Parameters of these payoffs that need changing
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
@@ -1811,6 +1813,140 @@ class Option():
 
         return self.opt_barrier_payoff    
 
+
+    def visualize(self, risk=None, S=None, T=None, r=None, q=None, sigma=None, option=None, 
+                  direction=None, greek=None, graphtype=None, x_plot=None, y_plot=None, 
+                  G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, time_shift=None, 
+                  interactive=None, notebook=None, colorscheme=None, colorintensity=None, 
+                  size=None, axis=None, spacegrain=None, K=None, K1=None, K2=None, 
+                  K3=None, K4=None, cash=None, ratio=None, value=None, combo_payoff=None):
+        """
+        Plot the chosen graph of risk or payoff.
+        
+        
+        Parameters
+        ----------
+        risk : Bool
+            Whether to display risk graph or payoff graph. The default is True.
+        S : Float
+            Underlying Stock Price. Used in risk & payoff graphs. The default is 100. 
+        T : Float
+            Time to Maturity. Used in risk & payoff graphs. The default is 0.25 (3 months).
+        r : Float
+            Interest Rate. Used in risk & payoff graphs. The default is 0.05 (5%).
+        q : Float
+            Dividend Yield. Used in risk & payoff graphs. The default is 0.
+        sigma : Float
+            Implied Volatility. Used in risk & payoff graphs. The default is 0.2 (20%).
+        option : Str
+            Option type, Put or Call. Used in risk & payoff graphs. The default is 'call'
+        direction : Str
+            Whether the payoff is long or short. Used in risk & payoff graphs. The default is 'long'.
+        greek : Str
+            The sensitivity to be charted. Select from 'delta', 'gamma', 'vega', 
+            'theta', 'rho', 'vomma', 'vanna', 'zomma', 'speed', 'color', 'ultima', 
+            'vega_bleed', 'charm'. Used in risk graphs. The default is 'delta'. 
+        graphtype : Str
+            Whether to plot 2D or 3D graph. Used in risk graphs. The default is 2D.
+        x_plot : Str
+            The x-axis variable ('price', 'strike', 'vol' or 'time'). Used in 2D-risk graphs. 
+            The default is 'time'.
+        y_plot : Str
+            The y-axis variable ('value', 'delta', 'gamma', 'vega' or 'theta'). 
+            Used in 2D-risk graphs. The default is 'delta.
+        G1 : Float
+            Strike Price of option 1. Used in 2D-risk graphs. The default is 90.
+        G2 : Float
+            Strike Price of option 2. Used in 2D-risk graphs. The default is 100.
+        G3 : Float
+            Strike Price of option 3. Used in 2D-risk graphs. The default is 110.
+        T1 : Float
+            Time to Maturity of option 1. Used in 2D-risk graphs. The default is 0.25 (3 months).
+        T2 : Float
+            Time to Maturity of option 1. Used in 2D-risk graphs. The default is 0.25 (3 months).
+        T3 : Float
+            Time to Maturity of option 1. Used in 2D-risk graphs. The default is 0.25 (3 months).
+        time_shift : Float
+            Difference between T1 and T2 in rho graphs. Used in 2D-risk graphs. 
+            The default is 0.25 (3 months).
+        interactive : Bool
+            Whether to show matplotlib (False) or plotly (True) graph. Used in 3D-risk graphs. 
+            The default is False.
+        notebook : Bool
+            Whether the function is being run in an IPython notebook and hence whether 
+            it should output in line or to an HTML file. Used in 3D-risk graphs. 
+            The default is False.
+        colorscheme : Str
+            The matplotlib colormap or plotly colorscale to use. Used in 3D-risk graphs. 
+            The default is 'jet' (which is a palette that works in both plotly and matplotlib).
+        colorintensity : Float
+            The alpha value indicating level of transparency / intensity. 
+            The default is 1.
+        size : Tuple
+            Figure size for matplotlib chart. Used in 3D-risk graphs. The default is (12, 8).
+        axis : Str
+            Whether the x-axis is 'price' or 'vol'. Used in 3D-risk graphs. The default is 'price'.
+        spacegrain : Int
+            Number of points in each axis linspace argument for 3D graphs. Used in 3D-risk graphs. 
+            The default is 100. 
+        K : Float
+            Strike Price of option 1. Used in payoff graphs. The default is 100 
+            (individual payoffs may have own defaults).
+        K1 : Float
+             Strike Price of option 1. Used in payoff graphs. The default is 95 
+             (individual payoffs may have own defaults).
+        K2 : Float
+             Strike Price of option 2. Used in payoff graphs. The default is 105 
+             (individual payoffs may have own defaults).
+        K3 : Float
+             Strike Price of option 3. Used in payoff graphs. The default is 105 
+             (individual payoffs may have own defaults).
+        K4 : Float
+             Strike Price of option 4. Used in payoff graphs. The default is 105 
+             (individual payoffs may have own defaults).
+        cash : Bool
+            Whether to discount forward to present value. Used in forward payoff graph. The default is False.
+        ratio : Int
+            Multiple of OTM options to be sold for ITM purchased. Used in backspread, 
+            ratio vertical spread payoff graphs. The default is 2. 
+        value : Bool
+            Whether to show the current value as well as the terminal payoff. Used in payoff graphs. 
+            The default is False.
+        combo_payoff : Str
+            The payoff to be displayed. Used in payoff graphs. The default is 'straddle'. 
+   
+        Returns
+        -------
+        Displays graph of either 2D / 3D greeks or payoff diagram.
+
+        """
+
+        # Pass parameters to be initialised. If not provided they will be populated with default values
+        self._initialise_func(risk=risk, S=S, T=T, r=r, q=q, sigma=sigma, option=option, 
+                              direction=direction, greek=greek, graphtype=graphtype, 
+                              x_plot=x_plot, y_plot=y_plot,  G1=G1, G2=G2, G3=G3, 
+                              T1=T1, T2=T2, T3=T3, time_shift=time_shift, interactive=interactive, 
+                              notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
+                              size=size,  axis=axis, spacegrain=spacegrain, K=K, 
+                              K1=K1, K2=K2, K3=K3, K4=K4, cash=cash, ratio=ratio, 
+                              value=value, combo_payoff=combo_payoff)
+        
+        if self.risk == True:
+            return self.greeks(x_plot=self.x_plot, y_plot=self.y_plot, S=self.S, 
+                               G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, T1=self.T1, 
+                               T2=self.T2, T3=self.T3, time_shift=self.time_shift, 
+                               r=self.r, q=self.q, sigma=self.sigma, option=self.option, 
+                               direction=self.direction, interactive=self.interactive, 
+                               notebook=self.notebook, colorscheme=self.colorscheme, 
+                               colorintensity=self.colorintensity, size=self.size, 
+                               axis=self.axis, spacegrain=self.spacegrain, greek=self.greek, 
+                               graphtype=self.graphtype)
+        
+        if self.risk == False:
+            return self.payoffs(S=S, K=K, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
+                                sigma=sigma, option=option, direction=direction, 
+                                cash=cash, ratio=ratio, value=value, combo_payoff=combo_payoff)
+        
     
     def greeks(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
@@ -1875,6 +2011,8 @@ class Option():
             Figure size for matplotlib chart. The default is (12, 8).
         axis : Str
             Whether the x-axis is 'price' or 'vol'. The default is 'price'.
+        spacegrain : Int
+            Number of points in each axis linspace argument for 3D graphs. The default is 100.    
         graphtype : Str
             Whether to plot 2D or 3D graph. The default is 2D.
 
@@ -2226,6 +2364,8 @@ class Option():
             Whether the payoff is long or short. The default is 'long'.
         axis : Str
             Whether the x-axis is 'price' or 'vol'. The default is 'price'.
+        spacegrain : Int
+            Number of points in each axis linspace argument for 3D graphs. The default is 100.        
 
         Returns
         -------
