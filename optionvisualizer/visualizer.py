@@ -51,7 +51,8 @@ df_dict = {'df_S':100,
            'df_notebook':True,
            'df_colorscheme':'jet',
            'df_colorintensity':1,
-           'df_size':(15, 12),
+           'df_size3d':(15, 12),
+           'df_size2d':(6, 4),
            'df_graphtype':'2D',
            'df_y_plot':'delta',
            'df_x_plot':'time',
@@ -70,8 +71,8 @@ df_dict = {'df_S':100,
                               'direction', 'value', 'ratio', 'refresh', 'price_shift', 
                               'price_shift_type', 'vol_shift','ttm_shift', 'rate_shift', 
                               'greek', 'num_sens', 'interactive', 'notebook', 'colorscheme', 
-                              'colorintensity', 'size', 'graphtype', 'cash', 'axis', 
-                              'spacegrain', 'risk', 'mpl_style'],
+                              'colorintensity', 'size3d', 'size2d', 'graphtype', 
+                              'cash', 'axis', 'spacegrain', 'risk', 'mpl_style'],
             
             # List of Greeks where call and put values are the same
             'df_equal_greeks':['gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 
@@ -279,8 +280,8 @@ class Option():
                  greek=df_dict['df_greek'], num_sens=df_dict['df_num_sens'],
                  interactive=df_dict['df_interactive'], notebook=df_dict['df_notebook'], 
                  colorscheme=df_dict['df_colorscheme'], colorintensity=df_dict['df_colorintensity'], 
-                 size=df_dict['df_size'], graphtype=df_dict['df_graphtype'], y_plot=df_dict['df_y_plot'], 
-                 x_plot=df_dict['df_x_plot'], x_name_dict=df_dict['df_x_name_dict'], 
+                 size3d=df_dict['df_size3d'], size2d=df_dict['df_size2d'], graphtype=df_dict['df_graphtype'], 
+                 y_plot=df_dict['df_y_plot'], x_plot=df_dict['df_x_plot'], x_name_dict=df_dict['df_x_name_dict'], 
                  x_scale_dict=df_dict['df_x_scale_dict'], y_name_dict=df_dict['df_y_name_dict'], 
                  time_shift=df_dict['df_time_shift'], cash=df_dict['df_cash'], axis=df_dict['df_axis'], 
                  spacegrain=df_dict['df_spacegrain'], risk=df_dict['df_risk'], mpl_style=df_dict['df_mpl_style'], 
@@ -336,7 +337,8 @@ class Option():
         self.notebook = notebook # Whether running in iPython notebook or not, False creates a popup html page 
         self.colorscheme = colorscheme # Color palette to use in 3D graphs
         self.colorintensity = colorintensity # Alpha level to use in 3D graphs
-        self.size = size # Tuple for size of 3D static graph
+        self.size3d = size3d # Tuple for size of 3D static graph
+        self.size2d = size2d # Tuple for size of 2D static graph
         self.graphtype = graphtype # 2D or 3D graph 
         self.y_plot = y_plot # X-axis in 2D greeks graph
         self.x_plot = x_plot # Y-axis in 2D greeks graph
@@ -1658,27 +1660,16 @@ class Option():
 
         """
 
-        # If refresh is set to 'graph' the price is to be used in combo graphs so 
-        # the distributions are refreshed but not the parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                                  greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
-                                  ttm_shift=ttm_shift, num_sens=num_sens)
-        if refresh == 'graph':
-            self._initialise_graphs(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                                    greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
-                                    ttm_shift=ttm_shift, num_sens=num_sens, refresh=refresh)
+        if num_sens is None:
+            num_sens = self.num_sens
             
-        if self.num_sens == False:
-            return self.analytical_sensitivities(S=self.S, K=self.K, T=self.T, r=self.r, 
-                                                 q=self.q, sigma=self.sigma, option=self.option, 
-                                                 greek=self.greek, refresh=self.refresh)
+        if num_sens == False:
+            return self.analytical_sensitivities(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                          greek=greek, refresh=refresh)
         else:
-            return self.numerical_sensitivities(S=self.S, K=self.K, T=self.T, r=self.r, 
-                                                q=self.q, sigma=self.sigma, option=self.option, 
-                                                greek=self.greek, price_shift=self.price_shift, 
-                                                vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                                                refresh=self.refresh)
+            return self.numerical_sensitivities(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                                         greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
+                                         ttm_shift=ttm_shift, refresh=refresh)
 
 
     def barrier_price(self, S=None, K=None, H=None, R=None, T=None, r=None, q=None, 
@@ -1820,8 +1811,8 @@ class Option():
                   direction=None, greek=None, graphtype=None, x_plot=None, y_plot=None, 
                   G1=None, G2=None, G3=None, T1=None, T2=None, T3=None, time_shift=None, 
                   interactive=None, notebook=None, colorscheme=None, colorintensity=None, 
-                  size=None, axis=None, spacegrain=None, K=None, K1=None, K2=None, 
-                  K3=None, K4=None, cash=None, ratio=None, value=None, combo_payoff=None, 
+                  size2d=None, size3d=None, axis=None, spacegrain=None, K=None, K1=None, 
+                  K2=None, K3=None, K4=None, cash=None, ratio=None, value=None, combo_payoff=None, 
                   mpl_style=None):
         """
         Plot the chosen graph of risk or payoff.
@@ -1885,8 +1876,10 @@ class Option():
         colorintensity : Float
             The alpha value indicating level of transparency / intensity. 
             The default is 1.
-        size : Tuple
-            Figure size for matplotlib chart. Used in 3D-risk graphs. The default is (12, 8).
+        size2d : Tuple
+            Figure size for matplotlib chart. Used in 2D-risk & payoff graphs. The default is (6, 4).    
+        size3d : Tuple
+            Figure size for matplotlib chart. Used in 3D-risk graphs. The default is (15, 12).
         axis : Str
             Whether the x-axis is 'price' or 'vol'. Used in 3D-risk graphs. The default is 'price'.
         spacegrain : Int
@@ -1926,40 +1919,29 @@ class Option():
 
         """
 
-        # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(risk=risk, S=S, T=T, r=r, q=q, sigma=sigma, option=option, 
-                              direction=direction, greek=greek, graphtype=graphtype, 
-                              x_plot=x_plot, y_plot=y_plot,  G1=G1, G2=G2, G3=G3, 
-                              T1=T1, T2=T2, T3=T3, time_shift=time_shift, interactive=interactive, 
-                              notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
-                              size=size,  axis=axis, spacegrain=spacegrain, K=K, 
-                              K1=K1, K2=K2, K3=K3, K4=K4, cash=cash, ratio=ratio, 
-                              value=value, combo_payoff=combo_payoff, mpl_style=mpl_style)
+        if risk is None:
+            risk == self.risk
         
-        if self.risk == True:
-            return self.greeks(x_plot=self.x_plot, y_plot=self.y_plot, S=self.S, 
-                               G1=self.G1, G2=self.G2, G3=self.G3, T=self.T, T1=self.T1, 
-                               T2=self.T2, T3=self.T3, time_shift=self.time_shift, 
-                               r=self.r, q=self.q, sigma=self.sigma, option=self.option, 
-                               direction=self.direction, interactive=self.interactive, 
-                               notebook=self.notebook, colorscheme=self.colorscheme, 
-                               colorintensity=self.colorintensity, size=self.size, 
-                               axis=self.axis, spacegrain=self.spacegrain, greek=self.greek, 
-                               graphtype=self.graphtype, mpl_style=self.mpl_style)
+        if risk == True:
+            self.greeks(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, G3=G3, T=T, 
+                        T1=T1, T2=T2, T3=T3, time_shift=time_shift, r=r, q=q, sigma=sigma, 
+                        option=option, direction=direction, interactive=interactive, 
+                        notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
+                        size2d=size2d, size3d=size3d, axis=axis, spacegrain=spacegrain, 
+                        greek=greek, graphtype=graphtype, mpl_style=mpl_style)
         
-        if self.risk == False:
-            return self.payoffs(S=self.S, K=self.K, K1=self.K1, K2=self.K2, K3=self.K3, 
-                                K4=self.K4, T=self.T, r=self.r, q=self.q, sigma=self.sigma, 
-                                option=self.option, direction=self.direction, cash=self.cash, 
-                                ratio=self.ratio, value=self.value, combo_payoff=self.combo_payoff, 
-                                mpl_style=self.mpl_style)
+        if risk == False:
+            self.payoffs(S=S, K=K, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, sigma=sigma, 
+                         option=option, direction=direction, size2d=size2d, cash=cash, 
+                         ratio=ratio, value=value, combo_payoff=combo_payoff, mpl_style=mpl_style)
         
     
     def greeks(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, r=None, 
                q=None, sigma=None, option=None, direction=None, interactive=None, 
-               notebook=None, colorscheme=None, colorintensity=None, size=None, 
-               axis=None, spacegrain=None, greek=None, graphtype=None, mpl_style=None):
+               notebook=None, colorscheme=None, colorintensity=None, size2d=None, 
+               size3d=None, axis=None, spacegrain=None, greek=None, graphtype=None, 
+               mpl_style=None):
         """
         Plot the chosen 2D or 3D graph
         
@@ -2014,8 +1996,10 @@ class Option():
             (which works in both).
         colorintensity : Float
             The alpha value indicating level of transparency / intensity. The default is 1.
-        size : Tuple
-            Figure size for matplotlib chart. The default is (12, 8).
+        size2d : Tuple
+            Figure size for matplotlib chart. The default is (6, 4).
+        size3d : Tuple
+            Figure size for matplotlib chart. The default is (15, 12).    
         axis : Str
             Whether the x-axis is 'price' or 'vol'. The default is 'price'.
         spacegrain : Int
@@ -2031,37 +2015,28 @@ class Option():
 
         """
         
-        # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, G3=G3, 
-                              T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, r=r, 
-                              q=q, sigma=sigma, option=option, interactive=interactive, 
-                              notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
-                              size=size, direction=direction, axis=axis, spacegrain=spacegrain, 
-                              greek=greek, graphtype=graphtype, mpl_style=mpl_style)
+        if graphtype is None:
+            graphtype = self.graphtype
         
         # Run 2D greeks method
-        if self.graphtype == '2D':
-            self.greeks_graphs_2D(x_plot=self.x_plot, y_plot=self.y_plot, 
-                                  S=self.S, G1=self.G1, G2=self.G2, G3=self.G3, 
-                                  T=self.T, T1=self.T1, T2=self.T2, T3=self.T3, 
-                                  time_shift=self.time_shift, r=self.r, q=self.q, 
-                                  sigma=self.sigma, option=self.option, direction=self.direction, 
-                                  mpl_style=self.mpl_style)
+        if graphtype == '2D':
+            self.greeks_graphs_2D(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, 
+                                  G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
+                                  r=r, q=q, sigma=sigma, option=option, direction=direction, 
+                                  size2d=size2d, mpl_style=mpl_style)
         
         # Run 3D greeks method    
-        if self.graphtype == '3D':
-            self.greeks_graphs_3D(S=self.S, r=self.r, q=self.q, sigma=self.sigma, 
-                                  option=self.option, interactive=self.interactive, 
-                                  notebook=self.notebook, colorscheme=self.colorscheme, 
-                                  colorintensity=self.colorintensity, size=self.size, 
-                                  direction=self.direction, axis=self.axis, spacegrain=self.spacegrain, 
-                                  greek=self.greek)
+        if graphtype == '3D':
+            self.greeks_graphs_3D(S=S, r=r, q=q, sigma=sigma, option=option, interactive=interactive, 
+                                  notebook=notebook, colorscheme=colorscheme, colorintensity=colorintensity, 
+                                  size3d=size3d, direction=direction, axis=axis, spacegrain=spacegrain, 
+                                  greek=greek)
     
     
     def greeks_graphs_2D(self, x_plot=None, y_plot=None, S=None, G1=None, G2=None, 
                          G3=None, T=None, T1=None, T2=None, T3=None, time_shift=None, 
                          r=None, q=None, sigma=None, option=None, direction=None, 
-                         mpl_style=None):
+                         size2d=None, mpl_style=None):
         """
         Plot chosen 2D greeks graph.
                 
@@ -2115,7 +2090,7 @@ class Option():
         self._initialise_func(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, 
                               G3=G3, T=T, T1=T1, T2=T2, T3=T3, time_shift=time_shift, 
                               r=r, q=q, sigma=sigma, option=option, direction=direction, 
-                              mpl_style=mpl_style)
+                              size2d=size2d, mpl_style=mpl_style)
         
         # create arrays of 1000 equally spaced points for a range of strike prices, 
         # volatilities and maturities
@@ -2310,7 +2285,7 @@ class Option():
         plt.style.use(self.mpl_style)
         
         # Create the figure and axes objects
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=self.size2d)
         
         # If plotting against time, show time to maturity reducing left to right
         if self.x_plot == 'time':
@@ -2348,7 +2323,7 @@ class Option():
     
     def greeks_graphs_3D(self, S=None, r=None, q=None, sigma=None, 
                          option=None, interactive=None, notebook=None, colorscheme=None, 
-                         colorintensity=None, size=None, direction=None, axis=None, 
+                         colorintensity=None, size3d=None, direction=None, axis=None, 
                          spacegrain=None, greek=None):
         """
         
@@ -2380,8 +2355,8 @@ class Option():
             (which works in both).
         colorintensity : Float
             The alpha value indicating level of transparency / intensity. The default is 1.
-        size : Tuple
-            Figure size for matplotlib chart. The default is (12, 8).
+        size3d : Tuple
+            Figure size for matplotlib chart. The default is (15, 12).
         direction : Str
             Whether the payoff is long or short. The default is 'long'.
         axis : Str
@@ -2398,7 +2373,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(greek=greek, S=S, r=r, q=q, sigma=sigma, option=option, 
                               interactive=interactive, notebook=notebook, colorscheme=colorscheme, 
-                              colorintensity=colorintensity, size=size, direction=direction, 
+                              colorintensity=colorintensity, size3d=size3d, direction=direction, 
                               axis=axis, spacegrain=spacegrain)
         
         # Select the input name and method name from the greek dictionary 
@@ -2513,7 +2488,7 @@ class Option():
         if self.interactive == False:
         
             # create figure with specified size tuple
-            fig = plt.figure(figsize=self.size)
+            fig = plt.figure(figsize=self.size3d)
             ax = fig.add_subplot(111, projection='3d')
             
             # apply graph_scale so that if volatility is the x-axis it wil be * 100
@@ -2633,7 +2608,8 @@ class Option():
     
     def payoffs(self, S=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, direction=None, 
-                cash=None, ratio=None, value=None, combo_payoff=None, mpl_style=None):
+                size2d=None, cash=None, ratio=None, value=None, combo_payoff=None, 
+                mpl_style=None):
         """
         Displays the graph of the specified combo payoff.
                 
@@ -2687,66 +2663,72 @@ class Option():
         
         if combo_payoff == 'call':
             self.call(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                      value=value, mpl_style=mpl_style)
+                      value=value, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'put':
             self.put(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                      value=value, mpl_style=mpl_style)
+                      value=value, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'stock':
-            self.stock(S=S, direction=direction, mpl_style=mpl_style)
+            self.stock(S=S, direction=direction, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'forward':
             self.forward(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction,
-                         cash=cash, mpl_style=mpl_style)
+                         cash=cash, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'collar':
             self.collar(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                        value=value, mpl_style=mpl_style)
+                        value=value, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'spread':
             self.spread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option,
-                        direction=direction, value=value, mpl_style=mpl_style)
+                        direction=direction, value=value, mpl_style=mpl_style, size2d=size2d)
             
         if combo_payoff == 'backspread':
             self.backspread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, option=option, 
-                            ratio=ratio, value=value, mpl_style=mpl_style)
+                            ratio=ratio, value=value, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'ratio vertical spread':
             self.ratio_vertical_spread(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, 
-                                       option=option, ratio=ratio, value=value, mpl_style=mpl_style)
+                                       option=option, ratio=ratio, value=value, 
+                                       mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'straddle':
             self.straddle(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                          value=value, mpl_style=mpl_style)
+                          value=value, mpl_style=mpl_style, size2d=size2d)
 
         if combo_payoff == 'strangle':
             self.strangle(S=S, K1=K1, K2=K2, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                          value=value, mpl_style=mpl_style)
+                          value=value, mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'butterfly':    
             self.butterfly(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                           option=option, direction=direction, value=value, mpl_style=mpl_style)
+                           option=option, direction=direction, value=value, mpl_style=mpl_style, 
+                           size2d=size2d)
         
         if combo_payoff == 'christmas tree':
             self.christmas_tree(S=S, K1=K1, K2=K2, K3=K3, T=T, r=r, q=q, sigma=sigma, 
-                                option=option, direction=direction, value=value, mpl_style=mpl_style)    
+                                option=option, direction=direction, value=value, 
+                                mpl_style=mpl_style, size2d=size2d)    
 
         if combo_payoff == 'condor':
             self.condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                        sigma=sigma, option=option, direction=direction, value=value, mpl_style=mpl_style)
+                        sigma=sigma, option=option, direction=direction, value=value, 
+                        mpl_style=mpl_style, size2d=size2d)
         
         if combo_payoff == 'iron butterfly':
             self.iron_butterfly(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                                sigma=sigma, direction=direction, value=value, mpl_style=mpl_style)
+                                sigma=sigma, direction=direction, value=value, mpl_style=mpl_style, 
+                                size2d=size2d)
             
         if combo_payoff == 'iron condor':
             self.iron_condor(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
-                             sigma=sigma, direction=direction, value=value, mpl_style=mpl_style)
+                             sigma=sigma, direction=direction, value=value, mpl_style=mpl_style, 
+                             size2d=size2d)
             
     
     def call(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
-             value=None, mpl_style=None):
+             value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the call.
 
@@ -2787,7 +2769,8 @@ class Option():
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                              value=value, option1=self.option1, mpl_style=mpl_style)
+                              value=value, option1=self.option1, mpl_style=mpl_style, 
+                              size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=1)
@@ -2815,7 +2798,7 @@ class Option():
                 
         
     def put(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
-            value=None, mpl_style=None):
+            value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the put.
 
@@ -2855,7 +2838,8 @@ class Option():
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
-                              value=value, option1=self.option1, mpl_style=mpl_style)
+                              value=value, option1=self.option1, mpl_style=mpl_style, 
+                              size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=1)
@@ -2882,7 +2866,7 @@ class Option():
                          label='Payoff', label2='Value')   
                
         
-    def stock(self, S=None, direction=None, mpl_style=None):
+    def stock(self, S=None, direction=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the underlying.
 
@@ -2907,7 +2891,7 @@ class Option():
         self.combo_payoff = 'stock'
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
-        self._initialise_func(S=S, direction=direction, mpl_style=mpl_style)
+        self._initialise_func(S=S, direction=direction, mpl_style=mpl_style, size2d=size2d)
         
         # Define strike range
         self.SA = np.linspace(0.75 * self.S, 1.25 * self.S, 1000)
@@ -2927,7 +2911,7 @@ class Option():
             
     
     def forward(self, S=None, T=None, r=None, q=None, sigma=None, direction=None, 
-                cash=None, mpl_style=None):
+                cash=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the synthetic forward strategy:
             Long one ATM call
@@ -2966,7 +2950,8 @@ class Option():
         
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, T=T, r=r, q=q, sigma=sigma, option1='call', 
-                              option2='put', direction=direction, cash=cash, mpl_style=mpl_style)
+                              option2='put', direction=direction, cash=cash, mpl_style=mpl_style, 
+                              size2d=size2d)
         
         # Set both strikes to spot and both maturities to input maturity 
         self.K1 = self.S
@@ -2998,7 +2983,7 @@ class Option():
     
     
     def collar(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-               direction=None, value=None, mpl_style=None):
+               direction=None, value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the collar strategy:
             Long one OTM put
@@ -3042,7 +3027,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma,
                               option1='put', option2='call', direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
 
         # Calculate option prices
         self._return_options(legs=2)
@@ -3071,7 +3056,7 @@ class Option():
     
     
     def spread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-               option=None, direction=None, value=None, mpl_style=None):
+               option=None, direction=None, value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the spread strategy:
             Long one ITM option
@@ -3118,7 +3103,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3154,7 +3139,7 @@ class Option():
         
    
     def backspread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-                   option=None, ratio=None, value=None, mpl_style=None):
+                   option=None, ratio=None, value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the backspread strategy:
             Short one ITM option
@@ -3202,7 +3187,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3230,7 +3215,7 @@ class Option():
         
         
     def ratio_vertical_spread(self, S=None, K1=None, K2=None, T=None, r=None, q=None, 
-                              sigma=None, option=None, ratio=None, value=None, mpl_style=None):
+                              sigma=None, option=None, ratio=None, value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the ratio vertical spread strategy:
             Long one ITM option
@@ -3278,7 +3263,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option=option, option1=option, option2=option, ratio=ratio, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3306,7 +3291,7 @@ class Option():
         
     
     def straddle(self, S=None, K=None, T=None, r=None, q=None, sigma=None, direction=None, 
-                 value=None, mpl_style=None):
+                 value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the straddle strategy:
             Long one ATM put
@@ -3348,7 +3333,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K=K, K1=K, K2=K, T=T, T1=T, T2=T, r=r, q=q, 
                               sigma=sigma, option1='put', option2='call', direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3376,7 +3361,7 @@ class Option():
   
     
     def strangle(self, S=None, K1=None, K2=None, T=None, r=None, q=None, sigma=None, 
-                 direction=None, value=None, mpl_style=None):
+                 direction=None, value=None, mpl_style=None, size2d=None):
         """
         Displays the graph of the strangle strategy:
             Long one OTM put
@@ -3420,7 +3405,7 @@ class Option():
         # Pass parameters to be initialised. If not provided they will be populated with default values
         self._initialise_func(S=S, K1=K1, K2=K2, T=T, T1=T, T2=T, r=r, q=q, sigma=sigma, 
                               option1='put', option2='call', direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=2)
@@ -3448,7 +3433,8 @@ class Option():
 
 
     def butterfly(self, S=None, K1=None, K2=None, K3=None, T=None, r=None, q=None, 
-                  sigma=None, option=None, direction=None, value=None, mpl_style=None):
+                  sigma=None, option=None, direction=None, value=None, mpl_style=None, 
+                  size2d=None):
         """
         Displays the graph of the butterfly strategy:
             Long one ITM option
@@ -3498,7 +3484,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=3)
@@ -3535,7 +3521,7 @@ class Option():
     
     def christmas_tree(self, S=None, K1=None, K2=None, K3=None, T=None, r=None, 
                        q=None, sigma=None, option=None, direction=None, value=None, 
-                       mpl_style=None):
+                       mpl_style=None, size2d=None):
         """
         Displays the graph of the christmas tree strategy:
             Long one ITM option
@@ -3585,7 +3571,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, T=T, T1=T, T2=T, 
                               T3=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=3)
@@ -3629,7 +3615,8 @@ class Option():
 
 
     def condor(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-               q=None, sigma=None, option=None, direction=None, value=None, mpl_style=None):
+               q=None, sigma=None, option=None, direction=None, value=None, mpl_style=None, 
+               size2d=None):
         """
         Displays the graph of the condor strategy:
             Long one low strike option
@@ -3682,7 +3669,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option=option, option1=option, 
                               option2=option, option3=option, option4=option, direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=4)
@@ -3722,7 +3709,8 @@ class Option():
 
 
     def iron_butterfly(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-                       q=None, sigma=None, direction=None, value=None, mpl_style=None):
+                       q=None, sigma=None, direction=None, value=None, mpl_style=None, 
+                       size2d=None):
         """
         Displays the graph of the iron butterfly strategy:
             Short one OTM put
@@ -3774,7 +3762,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
                               option2='call', option3='put', option4='call', direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=4)
@@ -3806,7 +3794,8 @@ class Option():
     
     
     def iron_condor(self, S=None, K1=None, K2=None, K3=None, K4=None, T=None, r=None, 
-                       q=None, sigma=None, direction=None, value=None, mpl_style=None):
+                       q=None, sigma=None, direction=None, value=None, mpl_style=None, 
+                       size2d=None):
         """
         Displays the graph of the iron condor strategy:
             Long one OTM put
@@ -3858,7 +3847,7 @@ class Option():
         self._initialise_func(S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, 
                               T3=T, T4=T, r=r, q=q, sigma=sigma, option1='put', 
                               option2='put', option3='call', option4='call', direction=direction, 
-                              value=value, mpl_style=mpl_style)
+                              value=value, mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(legs=4)
@@ -3930,7 +3919,7 @@ class Option():
         plt.style.use(self.mpl_style)
         
         # Create the figure and axes objects
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=self.size2d)
         
         # Plot the terminal payoff
         ax.plot(SA, payoff, color='blue', label=label)
