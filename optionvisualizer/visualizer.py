@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pylab
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import plotly.graph_objects as go
 from plotly.offline import plot
@@ -1918,9 +1919,9 @@ class Option():
         Displays graph of either 2D / 3D greeks or payoff diagram.
 
         """
-
+        
         if risk is None:
-            risk == self.risk
+            risk = self.risk
         
         if risk == True:
             self.greeks(x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, G3=G3, T=T, 
@@ -2284,8 +2285,31 @@ class Option():
         # Set style to Seaborn Darkgrid
         plt.style.use(self.mpl_style)
         
+        # Set parameters to overwrite mpl_style defaults
+        params = {'legend.fontsize': 'x-large',
+                  'legend.fancybox':False,
+                  'figure.figsize': self.size2d,
+                  'axes.labelsize': 'medium',
+                  'axes.titlesize':'large',
+                  'axes.spines.bottom':True,
+                  'axes.spines.left':True,
+                  'axes.spines.right':True,
+                  'axes.spines.top':True,
+                  'axes.edgecolor':'black',
+                  'axes.titlepad':20,
+                  'xtick.labelsize':'medium',
+                  'ytick.labelsize':'medium',
+                  'xtick.major.pad':10,
+                  'ytick.major.pad':10,
+                  'lines.linewidth':4.0,
+                  'lines.color':'black',
+                  'grid.color':'black',
+                  'grid.linestyle':':',
+                  'font.size':14}
+        pylab.rcParams.update(params)
+        
         # Create the figure and axes objects
-        fig, ax = plt.subplots(figsize=self.size2d)
+        fig, ax = plt.subplots()
         
         # If plotting against time, show time to maturity reducing left to right
         if self.x_plot == 'time':
@@ -2660,6 +2684,8 @@ class Option():
         Runs the specified combo payoff method.
 
         """
+        if combo_payoff is None:
+            combo_payoff = self.combo_payoff
         
         if combo_payoff == 'call':
             self.call(S=S, K=K, T=T, r=r, q=q, sigma=sigma, direction=direction, 
@@ -3918,8 +3944,31 @@ class Option():
         # Use seaborn darkgrid style 
         plt.style.use(self.mpl_style)
         
+        # Set parameters to overwrite mpl_style defaults
+        params = {'legend.fontsize': 'x-large',
+                  'legend.fancybox':False,
+                  'figure.figsize': self.size2d,
+                  'axes.labelsize': 'medium',
+                  'axes.titlesize':'large',
+                  'axes.spines.bottom':True,
+                  'axes.spines.left':True,
+                  'axes.spines.right':True,
+                  'axes.spines.top':True,
+                  'axes.edgecolor':'black',
+                  'axes.titlepad':20,
+                  'xtick.labelsize':'medium',
+                  'ytick.labelsize':'medium',
+                  'xtick.major.pad':10,
+                  'ytick.major.pad':10,
+                  'lines.linewidth':4.0,
+                  'lines.color':'black',
+                  'grid.color':'black',
+                  'grid.linestyle':':',
+                  'font.size':14}
+        pylab.rcParams.update(params)
+        
         # Create the figure and axes objects
-        fig, ax = plt.subplots(figsize=self.size2d)
+        fig, ax = plt.subplots()
         
         # Plot the terminal payoff
         ax.plot(SA, payoff, color='blue', label=label)
