@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
+import matplotlib.gridspec as gridspec
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import plotly.graph_objects as go
 from plotly.offline import plot
@@ -3956,7 +3957,11 @@ class Option():
         pylab.rcParams.update(self.mpl_params)
         
         # Create the figure and axes objects
-        fig, ax = plt.subplots(figsize=self.size2d)
+        fig = plt.figure(figsize=self.size2d)
+        
+        # Use gridspec to allow modification of bounding box
+        gs1 = gridspec.GridSpec(1, 1)
+        ax = fig.add_subplot(gs1[0])
         
         # Plot the terminal payoff
         ax.plot(SA, payoff, color='blue', label=label)
@@ -3983,6 +3988,12 @@ class Option():
         
         # Create a legend
         ax.legend(loc=0, fontsize=10)
+        
+        # Apply tight layout
+        gs1.tight_layout(fig, rect=[0, 0, 1, 1])
+        
+        #gs1.right = 0.9
+        #print(gs1.top, gs1.bottom, gs1.left, gs1.right)
         
         # Display the chart
         plt.show()
