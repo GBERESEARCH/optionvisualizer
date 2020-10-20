@@ -53,7 +53,7 @@ df_dict = {'df_S':100,
            'df_colorscheme':'jet',
            'df_colorintensity':1,
            'df_size3d':(15, 12),
-           'df_size2d':(6, 4),
+           'df_size2d':(8, 6),
            'df_graphtype':'2D',
            'df_y_plot':'delta',
            'df_x_plot':'time',
@@ -258,7 +258,33 @@ df_dict = {'df_S':100,
                              'color':'color',
                              'ultima':'ultima',
                              'vega bleed':'vega_bleed',
-                             'charm':'charm'}}
+                             'charm':'charm'},
+             
+            # Parameters to overwrite mpl_style defaults
+            'df_mpl_params':{'legend.fontsize': 'x-large',
+                             'legend.fancybox':False,
+                             'figure.dpi':72,
+                             'axes.labelsize': 'medium',
+                             'axes.titlesize':'large',
+                             'axes.spines.bottom':True,
+                             'axes.spines.left':True,
+                             'axes.spines.right':True,
+                             'axes.spines.top':True,
+                             'axes.edgecolor':'black',
+                             'axes.titlepad':20,
+                             'axes.autolimit_mode':'data',#'round_numbers',
+                             'axes.xmargin':0.05,
+                             'axes.ymargin':0.05,
+                             'axes.linewidth':2,
+                             'xtick.labelsize':'medium',
+                             'ytick.labelsize':'medium',
+                             'xtick.major.pad':10,
+                             'ytick.major.pad':10,
+                             'lines.linewidth':3.0,
+                             'lines.color':'black',
+                             'grid.color':'black',
+                             'grid.linestyle':':',
+                             'font.size':14}}
 
 
 class Option():
@@ -289,7 +315,8 @@ class Option():
                  df_combo_dict=df_dict['df_combo_dict'], df_params_list=df_dict['df_params_list'], 
                  equal_greeks=df_dict['df_equal_greeks'], mod_payoffs=df_dict['df_mod_payoffs'], 
                  mod_params=df_dict['df_mod_params'], label_dict=df_dict['df_label_dict'], 
-                 greek_dict=df_dict['df_greek_dict'], df_dict=df_dict):
+                 greek_dict=df_dict['df_greek_dict'], mpl_params=df_dict['df_mpl_params'], 
+                 df_dict=df_dict):
 
         self.S = S # Spot price
         self.K = K # Strike price
@@ -357,6 +384,7 @@ class Option():
         self.label_dict = label_dict # Dictionary mapping function parameters to axis labels
         self.equal_greeks = equal_greeks # List of Greeks where call and put values are the same
         self.greek_dict = greek_dict # Greek names as function input and individual function names
+        self.mpl_params = mpl_params # Parameters to overwrite mpl_style defaults
         self.combo_payoff = combo_payoff # 2D graph payoff structure
 
     
@@ -2284,32 +2312,12 @@ class Option():
         
         # Set style to Seaborn Darkgrid
         plt.style.use(self.mpl_style)
-        
-        # Set parameters to overwrite mpl_style defaults
-        params = {'legend.fontsize': 'x-large',
-                  'legend.fancybox':False,
-                  'figure.figsize': self.size2d,
-                  'axes.labelsize': 'medium',
-                  'axes.titlesize':'large',
-                  'axes.spines.bottom':True,
-                  'axes.spines.left':True,
-                  'axes.spines.right':True,
-                  'axes.spines.top':True,
-                  'axes.edgecolor':'black',
-                  'axes.titlepad':20,
-                  'xtick.labelsize':'medium',
-                  'ytick.labelsize':'medium',
-                  'xtick.major.pad':10,
-                  'ytick.major.pad':10,
-                  'lines.linewidth':4.0,
-                  'lines.color':'black',
-                  'grid.color':'black',
-                  'grid.linestyle':':',
-                  'font.size':14}
-        pylab.rcParams.update(params)
+
+        # Update chart parameters        
+        pylab.rcParams.update(self.mpl_params)
         
         # Create the figure and axes objects
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=self.size2d)
         
         # If plotting against time, show time to maturity reducing left to right
         if self.x_plot == 'time':
@@ -2532,18 +2540,18 @@ class Option():
             ax.set_zlim(auto=True)
             
             # Set fontsize of axis ticks
-            ax.tick_params(axis='both', which='major', labelsize=14)
+            ax.tick_params(axis='both', which='major', labelsize=14, pad=10)
             
             # Set x-axis to decrease from left to right
             ax.invert_xaxis()
             
             # Label axes
-            ax.set_xlabel(self.axis_label1, fontsize=14, labelpad=15)
-            ax.set_ylabel(self.axis_label2, fontsize=14, labelpad=15)
-            ax.set_zlabel(str(self.greek.title()), fontsize=14, labelpad=15)
+            ax.set_xlabel(self.axis_label1, fontsize=14, labelpad=20)
+            ax.set_ylabel(self.axis_label2, fontsize=14, labelpad=20)
+            ax.set_zlabel(str(self.greek.title()), fontsize=14, labelpad=20)
             
             # Specify title
-            ax.set_title(titlename, fontsize=18)
+            ax.set_title(titlename, fontsize=20, pad=30)
             
             # Display graph
             plt.show()
@@ -3944,31 +3952,11 @@ class Option():
         # Use seaborn darkgrid style 
         plt.style.use(self.mpl_style)
         
-        # Set parameters to overwrite mpl_style defaults
-        params = {'legend.fontsize': 'x-large',
-                  'legend.fancybox':False,
-                  'figure.figsize': self.size2d,
-                  'axes.labelsize': 'medium',
-                  'axes.titlesize':'large',
-                  'axes.spines.bottom':True,
-                  'axes.spines.left':True,
-                  'axes.spines.right':True,
-                  'axes.spines.top':True,
-                  'axes.edgecolor':'black',
-                  'axes.titlepad':20,
-                  'xtick.labelsize':'medium',
-                  'ytick.labelsize':'medium',
-                  'xtick.major.pad':10,
-                  'ytick.major.pad':10,
-                  'lines.linewidth':4.0,
-                  'lines.color':'black',
-                  'grid.color':'black',
-                  'grid.linestyle':':',
-                  'font.size':14}
-        pylab.rcParams.update(params)
+        # Update chart parameters
+        pylab.rcParams.update(self.mpl_params)
         
         # Create the figure and axes objects
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=self.size2d)
         
         # Plot the terminal payoff
         ax.plot(SA, payoff, color='blue', label=label)
