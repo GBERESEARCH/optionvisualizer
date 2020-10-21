@@ -15,7 +15,7 @@ Import visualizer and initialise an Option object
 
 ```
 import visualizer as vis
-opt = vis.Option
+opt = vis.Option()
 ```
 
 ### Black-Scholes option pricing and sensitivities:
