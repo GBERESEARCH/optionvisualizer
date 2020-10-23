@@ -16,6 +16,25 @@ $ pip install optionvisualizer
 
 &nbsp;
 
+Or to install in new environment using anaconda:
+```
+$ conda create --name optvis
+```
+Activate new environment
+```
+$ activate optvis
+```
+Install Python
+```
+(optvis) $ conda install python=3.7
+```
+Install package
+```
+(optvis) $ pip install optionvisualizer
+```
+
+&nbsp;
+
 ### Setup
 Import visualizer and initialise an Option object
 

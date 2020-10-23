@@ -1,8 +1,9 @@
 # Needed packages / versions
-numpy
-scipy
-matplotlib
-plotly
+numpy >= 1.16.2
+scipy >= 1.4.1 
+matplotlib >= 3.0.3 
+plotly >= 4.3.0  
+spyder >= 4.1.5
 
 
 
