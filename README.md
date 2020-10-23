@@ -39,7 +39,7 @@ Install package
 Import visualizer and initialise an Option object
 
 ```
-import visualizer as vis
+import optionvisualizer.visualizer as vis
 opt = vis.Option()
 ```
 
