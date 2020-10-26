@@ -26,7 +26,11 @@ $ activate optvis
 ```
 Install Python
 ```
-(optvis) $ conda install python=3.7
+(optvis) $ conda install python
+```
+Install Spyder
+```
+(optvis) $ conda install spyder=4
 ```
 Install package
 ```
