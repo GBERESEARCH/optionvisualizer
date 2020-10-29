@@ -1,10 +1,11 @@
-import numpy as np
-import scipy.stats as si
-import matplotlib.pyplot as plt
-import matplotlib.pylab as pylab
 import matplotlib.gridspec as gridspec
-from mpl_toolkits.mplot3d.axes3d import Axes3D
+import matplotlib.pylab as pylab
+import matplotlib.pyplot as plt
+import numpy as np
 import plotly.graph_objects as go
+import scipy.stats as si
+from mpl_toolkits.mplot3d.axes3d import Axes3D
+from operator import itemgetter
 from plotly.offline import plot
 
 # Dictionary of default parameters
@@ -732,8 +733,8 @@ class Option():
                 self.__dict__[key] = val
                 
         return self        
-   
-    
+         
+        
     def _refresh_params_current(self, **kwargs):
         """
         Set parameters for use in various pricing functions to the 
@@ -878,6 +879,42 @@ class Option():
         
         return self
 
+
+    def _refresh_dist_local(self, S, K, T, r, q, sigma):
+        """
+        Calculate various parameters and distributions
+
+        Returns
+        -------
+        Various
+            Assigns parameters to the object
+
+        """
+        
+        # Cost of carry as risk free rate less dividend yield
+        b = r - q
+        
+        carry = np.exp((b - r) * T)
+        discount = np.exp(-r * T)
+        
+        with np.errstate(divide='ignore'):
+            d1 = ((np.log(S / K) + (b + (0.5 * sigma ** 2)) * T) 
+                / (sigma * np.sqrt(T)))
+            
+            d2 = ((np.log(S / K) + (b - (0.5 * sigma ** 2)) * T) 
+                / (sigma * np.sqrt(T)))
+            
+            # standardised normal density function
+            nd1 = ((1 / np.sqrt(2 * np.pi)) * (np.exp(-d1 ** 2 * 0.5)))
+            
+            # Cumulative normal distribution function
+            Nd1 = si.norm.cdf(d1, 0.0, 1.0)
+            minusNd1 = si.norm.cdf(-d1, 0.0, 1.0)
+            Nd2 = si.norm.cdf(d2, 0.0, 1.0)
+            minusNd2 = si.norm.cdf(-d2, 0.0, 1.0)
+        
+        return b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, minusNd2
+    
     
     def _barrier_factors(self):
         """
@@ -978,7 +1015,7 @@ class Option():
 
 
     def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         Black Scholes Option Price
 
@@ -998,11 +1035,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used 
-            within a graph call; within graphs the parameters have 
-            already been refreshed so the initialise graphs function 
-            fixes them in place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated. 
 
         Returns
         -------
@@ -1010,34 +1047,38 @@ class Option():
             Black Scholes Option Price.
 
         """
-        
-        # If refresh is set to 'graph' the price is to be used in combo 
-        # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                refresh=refresh)
-        
-        if self.option == "call":
-            self.opt_price = (
-                (self.S * self.carry * self.Nd1) 
-                - (self.K * np.exp(-self.r * self.T) * self.Nd2))  
-        if self.option == 'put':
-            self.opt_price = (
-                (self.K * np.exp(-self.r * self.T) * self.minusNd2) 
-                - (self.S * self.carry * self.minusNd1))
-        
-        np.nan_to_num(self.opt_price, copy=False)
                 
-        return self.opt_price
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
+        # graphs so the distributions are refreshed but not the 
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
+        
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)    
+        
+        if option == "call":
+            opt_price = ((S * carry * Nd1) 
+                - (K * np.exp(-r * T) * Nd2))  
+        if option == 'put':
+            opt_price = ((K * np.exp(-r * T) * minusNd2) 
+                - (S * carry * minusNd1))
+        
+        np.nan_to_num(opt_price, copy=False)
+                
+        return opt_price
 
 
     def delta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         Sensitivity of the option price to changes in asset price
 
@@ -1057,11 +1098,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1070,27 +1111,33 @@ class Option():
 
         """    
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
+        
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
                                 
-        if self.option == 'call':
-            self.opt_delta = self.carry * self.Nd1
-        if self.option == 'put':
-            self.opt_delta = self.carry * (self.Nd1 - 1)
+        if option == 'call':
+            opt_delta = carry * Nd1
+        if option == 'put':
+            opt_delta = carry * (Nd1 - 1)
             
-        return self.opt_delta
+        return opt_delta
     
     
     def theta(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         Sensitivity of the option price to changes in time to maturity
 
@@ -1110,11 +1157,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated. 
 
         Returns
         -------
@@ -1123,37 +1170,41 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
+        
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
                    
-        if self.option == 'call':
-            self.opt_theta = (
-                ((-self.S * self.carry * self.nd1 * self.sigma ) 
-                / (2 * np.sqrt(self.T)) 
-                - (self.b - self.r) * (self.S * self.carry * self.Nd1) 
-                - (self.r * self.K) * np.exp(-self.r * self.T) * self.Nd2)
+        if option == 'call':
+            opt_theta = (
+                ((-S * carry * nd1 * sigma ) / (2 * np.sqrt(T)) 
+                - (b - r) * (S * carry * Nd1) 
+                - (r * K) * np.exp(-r * T) * Nd2)
                 / 100) 
-        if self.option == 'put':   
-            self.opt_theta = (
-                ((-self.S * self.carry * self.nd1 * self.sigma ) 
-                / (2 * np.sqrt(self.T)) 
-                + (self.b - self.r) * (self.S * self.carry * self.minusNd1) 
-                + (self.r * self.K) * np.exp(-self.r * self.T) * self.minusNd2) 
+        if option == 'put':   
+            opt_theta = (
+                ((-S * carry * nd1 * sigma ) / (2 * np.sqrt(T)) 
+                + (b - r) * (S * carry * minusNd1) 
+                + (r * K) * np.exp(-r * T) * minusNd2) 
                 / 100)
 
-        return self.opt_theta
+        return opt_theta
     
     
     def gamma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         Sensitivity of delta to changes in the underlying asset price
 
@@ -1173,11 +1224,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated. 
 
         Returns
         -------
@@ -1186,23 +1237,30 @@ class Option():
 
         """
                
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_gamma = (
-            (self.nd1 * self.carry) / (self.S * self.sigma * np.sqrt(self.T)))
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
         
-        return self.opt_gamma
+        opt_gamma = ((nd1 * carry) / (S * sigma * np.sqrt(T)))
+        
+        return opt_gamma
     
     
     def vega(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-             option=None, refresh=None):
+             option=None, default=None):
         """
         Sensitivity of the option price to changes in volatility
 
@@ -1222,11 +1280,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated. 
 
         Returns
         -------
@@ -1235,23 +1293,30 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
-        # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        if default is None:
+            default = True
 
-        self.opt_vega = (
-            (self.S * self.carry * self.nd1 * np.sqrt(self.T)) / 100)
+        # If default is set to False the price is to be used in combo 
+        # graphs so the distributions are refreshed but not the 
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        return self.opt_vega
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+
+        opt_vega = ((S * carry * nd1 * np.sqrt(T)) / 100)
+        
+        return opt_vega
     
     
     def rho(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-            option=None, refresh=None):
+            option=None, default=None):
         """
         Sensitivity of the option price to changes in the risk free rate
 
@@ -1271,11 +1336,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1284,31 +1349,37 @@ class Option():
 
         """        
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        if self.option == 'call':
-            self.opt_rho = (
-                (self.T * self.K * np.exp(-self.r * self.T) * self.Nd2) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        if option == 'call':
+            opt_rho = (
+                (T * K * np.exp(-r * T) * Nd2) 
                 / 10000)
-        if self.option == 'put':
-            self.opt_rho = (
-                (-self.T * self.K * np.exp(-self.r * self.T) * self.minusNd2) 
+        if option == 'put':
+            opt_rho = (
+                (-T * K * np.exp(-r * T) * minusNd2) 
                 / 10000)
             
-        return self.opt_rho
+        return opt_rho
 
 
     def vanna(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         DdeltaDvol, DvegaDspot 
         Sensitivity of delta to changes in volatility
@@ -1330,11 +1401,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated. 
 
         Returns
         -------
@@ -1343,23 +1414,31 @@ class Option():
 
         """
               
-        # If refresh is set to 'graph' the price is to be used in combo 
-        # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
-        
-        self.opt_vanna = (
-            (((-self.carry * self.d2) / self.sigma) * self.nd1) / 100) 
+        if default is None:
+            default = True
 
-        return self.opt_vanna               
+        # If default is set to False the price is to be used in combo 
+        # graphs so the distributions are refreshed but not the 
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
+        
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        opt_vanna = (
+            (((-carry * d2) / sigma) * nd1) / 100) 
+
+        return opt_vanna               
  
 
     def vomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         DvegaDvol, Vega Convexity, Volga, Vol Gamma
         Sensitivity of vega to changes in volatility
@@ -1380,11 +1459,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1393,26 +1472,33 @@ class Option():
 
         """
                
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_vomma = (
-            (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                       self.option, self.refresh) 
-             * ((self.d1 * self.d2) / (self.sigma))) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        opt_vomma = (
+            (self.vega(S, K, T, r, q, sigma, option, default=False) 
+             * ((d1 * d2) / (sigma))) 
             / 100)
         
-        return self.opt_vomma
+        return opt_vomma
 
 
     def charm(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         DdeltaDtime, Delta Bleed 
         Sensitivity of delta to changes in time to maturity
@@ -1433,11 +1519,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1446,38 +1532,39 @@ class Option():
 
         """
                
-        # If refresh is set to 'graph' the price is to be used in combo 
-        # graphs so the distributions are refreshed but not the parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                refresh=refresh)
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
+        # graphs so the distributions are refreshed but not the 
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        if self.option == 'call':
-            self.opt_charm = (
-                (-self.carry 
-                 * ((self.nd1 
-                     * ((self.b / (self.sigma * np.sqrt(self.T))) 
-                        - (self.d2 / (2 * self.T)))) 
-                    + ((self.b - self.r) * self.Nd1))) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        if option == 'call':
+            opt_charm = (
+                (-carry * ((nd1 * ((b / (sigma * np.sqrt(T))) 
+                                   - (d2 / (2 * T)))) + ((b - r) * Nd1))) 
                 / 100)
-        if self.option == 'put':
-            self.opt_charm = (
-                (-self.carry 
-                * ((self.nd1 
-                    * ((self.b / (self.sigma * np.sqrt(self.T))) 
-                       - (self.d2 / (2 * self.T)))) 
-                   - ((self.b - self.r) * self.minusNd1))) 
+        if option == 'put':
+            opt_charm = (
+                (-carry * ((nd1 * ((b / (sigma * np.sqrt(T))) 
+                                   - (d2 / (2 * T)))) - ((b - r) * minusNd1))) 
                 / 100)
         
-        return self.opt_charm
+        return opt_charm
                
 
     def zomma(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         DgammaDvol
         Sensitivity of gamma to changes in volatility
@@ -1498,11 +1585,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1511,26 +1598,33 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_zomma = (
-            (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                       self.option, self.refresh) 
-            * ((self.d1 * self.d2 - 1) / self.sigma)) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        opt_zomma = (
+            (self.gamma(S, K, T, r, q, sigma, option, default=False) 
+            * ((d1 * d2 - 1) / sigma)) 
             / 100)
         
-        return self.opt_zomma
+        return opt_zomma
 
 
     def speed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         DgammaDspot
         Sensitivity of gamma to changes in asset price 
@@ -1552,11 +1646,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1565,25 +1659,31 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+       # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_speed = -(self.gamma(self.S, self.K, self.T, self.r, self.q, 
-                                      self.sigma, self.option, self.refresh) 
-                           * (1 + (self.d1 / (self.sigma * np.sqrt(self.T)))) 
-                           / self.S)
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
         
-        return self.opt_speed
+        opt_speed = -(self.gamma(S, K, T, r, q, sigma, option, default=False) 
+                           * (1 + (d1 / (sigma * np.sqrt(T)))) / S)
+        
+        return opt_speed
 
 
     def color(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-              option=None, refresh=None):
+              option=None, default=None):
         """
         DgammaDtime, Gamma Bleed, Gamma Theta
         Sensitivity of gamma to changes in time to maturity
@@ -1604,11 +1704,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1617,28 +1717,34 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_color = (
-            (self.gamma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                       self.option, self.refresh) 
-             * ((self.r - self.b) 
-                + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) 
-                + ((1 - self.d1 * self.d2) / (2 * self.T)))) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        opt_color = (
+            (self.gamma(S, K, T, r, q, sigma, option, default=False) 
+             * ((r - b) + ((b * d1) / (sigma * np.sqrt(T))) 
+                + ((1 - d1 * d2) / (2 * T)))) 
             / 100)
         
-        return self.opt_color
+        return opt_color
 
 
     def ultima(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-               option=None, refresh=None):
+               option=None, default=None):
         """
         DvommaDvol
         Sensitivity of vomma to changes in volatility
@@ -1660,11 +1766,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1673,28 +1779,33 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_ultima = (
-            (self.vomma(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                        self.option, self.refresh) 
-             * ((1 / self.sigma) 
-                * (self.d1 * self.d2 
-                   - (self.d1 / self.d2) - (self.d2 / self.d1) - 1))) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        opt_ultima = (
+            (self.vomma(S, K, T, r, q, sigma, option, default=False) 
+             * ((1 / sigma) * (d1 * d2 - (d1 / d2) - (d2 / d1) - 1))) 
             / 100)
         
-        return self.opt_ultima
+        return opt_ultima
 
 
     def vega_bleed(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
-                   option=None, refresh=None):
+                   option=None, default=None):
         """
         DvegaDtime
         Sensitivity of vega to changes in time to maturity.
@@ -1715,11 +1826,11 @@ class Option():
             Implied Volatility. The default is 0.2 (20%).
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1728,29 +1839,35 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(S=S, K=K, T=T, r=r, q=q, sigma=sigma)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 
+                'option')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option))
         
-        self.opt_vega_bleed = (
-            (self.vega(self.S, self.K, self.T, self.r, self.q, self.sigma, 
-                       self.option, self.refresh) 
-             * (self.r - self.b 
-                + ((self.b * self.d1) / (self.sigma * np.sqrt(self.T))) 
-                - ((1 + (self.d1 * self.d2) ) / (2 * self.T)))) 
+        # Update distribution parameters            
+        (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
+         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+        
+        opt_vega_bleed = (
+            (self.vega(S, K, T, r, q, sigma, option, default=False) 
+             * (r - b + ((b * d1) / (sigma * np.sqrt(T))) 
+                - ((1 + (d1 * d2) ) / (2 * T)))) 
             / 100)
 
-        return self.opt_vega_bleed
+        return opt_vega_bleed
 
 
     def analytical_sensitivities(self, S=None, K=None, T=None, r=None, q=None, 
                                  sigma=None, option=None, greek=None, 
-                                 refresh=None):
+                                 default=None):
         """
         Sensitivities of the option calculated analytically from closed 
         form solutions.
@@ -1775,11 +1892,11 @@ class Option():
             Sensitivity to return. Select from 'delta', 'gamma', 'vega', 
             'theta', 'rho', 'vomma', 'vanna', 'zomma', 'speed', 'color', 
             'ultima', 'vega bleed', 'charm'. The default is 'delta'            
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1788,28 +1905,30 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                greek=greek)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, greek=greek, 
-                option=option, refresh=refresh)
-        
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            S, K, T, r, q, sigma, option, greek = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 'option', 
+                'greek')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                    greek=greek))
+                       
         for key, value in self.greek_dict.items():
-            if str(self.greek) == key:
+            if str(greek) == key:
                 return getattr(self, value)(
-                    S=self.S, K=self.K, T=self.T, r=self.r, q=self.q, 
-                    sigma=self.sigma, option=self.option, refresh='graph')
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                    default=False)
                 
 
     def numerical_delta(self, S=None, K=None, T=None, r=None, q=None, 
                         sigma=None, option=None, price_shift=None, 
-                        price_shift_type=None, refresh=None):
+                        price_shift_type=None, default=None):
         """
         Sensitivity of the option price to changes in asset price
         Calculated by taking the difference in price for varying shift sizes
@@ -1836,11 +1955,11 @@ class Option():
         price_shift_type : Str
             Whether to calculate the change for an upshift, downshift or 
             average of the two. The default is 'avg'.
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1849,45 +1968,45 @@ class Option():
 
         """
         
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                price_shift=price_shift, price_shift_type=price_shift_type)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                price_shift=price_shift, price_shift_type=price_shift_type, 
-                refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            (S, K, T, r, q, sigma, option, price_shift, 
+             price_shift_type) = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 'option', 'price_shift', 
+                'price_shift_type')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                    price_shift=price_shift, 
+                    price_shift_type=price_shift_type))
         
-        down_shift = self.S-(self.price_shift/10000)*self.S
-        up_shift = self.S+(self.price_shift/10000)*self.S
-        opt_price = self.price(
-            S=self.S, K=self.K, T=self.T, r=self.r, q=self.q, 
-            sigma=self.sigma, option=self.option)
-        op_shift_down = self.price(
-            S=down_shift, K=self.K, T=self.T, r=self.r, q=self.q, 
-            sigma=self.sigma, option=self.option)
-        op_shift_up = self.price(
-            S=up_shift, K=self.K, T=self.T, r=self.r, q=self.q, 
-            sigma=self.sigma, option=self.option)
+        down_shift = S - (price_shift / 10000) * S
+        up_shift = S + (price_shift / 10000) * S
+        opt_price = self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                               option=option)
+        op_shift_down = self.price(S=down_shift, K=K, T=T, r=r, q=q, 
+                                   sigma=sigma, option=option)
+        op_shift_up = self.price(S=up_shift, K=K, T=T, r=r, q=q, sigma=sigma, 
+                                 option=option)
                 
-        if self.shift_type == 'up':
-            self.opt_delta_shift = (op_shift_up - opt_price) * 4
-        if self.shift_type == 'down':
-            self.opt_delta_shift = (opt_price - op_shift_down) * 4
-        if self.shift_type == 'avg':    
-            self.opt_delta_shift = (op_shift_up - op_shift_down) * 2
+        if price_shift_type == 'up':
+            opt_delta_shift = (op_shift_up - opt_price) * 4
+        if price_shift_type == 'down':
+            opt_delta_shift = (opt_price - op_shift_down) * 4
+        if price_shift_type == 'avg':    
+            opt_delta_shift = (op_shift_up - op_shift_down) * 2
         
-        return self.opt_delta_shift
+        return opt_delta_shift
     
     
     def numerical_sensitivities(self, S=None, K=None, T=None, r=None, q=None, 
                                 sigma=None, option=None, greek=None, 
                                 price_shift=None, vol_shift=None, 
-                                ttm_shift=None, refresh=None):
+                                ttm_shift=None, rate_shift=None, default=None):
         """
         Sensitivities of the option calculated numerically using shifts 
         in parameters.
@@ -1920,12 +2039,15 @@ class Option():
             default is 0.001.
         ttm_shift : Float
             The size of the time to maturity shift in decimal terms. The 
-            default is 1/365.    
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+            default is 1/365.  
+        rate_shift : Float
+            The size of the interest rate shift in decimal terms. The 
+            default is 0.0001.
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -1934,260 +2056,201 @@ class Option():
 
         """
         
-        
-        # If refresh is set to 'graph' the price is to be used in combo 
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
         # graphs so the distributions are refreshed but not the 
-        # parameters.
-        if refresh == 'Std' or refresh is None:
-            self._initialise_func(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
-                ttm_shift=ttm_shift)
-        if refresh == 'graph':
-            self._initialise_graphs(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
-                ttm_shift=ttm_shift, refresh=refresh)
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            (S, K, T, r, q, sigma, option, greek, price_shift, vol_shift, 
+                ttm_shift, rate_shift) = itemgetter(
+                'S', 'K', 'T', 'r', 'q', 'sigma', 'option', 'greek', 
+                'price_shift', 'vol_shift', 'ttm_shift', 
+                'rate_shift')(self._refresh_params_default(
+                    S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                    greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
+                    ttm_shift=ttm_shift, rate_shift=rate_shift))
         
-        # Store initial values
-        self.S0 = self.S
-        self.sigma0 = self.sigma
-        self.T0 = self.T
-        self.r0 = self.r
-        self.q0 = self.q
-        
-        if self.greek == 'delta':
+               
+        if greek == 'delta':
             result = (
-                (self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                            T=self.T0, r=self.r0, q=self.q0, sigma=self.sigma0, 
-                            option=self.option, refresh='graph') 
-                 - self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                              T=self.T0, r=self.r0, q=self.q0, 
-                              sigma=self.sigma0, option=self.option, 
-                              refresh='graph')) 
-                / (2 * self.price_shift))
+                (self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                            sigma=sigma, option=option, default=False) 
+                 - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                              sigma=sigma, option=option, default=False)) 
+                / (2 * price_shift))
         
-        if self.greek == 'gamma':
+        if greek == 'gamma':
             result = (
-                (self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                            T=self.T0, r=self.r0, q=self.q0, sigma=self.sigma0, 
-                            option=self.option, refresh='graph') 
-                 - (2 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                   q=self.q0, sigma=self.sigma0, 
-                                   option=self.option, refresh='graph')) 
-                 + self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                              T=self.T0, r=self.r0, q=self.q0, 
-                              sigma=self.sigma0, option=self.option, 
-                              refresh='graph')) 
-                / (self.price_shift ** 2))
+                (self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                            sigma=sigma, option=option, default=False) 
+                 - (2 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                                   option=option, default=False)) 
+                 + self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                              sigma=sigma, option=option, default=False)) 
+                / (price_shift ** 2))
             
-        if self.greek == 'vega':
+        if greek == 'vega':
             result = (
-                ((self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                            q=self.q0, sigma=(self.sigma0+self.vol_shift), 
-                            option=self.option, refresh='graph') 
-                 - self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                              q=self.q0, sigma=(self.sigma0-self.vol_shift), 
-                              option=self.option, refresh='graph')) 
-                 / (2 * self.vol_shift)) 
+                ((self.price(S=S, K=K, T=T, r=r, q=q, sigma=(sigma+vol_shift), 
+                            option=option, default=False) 
+                 - self.price(S=S, K=K, T=T, r=r, q=q, sigma=(sigma-vol_shift), 
+                              option=option, default=False)) 
+                 / (2 * vol_shift)) 
                 / 100)
         
-        if self.greek == 'theta':
+        if greek == 'theta':
             result = (
-                (self.price(S=self.S0, K=self.K, T=(self.T0-self.ttm_shift), 
-                            r=self.r0, q=self.q0, sigma=self.sigma0, 
-                            option=self.option, refresh='graph') 
-                 - self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                              q=self.q0, sigma=self.sigma0, option=self.option, 
-                              refresh='graph')) 
-                / (self.ttm_shift * 100)) 
+                (self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, sigma=sigma, 
+                            option=option, default=False) 
+                 - self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                              option=option, default=False)) 
+                / (ttm_shift * 100)) 
         
-        if self.greek == 'rho':
+        if greek == 'rho':
             result = (
-                (self.price(S=self.S0, K=self.K, T=self.T0, 
-                            r=(self.r0+self.rate_shift), q=self.q0, 
-                            sigma=self.sigma0, option=self.option, 
-                            refresh='graph') 
-                 - self.price(S=self.S0, K=self.K, T=self.T0, 
-                              r=(self.r0-self.rate_shift), q=self.q0, 
-                              sigma=self.sigma0, option=self.option, 
-                              refresh='graph')) 
-                / (2 * self.rate_shift * 10000))
+                (self.price(S=S, K=K, T=T, r=(r+rate_shift), q=q, sigma=sigma, 
+                            option=option, default=False) 
+                 - self.price(S=S, K=K, T=T, r=(r-rate_shift), q=q, 
+                              sigma=sigma, option=option, default=False)) 
+                / (2 * rate_shift * 10000))
                       
-        if self.greek == 'vomma':
+        if greek == 'vomma':
             result = (
-                ((self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                             q=self.q0, sigma=(self.sigma0+self.vol_shift), 
-                             option=self.option, refresh='graph') 
-                  - (2 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                    q=self.q0, sigma=self.sigma0, 
-                                    option=self.option, refresh='graph')) 
-                  + self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                               q=self.q0, sigma=(self.sigma0-self.vol_shift), 
-                               option=self.option, refresh='graph')) 
-                 / (self.vol_shift ** 2)) 
+                ((self.price(S=S, K=K, T=T, r=r, q=q, sigma=(sigma+vol_shift), 
+                             option=option, default=False) 
+                  - (2 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                                    option=option, default=False)) 
+                  + self.price(S=S, K=K, T=T, r=r, q=q, 
+                               sigma=(sigma-vol_shift), option=option, 
+                               default=False)) 
+                 / (vol_shift ** 2)) 
                 / 10000)              
         
-        if self.greek == 'vanna':
+        if greek == 'vanna':
             result = (
-                ((1 / (4 * self.price_shift * self.vol_shift)) 
-                 * (self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                               T=self.T0, r=self.r0, q=self.q0, 
-                               sigma=(self.sigma0+self.vol_shift), 
-                               option=self.option, refresh='graph') 
-                    - self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                                 T=self.T0, r=self.r0, q=self.q0, 
-                                 sigma=(self.sigma0-self.vol_shift), 
-                                 option=self.option, refresh='graph') 
-                    - self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                                 T=self.T0, r=self.r0, q=self.q0, 
-                                 sigma=(self.sigma0+self.vol_shift), 
-                                 option=self.option, refresh='graph') 
-                    + self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                                 T=self.T0, r=self.r0, q=self.q0, 
-                                 sigma=(self.sigma0-self.vol_shift), 
-                                 option=self.option, refresh='graph'))) 
+                ((1 / (4 * price_shift * vol_shift)) 
+                 * (self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                               sigma=(sigma+vol_shift), option=option, 
+                               default=False) 
+                    - self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                                 sigma=(sigma-vol_shift), option=option, 
+                                 default=False) 
+                    - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                                 sigma=(sigma+vol_shift), option=option, 
+                                 default=False) 
+                    + self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                                 sigma=(sigma-vol_shift), option=option, 
+                                 default=False))) 
                 / 100)
         
-        if self.greek == 'charm':
+        if greek == 'charm':
             result = (
-                (((self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                              T=(self.T0-self.ttm_shift), r=self.r0, q=self.q0, 
-                              sigma=self.sigma0, option=self.option, 
-                              refresh='graph') 
-                   - self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                                T=(self.T0-self.ttm_shift), r=self.r0, 
-                                q=self.q0, sigma=self.sigma0, 
-                                option=self.option, refresh='graph')) 
-                  / (2 * self.price_shift)) 
-                 - ((self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                                T=(self.T0), r=self.r0, q=self.q0, 
-                                sigma=self.sigma0, option=self.option, 
-                                refresh='graph') 
-                     - self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                                  T=(self.T0), r=self.r0, q=self.q0, 
-                                  sigma=self.sigma0, option=self.option, 
-                                  refresh='graph')) 
-                    / (2 * self.price_shift))) 
-                / (self.ttm_shift * 100))
+                (((self.price(S=(S + price_shift), K=K, T=(T-ttm_shift), r=r, 
+                              q=q, sigma=sigma, option=option, default=False) 
+                   - self.price(S=(S - price_shift), K=K, T=(T-ttm_shift), r=r, 
+                                q=q, sigma=sigma, option=option, 
+                                default=False)) 
+                  / (2 * price_shift)) 
+                 - ((self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                                sigma=sigma, option=option, default=False) 
+                     - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                                  sigma=sigma, option=option, default=False)) 
+                    / (2 * price_shift))) 
+                / (ttm_shift * 100))
         
-        if self.greek == 'zomma':
+        if greek == 'zomma':
             result = (
-                ((self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                             T=self.T0, r=self.r0, q=self.q0, 
-                             sigma=(self.sigma0+self.vol_shift), 
-                             option=self.option, refresh='graph') 
-                  - (2 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                    q=self.q0, 
-                                    sigma=(self.sigma0+self.vol_shift), 
-                                    option=self.option, refresh='graph')) 
-                  + self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                               T=self.T0, r=self.r0, q=self.q0, 
-                               sigma=(self.sigma0+self.vol_shift), 
-                               option=self.option, refresh='graph')) 
-                 - self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                              T=self.T0, r=self.r0, q=self.q0, 
-                              sigma=(self.sigma0-self.vol_shift), 
-                              option=self.option, refresh='graph') 
-                 + (2 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                   q=self.q0, 
-                                   sigma=(self.sigma0-self.vol_shift), 
-                                   option=self.option, refresh='graph')) 
-                 - self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                              T=self.T0, r=self.r0, q=self.q0, 
-                              sigma=(self.sigma0-self.vol_shift), 
-                              option=self.option, refresh='graph')) 
-                / (2 * self.vol_shift * (self.price_shift ** 2)) 
+                ((self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                             sigma=(sigma+vol_shift), option=option, 
+                             default=False) 
+                  - (2 * self.price(S=S, K=K, T=T, r=r, q=q, 
+                                    sigma=(sigma+vol_shift), option=option, 
+                                    default=False)) 
+                  + self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                               sigma=(sigma+vol_shift), option=option, 
+                               default=False)) 
+                 - self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                              sigma=(sigma-vol_shift), option=option, 
+                              default=False) 
+                 + (2 * self.price(S=S, K=K, T=T, r=r, q=q, 
+                                   sigma=(sigma-vol_shift), option=option, 
+                                   default=False)) 
+                 - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                              sigma=(sigma-vol_shift), option=option, 
+                              default=False)) 
+                / (2 * vol_shift * (price_shift ** 2)) 
                 / 100)
         
-        if self.greek == 'speed':
+        if greek == 'speed':
             result = (
-                1 / (self.price_shift ** 3) 
-                * (self.price(S=(self.S0 + (2 * self.price_shift)), K=self.K, 
-                              T=self.T0, r=self.r0, q=self.q0, 
-                              sigma=self.sigma0, option=self.option, 
-                              refresh='graph') 
-                   - (3 * self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                                     T=self.T0, r=self.r0, q=self.q0, 
-                                     sigma=self.sigma0, option=self.option, 
-                                     refresh='graph')) 
-                   + 3 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                    q=self.q0, sigma=self.sigma0, 
-                                    option=self.option, refresh='graph') 
-                   - self.price(S=(self.S0-self.price_shift), K=self.K, 
-                                T=self.T0, r=self.r0, q=self.q0, 
-                                sigma=self.sigma0, option=self.option, 
-                                refresh='graph')))
+                1 / (price_shift ** 3) 
+                * (self.price(S=(S + (2 * price_shift)), K=K, T=T, r=r, q=q, 
+                              sigma=sigma, option=option, default=False) 
+                   - (3 * self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                                     sigma=sigma, option=option, 
+                                     default=False)) 
+                   + 3 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                                    option=option, default=False) 
+                   - self.price(S=(S-price_shift), K=K, T=T, r=r, q=q, 
+                                sigma=sigma, option=option, default=False)))
                 
-        if self.greek == 'color':
+        if greek == 'color':
             result = (
-                (((self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                              T=(self.T0-self.ttm_shift), r=self.r0, q=self.q0, 
-                              sigma=self.sigma0, option=self.option, 
-                              refresh='graph') 
-                   - (2 * self.price(S=self.S0, K=self.K, 
-                                     T=(self.T0-self.ttm_shift), r=self.r0, 
-                                     q=self.q0, sigma=self.sigma0, 
-                                     option=self.option, refresh='graph')) 
-                   + self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                                T=(self.T0-self.ttm_shift), r=self.r0, 
-                                q=self.q0, sigma=self.sigma0, 
-                                option=self.option, refresh='graph')) 
-                  / (self.price_shift ** 2)) 
-                 - ((self.price(S=(self.S0 + self.price_shift), K=self.K, 
-                                T=self.T0, r=self.r0, q=self.q0, 
-                                sigma=self.sigma0, option=self.option, 
-                                refresh='graph') 
-                     - (2 * self.price(S=self.S0, K=self.K, T=self.T0, 
-                                       r=self.r0, q=self.q0, sigma=self.sigma0, 
-                                       option=self.option, refresh='graph')) 
-                     + self.price(S=(self.S0 - self.price_shift), K=self.K, 
-                                  T=self.T0, r=self.r0, q=self.q0, 
-                                  sigma=self.sigma0, option=self.option, 
-                                  refresh='graph')) 
-                    / (self.price_shift ** 2) )) 
-                / (self.ttm_shift * 100))
+                (((self.price(S=(S + price_shift), K=K, T=(T-ttm_shift), 
+                              r=r, q=q, sigma=sigma, option=option, 
+                              default=False) 
+                   - (2 * self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, 
+                                     sigma=sigma, option=option, 
+                                     default=False)) 
+                   + self.price(S=(S - price_shift), K=K, T=(T-ttm_shift), 
+                                r=r, q=q, sigma=sigma, option=option, 
+                                default=False)) 
+                  / (price_shift ** 2)) 
+                 - ((self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
+                                sigma=sigma, option=option, default=False) 
+                     - (2 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                                       option=option, default=False)) 
+                     + self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
+                                  sigma=sigma, option=option, default=False)) 
+                    / (price_shift ** 2) )) 
+                / (ttm_shift * 100))
             
-        if self.greek == 'ultima':
+        if greek == 'ultima':
             result = (
-                (1 / (self.vol_shift ** 3) 
-                 * (self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                               q=self.q0, 
-                               sigma=(self.sigma0 + (2 * self.vol_shift)), 
-                               option=self.option, refresh='graph') 
-                    - (3 * self.price(S=self.S0, K=self.K, T=self.T0, 
-                                      r=self.r0, q=self.q0, 
-                                      sigma=(self.sigma0 + self.vol_shift), 
-                                      option=self.option, refresh='graph')) 
-                    + 3 * self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                     q=self.q0, sigma=self.sigma0, 
-                                     option=self.option, refresh='graph') 
-                    - self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                 q=self.q0, 
-                                 sigma=(self.sigma0 - self.vol_shift), 
-                                 option=self.option, 
-                                 refresh='graph'))) * (self.vol_shift ** 2))
+                (1 / (vol_shift ** 3) 
+                 * (self.price(S=S, K=K, T=T, r=r, q=q, 
+                               sigma=(sigma + (2 * vol_shift)), 
+                               option=option, default=False) 
+                    - (3 * self.price(S=S, K=K, T=T, r=r, q=q, 
+                                      sigma=(sigma + vol_shift), 
+                                      option=option, default=False)) 
+                    + 3 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+                                     option=option, default=False) 
+                    - self.price(S=S, K=K, T=T, r=r, q=q, 
+                                 sigma=(sigma - vol_shift), 
+                                 option=option, default=False))) 
+                * (vol_shift ** 2))
         
-        if self.greek == 'vega bleed':
+        if greek == 'vega bleed':
             result = (
-                (((self.price(S=self.S0, K=self.K, T=(self.T0-self.ttm_shift), 
-                              r=self.r0, q=self.q0, 
-                              sigma=(self.sigma0+self.vol_shift), 
-                              option=self.option, refresh='graph') 
-                   - self.price(S=self.S0, K=self.K, 
-                                T=(self.T0-self.ttm_shift), r=self.r0, 
-                                q=self.q0, sigma=(self.sigma0-self.vol_shift), 
-                                option=self.option, refresh='graph')) 
-                  / (2 * self.vol_shift)) 
-                 - ((self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                q=self.q0, sigma=(self.sigma0+self.vol_shift), 
-                                option=self.option, refresh='graph') 
-                     - self.price(S=self.S0, K=self.K, T=self.T0, r=self.r0, 
-                                  q=self.q0, 
-                                  sigma=(self.sigma0-self.vol_shift), 
-                                  option=self.option, refresh='graph')) 
-                    / (2 * self.vol_shift))) 
-                / (self.ttm_shift * 10000))
+                (((self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, 
+                              sigma=(sigma+vol_shift), option=option, 
+                              default=False) 
+                   - self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, 
+                                sigma=(sigma-vol_shift), 
+                                option=option, default=False)) 
+                  / (2 * vol_shift)) 
+                 - ((self.price(S=S, K=K, T=T, r=r, q=q, 
+                                sigma=(sigma+vol_shift), 
+                                option=option, default=False) 
+                     - self.price(S=S, K=K, T=T, r=r, q=q, 
+                                  sigma=(sigma-vol_shift), 
+                                  option=option, default=False)) 
+                    / (2 * vol_shift))) 
+                / (ttm_shift * 10000))
         
         return result
 
@@ -2195,7 +2258,7 @@ class Option():
     def sensitivities(self, S=None, K=None, T=None, r=None, q=None, 
                       sigma=None, option=None, greek=None, price_shift=None, 
                       vol_shift=None, ttm_shift=None, num_sens=None, 
-                      refresh=None):
+                      default=None):
         """
         Sensitivities of the option.
 
@@ -2231,11 +2294,11 @@ class Option():
         num_sens : Bool
             Whether to calculate numerical or analytical sensitivity. 
             The default is False.
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -2247,20 +2310,21 @@ class Option():
         if num_sens is None:
             num_sens = self.num_sens
             
-        if num_sens == False:
-            return self.analytical_sensitivities(
-                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
-                greek=greek, refresh=refresh)
-        else:
+        if num_sens:
             return self.numerical_sensitivities(
                 S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
                 greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
-                ttm_shift=ttm_shift, refresh=refresh)
+                ttm_shift=ttm_shift, default=default)            
+            
+        else:
+            return self.analytical_sensitivities(
+                S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                greek=greek, default=default)
 
 
     def barrier_price(self, S=None, K=None, H=None, R=None, T=None, r=None, 
                       q=None, sigma=None, barrier_direction=None, knock=None, 
-                      option=None, refresh=None):
+                      option=None, default=None):
         """
         Return the Barrier option price
     
@@ -2288,11 +2352,11 @@ class Option():
             knock-in or knock-out. The default is 'in'.
         option : Str
             Option type, Put or Call. The default is 'call'
-        refresh : Str
-            Whether the function is being called directly or used within 
-            a graph call; within graphs the parameters have already been 
-            refreshed so the initialise graphs function fixes them in 
-            place. 
+        default : Bool
+            Whether the function is being called directly (in which 
+            case values that are not supplied are set to default 
+            values) or used within a graph call where they have 
+            already been updated.
 
         Returns
         -------
@@ -2300,6 +2364,23 @@ class Option():
             Barrier option price.
 
         """
+        
+        if default is None:
+            default = True
+
+        # If default is set to False the price is to be used in combo 
+        # graphs so the distributions are refreshed but not the 
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            (S, K, H, R, T, r, q, sigma, barrier_direction, knock, 
+             option) = itemgetter(
+                'S', 'K', 'H', 'R', 'T', 'r', 'q', 'sigma', 
+                'barrier_direction', 'knock',
+                'option')(self._refresh_params_default(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    barrier_direction=barrier_direction, knock=knock, 
+                    option=option))
         
         # Pass parameters to be initialised. If not provided they will 
         # be populated with default values
@@ -2564,7 +2645,7 @@ class Option():
         if risk is None:
             risk = self.risk
         
-        if risk == True:
+        if risk:
             self.greeks(
                 x_plot=x_plot, y_plot=y_plot, S=S, G1=G1, G2=G2, G3=G3, T=T, 
                 T1=T1, T2=T2, T3=T3, time_shift=time_shift, r=r, q=q, 
@@ -2574,7 +2655,7 @@ class Option():
                 size2d=size2d, size3d=size3d, axis=axis, spacegrain=spacegrain, 
                 greek=greek, graphtype=graphtype, mpl_style=mpl_style)
         
-        if risk == False:
+        else:
             self.payoffs(
                 S=S, K=K, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, 
                 sigma=sigma, option=option, direction=direction, size2d=size2d, 
@@ -2794,7 +2875,7 @@ class Option():
                             S=self.SA, K=self.__dict__['G'+str(opt)], 
                             T=self.__dict__['T'+str(opt)], r=self.r, q=self.q, 
                             sigma=self.sigma, option=self.option, 
-                            refresh='graph')
+                            default=False)
                             
                 if self.x_plot == 'vol':
                     
@@ -2804,7 +2885,7 @@ class Option():
                             S=self.S0, K=self.__dict__['G'+str(opt)], 
                             T=self.__dict__['T'+str(opt)], r=self.r, q=self.q, 
                             sigma=self.sigmaA, option=self.option, 
-                            refresh='graph')
+                            default=False)
                             
                 if self.x_plot == 'time':
                     
@@ -2813,7 +2894,7 @@ class Option():
                         self, self.y_name_dict[self.y_plot])(
                             S=self.S0, K=self.__dict__['G'+str(opt)], 
                             T=self.TA, r=self.r, q=self.q, sigma=self.sigma, 
-                            option=self.option, refresh='graph')
+                            option=self.option, default=False)
             
             # Reverse the option value if direction is 'short'        
             if self.direction == 'short':
@@ -2845,7 +2926,7 @@ class Option():
                             S=self.SA, K=self.G2, 
                             T=self.__dict__['T'+str(tenor_type[opt])], 
                             r=self.r, q=self.q, sigma=self.sigma, 
-                            option=opt_type[opt], refresh='graph')
+                            option=opt_type[opt], default=False)
                             
                 if self.x_plot == 'strike':
                     
@@ -2855,7 +2936,7 @@ class Option():
                             S=self.S0, K=self.SA, 
                             T=self.__dict__['T'+str(tenor_type[opt])], 
                             r=self.r, q=self.q, sigma=self.sigma, 
-                            option=opt_type[opt], refresh='graph')
+                            option=opt_type[opt], default=False)
                             
                 if self.x_plot == 'vol':
                     
@@ -2865,7 +2946,7 @@ class Option():
                             S=self.S0, K=self.G2, 
                             T=self.__dict__['T'+str(tenor_type[opt])], 
                             r=self.r, sigma=self.sigmaA, 
-                            option=opt_type[opt], refresh='graph')
+                            option=opt_type[opt], default=False)
             
             # Reverse the option value if direction is 'short'        
             if self.direction == 'short':
@@ -3120,7 +3201,7 @@ class Option():
                         self, greek_func)(
                             S=self.x, K=self.S, T=self.y, r=self.r, 
                             sigma=self.sigma, option=self.option, 
-                            refresh='graph')
+                            default=False)
                 
                 if self.axis == 'vol':
                     
@@ -3129,7 +3210,7 @@ class Option():
                         self, greek_func)(
                             S=self.S, K=self.S, T=self.y, r=self.r, 
                             sigma=self.x, option=self.option, 
-                            refresh='graph')
+                            default=False)
         
         # Run the 3D visualisation method            
         self._vis_greeks_3D()            
@@ -3228,52 +3309,10 @@ class Option():
                             +str(self.option.title())+' Option '
                             +str(self.greek.title()))
            
-        # Create a matplotlib graph    
-        if self.interactive == False:
         
-            # create figure with specified size tuple
-            fig = plt.figure(figsize=self.size3d)
-            ax = fig.add_subplot(111, projection='3d')
-            
-            # apply graph_scale so that if volatility is the x-axis it 
-            # will be * 100
-            ax.plot_surface(self.x * self.graph_scale,
-                            self.y * 365,
-                            self.z,
-                            rstride=2, cstride=2,
-                            
-                            # set the colormap to the chosen colorscheme
-                            cmap=plt.get_cmap(self.colorscheme),
-                            
-                            # set the alpha value to the chosen 
-                            # colorintensity
-                            alpha=self.colorintensity,
-                            linewidth=0.25)
-            
-            # Auto scale the z-axis
-            ax.set_zlim(auto=True)
-            
-            # Set fontsize of axis ticks
-            ax.tick_params(axis='both', which='major', labelsize=14, 
-                           pad=10)
-            
-            # Set x-axis to decrease from left to right
-            ax.invert_xaxis()
-            
-            # Label axes
-            ax.set_xlabel(self.axis_label1, fontsize=14, labelpad=20)
-            ax.set_ylabel(self.axis_label2, fontsize=14, labelpad=20)
-            ax.set_zlabel(str(self.greek.title()), fontsize=14, 
-                          labelpad=20)
-            
-            # Specify title
-            ax.set_title(titlename, fontsize=20, pad=30)
-            
-            # Display graph
-            plt.show()
 
         # Create a plotly graph
-        if self.interactive == True:
+        if self.interactive:
             
             # Set the ranges for the contour values
             contour_x_start = self.ymin
@@ -3363,6 +3402,51 @@ class Option():
             else:
                 plot(fig, auto_open=True)
    
+    
+        # Create a matplotlib graph    
+        else:
+        
+            # create figure with specified size tuple
+            fig = plt.figure(figsize=self.size3d)
+            ax = fig.add_subplot(111, projection='3d')
+            
+            # apply graph_scale so that if volatility is the x-axis it 
+            # will be * 100
+            ax.plot_surface(self.x * self.graph_scale,
+                            self.y * 365,
+                            self.z,
+                            rstride=2, cstride=2,
+                            
+                            # set the colormap to the chosen colorscheme
+                            cmap=plt.get_cmap(self.colorscheme),
+                            
+                            # set the alpha value to the chosen 
+                            # colorintensity
+                            alpha=self.colorintensity,
+                            linewidth=0.25)
+            
+            # Auto scale the z-axis
+            ax.set_zlim(auto=True)
+            
+            # Set fontsize of axis ticks
+            ax.tick_params(axis='both', which='major', labelsize=14, 
+                           pad=10)
+            
+            # Set x-axis to decrease from left to right
+            ax.invert_xaxis()
+            
+            # Label axes
+            ax.set_xlabel(self.axis_label1, fontsize=14, labelpad=20)
+            ax.set_ylabel(self.axis_label2, fontsize=14, labelpad=20)
+            ax.set_zlabel(str(self.greek.title()), fontsize=14, 
+                          labelpad=20)
+            
+            # Specify title
+            ax.set_title(titlename, fontsize=20, pad=30)
+            
+            # Display graph
+            plt.show()
+    
     
     def payoffs(self, S=None, K=None, K1=None, K2=None, K3=None, K4=None, 
                 T=None, r=None, q=None, sigma=None, option=None, 
@@ -4768,8 +4852,7 @@ class Option():
 
     
     def _vis_payoff(self, S=None, SA=None, payoff=None, label=None, 
-                    title='Option Payoff', payoff2=None, label2=None, 
-                    xlabel='Stock Price', ylabel='P&L'):
+                    title=None, payoff2=None, label2=None):
         """
         Display the payoff diagrams using matplotlib
 
@@ -4791,11 +4874,7 @@ class Option():
             Current payoff value less initial cost.
         label2 : Str
             Label for current payoff value.
-        xlabel : Str
-            The x-axis label. The default is 'Stock Price'.
-        ylabel : Str
-            The y-axis label. The default is 'P&L'.
-
+       
         Returns
         -------
         2D Payoff Graph.
@@ -4837,17 +4916,14 @@ class Option():
         plt.grid(True)
         
         # Set x and y axis labels and title
-        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        ax.set(xlabel='Stock Price', ylabel='P&L', title=title)
         
         # Create a legend
         ax.legend(loc=0, fontsize=10)
         
         # Apply tight layout
         gs1.tight_layout(fig, rect=[0, 0, 1, 1])
-        
-        #gs1.right = 0.9
-        #print(gs1.top, gs1.bottom, gs1.left, gs1.right)
-        
+              
         # Display the chart
         plt.show()
     
@@ -4880,73 +4956,73 @@ class Option():
         # Calculate the current price of option 1       
         self.C1_0 = self.price(S=self.S0, K=self.K1, T=self.T1, r=self.r, 
                                q=self.q, sigma=self.sigma, 
-                               option=self.option1, refresh='graph')
+                               option=self.option1, default=False)
         
         # Calculate the prices at maturity for the range of strikes 
         # in SA of option 1
         self.C1 = self.price(S=self.SA, K=self.K1, T=0, r=self.r, q=self.q, 
                              sigma=self.sigma, option=self.option1, 
-                             refresh='graph')
+                             default=False)
         
         # Calculate the current prices for the range of strikes 
         # in SA of option 1
         self.C1_G = self.price(S=self.SA, K=self.K1, T=self.T1, r=self.r, 
                                q=self.q, sigma=self.sigma, 
-                               option=self.option1, refresh='graph')
+                               option=self.option1, default=False)
         
         if legs > 1:
             # Calculate the current price of option 2
             self.C2_0 = self.price(S=self.S0, K=self.K2, T=self.T2, r=self.r, 
                                    q=self.q, sigma=self.sigma, 
-                                   option=self.option2, refresh='graph')
+                                   option=self.option2, default=False)
             
             # Calculate the prices at maturity for the range of strikes 
             # in SA of option 2
             self.C2 = self.price(S=self.SA, K=self.K2, T=0, r=self.r, 
                                  q=self.q, sigma=self.sigma, 
-                                 option=self.option2, refresh='graph')
+                                 option=self.option2, default=False)
             
             # Calculate the current prices for the range of strikes 
             # in SA of option 2
             self.C2_G = self.price(S=self.SA, K=self.K2, T=self.T2, r=self.r, 
                                    q=self.q, sigma=self.sigma, 
-                                   option=self.option2, refresh='graph')
+                                   option=self.option2, default=False)
 
         if legs > 2:
             # Calculate the current price of option 3
             self.C3_0 = self.price(S=self.S0, K=self.K3, T=self.T3, r=self.r, 
                                    q=self.q, sigma=self.sigma, 
-                                   option=self.option3, refresh='graph')
+                                   option=self.option3, default=False)
             
             # Calculate the prices at maturity for the range of strikes 
             # in SA of option 3
             self.C3 = self.price(S=self.SA, K=self.K3, T=0, r=self.r, 
                                  q=self.q, sigma=self.sigma, 
-                                 option=self.option3, refresh='graph')
+                                 option=self.option3, default=False)
             
             # Calculate the current prices for the range of strikes 
             # in SA of option 3
             self.C3_G = self.price(S=self.SA, K=self.K3, T=self.T3, r=self.r, 
                                    q=self.q, sigma=self.sigma, 
-                                   option=self.option3, refresh='graph')
+                                   option=self.option3, default=False)
         
         if legs > 3:
             # Calculate the current price of option 4
             self.C4_0 = self.price(S=self.S0, K=self.K4, T=self.T4, r=self.r, 
                                    q=self.q, sigma=self.sigma, 
-                                   option=self.option4, refresh='graph')
+                                   option=self.option4, default=False)
             
             # Calculate the prices at maturity for the range of strikes 
             # in SA of option 4
             self.C4 = self.price(S=self.SA, K=self.K4, T=0, r=self.r, 
                                  q=self.q, sigma=self.sigma, 
-                                 option=self.option4, refresh='graph')
+                                 option=self.option4, default=False)
             
             # Calculate the current prices for the range of strikes 
             # in SA of option 4
             self.C4_G = self.price(S=self.SA, K=self.K4, T=self.T4, r=self.r, 
                                    q=self.q, sigma=self.sigma, 
-                                   option=self.option4, refresh='graph')
+                                   option=self.option4, default=False)
         
         # Restore Spot value
         self.S = self.S0
