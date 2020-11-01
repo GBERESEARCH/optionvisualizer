@@ -607,9 +607,10 @@ class Option():
         self.combo_payoff = combo_payoff 
 
     
-    def _initialise_func(self, **kwargs):
+    def _refresh_params_default(self, **kwargs):
         """
-        Initialise pricing data.
+        Set parameters for use in various pricing functions to the
+        default values.
 
         Parameters
         ----------
@@ -620,144 +621,67 @@ class Option():
         Returns
         -------
         Various
-            Runs methods to fix input parameters and reset defaults 
-            if no data provided and recalculate distributions based 
-            on updated data.
-
-        """
-        self._refresh_params(**kwargs)
-        self._refresh_dist()
-        
-        return self
-
-
-    def _initialise_graphs(self, **kwargs):
-        """
-        Initialise pricing data for graphs.
-
-        Parameters
-        ----------
-        **kwargs : Various
-                   Takes any of the arguments of the various methods 
-                   that use it to refresh data.
-
-        Returns
-        -------
-        Various
-            Runs methods to fix input parameters (resetting defaults 
-            will have taken place earlier in the process) and 
-            recalculate distributions based on updated data.
-
-        """
-        self._set_params(**kwargs)
-        self._refresh_dist()
-        
-        return self
-    
-
-    def _initialise_barriers(self, **kwargs):
-        """
-        Initialise pricing data for graphs.
-
-        Parameters
-        ----------
-        **kwargs : Various
-                   Takes any of the arguments of the various methods 
-                   that use it to refresh data.
-
-        Returns
-        -------
-        Various
-            Runs methods to fix input parameters and reset defaults 
-            if no data provided, calculate distributions based on 
-            updated data and calculate the barrier option specific 
-            parameters.
-
-        """
-        self._refresh_params(**kwargs)
-        self._refresh_dist()
-        self._barrier_factors()
-
-        return self
-
-
-    def _refresh_params(self, **kwargs):
-        """
-        Set parameters for use in various pricing functions
-
-        Parameters
-        ----------
-        **kwargs : Various
-                   Takes any of the arguments of the various methods 
-                   that use it to refresh data.
-
-        Returns
-        -------
-        Various
-            Runs methods to fix input parameters and reset defaults 
-            if no data provided
+            Runs methods to fix input parameters and reset defaults if 
+            no data provided
 
         """
         
-        # Certain combo payoffs (found in the mod_payoffs list) require 
-        # specific default parameters
-        if self.combo_payoff in self.mod_payoffs:
-            for k, v in kwargs.items():
-                if v is None:
-                    
-                    # These parameters are in the mod_params list
-                    if k in self.mod_params:
-                        try:
-                            
-                            # Extract these from the df_combo_dict
-                            v = self.df_combo_dict[str(
-                                self.combo_payoff)][str(k)]
-                        except:
-                            
-                            # Otherwise set to the standard default 
-                            # value
-                            v = df_dict['df_'+str(k)]
-                    if k not in self.mod_params:
-                        v = df_dict['df_'+str(k)]
-                    
-                    # Now assign this to the object
-                    self.__dict__[k] = v
-                
-                # If the parameter has been provided as an input, 
-                # assign this to the object
-                else:
-                    self.__dict__[k] = v
-           
-        else:
+        # For all the supplied arguments
+        for k, v in kwargs.items():
             
-            # For all the other combo_payoffs
-            for k, v in kwargs.items():
+            # If a value for a parameter has not been provided
+            if v is None:
                 
-                # If a parameter has not been provided
-                if v is None:
-                    
-                    # Set it to the default value and assign to the 
-                    # object
-                    v = df_dict['df_'+str(k)]
-                    self.__dict__[k] = v
-                
-                # If the parameter has been provided as an input, 
-                # assign this to the object
-                else:
-                    self.__dict__[k] = v
-        
-        # For each parameter in the list of parameters to be updated 
-        # that was not supplied as a kwarg 
-        for key in list(set(self.df_params_list) - set(kwargs.keys())):
-            if key not in kwargs:
-                
-                # Set it to the default value and assign to the object
-                val = df_dict['df_'+str(key)]
-                self.__dict__[key] = val
-                
-        return self        
-    
+                # Set it to the default value and assign to the object 
+                # and to input dictionary
+                v = self.df_dict['df_'+str(k)]
+                self.__dict__[k] = v
+                kwargs[k] = v 
+            
+            # If the value has been provided as an input, assign this 
+            # to the object
+            else:
+                self.__dict__[k] = v
+                      
+        return kwargs        
+         
+  
+    def _refresh_dist(self, S, K, T, r, q, sigma):
+        """
+        Calculate various parameters and distributions
 
+        Returns
+        -------
+        Various
+            Assigns parameters to the object
+
+        """
+        
+        # Cost of carry as risk free rate less dividend yield
+        b = r - q
+        
+        carry = np.exp((b - r) * T)
+        discount = np.exp(-r * T)
+                
+        with np.errstate(divide='ignore'):
+            d1 = ((np.log(S / K) + (b + (0.5 * sigma ** 2)) * T) 
+                / (sigma * np.sqrt(T)))
+            
+            d2 = ((np.log(S / K) + (b - (0.5 * sigma ** 2)) * T) 
+                / (sigma * np.sqrt(T)))
+            
+            # standardised normal density function
+            nd1 = ((1 / np.sqrt(2 * np.pi)) * (np.exp(-d1 ** 2 * 0.5)))
+            
+            # Cumulative normal distribution function
+            Nd1 = si.norm.cdf(d1, 0.0, 1.0)
+            minusNd1 = si.norm.cdf(-d1, 0.0, 1.0)
+            Nd2 = si.norm.cdf(d2, 0.0, 1.0)
+            minusNd2 = si.norm.cdf(-d2, 0.0, 1.0)
+        
+        return b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, minusNd2
+
+ 
     def _refresh_combo_params_default(self, **kwargs):
         """
         Set parameters for use in various pricing functions
@@ -831,156 +755,11 @@ class Option():
                     self.__dict__[k] = v
                         
         return kwargs            
-     
-        
-    def _refresh_params_current(self, **kwargs):
-        """
-        Set parameters for use in various pricing functions to the 
-        current object values.
-
-        Parameters
-        ----------
-        **kwargs : Various
-                   Takes any of the arguments of the various methods 
-                   that use it to refresh data.
-
-        Returns
-        -------
-        Various
-            Runs methods to fix input parameters and set to current 
-            object values if no data provided
-
-        """
-        
-        # For all the supplied arguments
-        for k, v in kwargs.items():
-            
-            # If a value for a parameter has not been provided
-            if v is None:
-                
-                # Set it to the object value and assign to the object 
-                # and to input dictionary
-                v = self.__dict__[k]
-                kwargs[k] = v 
-            
-            # If the value has been provided as an input, assign this 
-            # to the object
-            else:
-                self.__dict__[k] = v
-                      
-        return kwargs        
+   
     
-    
-    def _refresh_params_default(self, **kwargs):
+    def _barrier_factors(self, S, K, H, R, T, r, q, sigma, phi, eta):
         """
-        Set parameters for use in various pricing functions to the
-        default values.
-
-        Parameters
-        ----------
-        **kwargs : Various
-                   Takes any of the arguments of the various methods 
-                   that use it to refresh data.
-
-        Returns
-        -------
-        Various
-            Runs methods to fix input parameters and reset defaults if 
-            no data provided
-
-        """
-        
-        # For all the supplied arguments
-        for k, v in kwargs.items():
-            
-            # If a value for a parameter has not been provided
-            if v is None:
-                
-                # Set it to the default value and assign to the object 
-                # and to input dictionary
-                v = df_dict['df_'+str(k)]
-                self.__dict__[k] = v
-                kwargs[k] = v 
-            
-            # If the value has been provided as an input, assign this 
-            # to the object
-            else:
-                self.__dict__[k] = v
-                      
-        return kwargs        
-    
-    
-    
-    def _set_params(self, **kwargs):
-        """
-        Fix parameters for use in various pricing functions
-
-        Parameters
-        ----------
-        **kwargs : Various
-                   Takes any of the arguments of the various methods 
-                   that use it to refresh data.
-
-        Returns
-        -------
-        Various
-            Assigns input parameters to the object
-
-        """
-        
-        # For each input parameter provided
-        for k, v in kwargs.items():
-            if v is not None:
-                # Assign to the object
-                self.__dict__[k] = v
-    
-        return self
-       
-        
-    def _refresh_dist(self):
-        """
-        Calculate various parameters and distributions
-
-        Returns
-        -------
-        Various
-            Assigns parameters to the object
-
-        """
-        
-        # Cost of carry as risk free rate less dividend yield
-        self.b = self.r - self.q
-        
-        self.carry = np.exp((self.b - self.r) * self.T)
-        self.discount = np.exp(-self.r * self.T)
-        
-        with np.errstate(divide='ignore'):
-            self.d1 = (
-                (np.log(self.S / self.K) 
-                 + (self.b + (0.5 * self.sigma ** 2)) * self.T) 
-                / (self.sigma * np.sqrt(self.T)))
-            
-            self.d2 = (
-                (np.log(self.S / self.K) 
-                 + (self.b - (0.5 * self.sigma ** 2)) * self.T) 
-                / (self.sigma * np.sqrt(self.T)))
-            
-            # standardised normal density function
-            self.nd1 = (
-                (1 / np.sqrt(2 * np.pi)) * (np.exp(-self.d1 ** 2 * 0.5)))
-            
-            # Cumulative normal distribution function
-            self.Nd1 = si.norm.cdf(self.d1, 0.0, 1.0)
-            self.minusNd1 = si.norm.cdf(-self.d1, 0.0, 1.0)
-            self.Nd2 = si.norm.cdf(self.d2, 0.0, 1.0)
-            self.minusNd2 = si.norm.cdf(-self.d2, 0.0, 1.0)
-        
-        return self
-
-
-    def _refresh_dist_local(self, S, K, T, r, q, sigma):
-        """
-        Calculate various parameters and distributions
+        Calculate the barrier option specific parameters
 
         Returns
         -------
@@ -992,124 +771,92 @@ class Option():
         # Cost of carry as risk free rate less dividend yield
         b = r - q
         
+        mu = (b - ((sigma ** 2) / 2)) / (sigma ** 2)
+        
+        lamb_da = (
+            np.sqrt(mu ** 2 + ((2 * r) / sigma ** 2)))
+        
+        z = (
+            (np.log(H / S) / (sigma * np.sqrt(T))) 
+            + (lamb_da * sigma * np.sqrt(T)))
+        
+        x1 = (
+            np.log(S / K) / (sigma * np.sqrt(T)) 
+            + ((1 + mu) * sigma * np.sqrt(T)))
+        
+        x2 = (
+            np.log(S / H) / (sigma * np.sqrt(T)) 
+            + ((1 + mu) * sigma * np.sqrt(T)))
+        
+        y1 = (
+            np.log((H ** 2) / (S * K)) 
+            / (sigma * np.sqrt(T)) 
+            + ((1 + mu) * sigma * np.sqrt(T)))
+        
+        y2 = (
+            np.log(H / S) / (sigma * np.sqrt(T)) 
+            + ((1 + mu) * sigma * np.sqrt(T)))
+        
         carry = np.exp((b - r) * T)
-        discount = np.exp(-r * T)
-                
-        with np.errstate(divide='ignore'):
-            d1 = ((np.log(S / K) + (b + (0.5 * sigma ** 2)) * T) 
-                / (sigma * np.sqrt(T)))
-            
-            d2 = ((np.log(S / K) + (b - (0.5 * sigma ** 2)) * T) 
-                / (sigma * np.sqrt(T)))
-            
-            # standardised normal density function
-            nd1 = ((1 / np.sqrt(2 * np.pi)) * (np.exp(-d1 ** 2 * 0.5)))
-            
-            # Cumulative normal distribution function
-            Nd1 = si.norm.cdf(d1, 0.0, 1.0)
-            minusNd1 = si.norm.cdf(-d1, 0.0, 1.0)
-            Nd2 = si.norm.cdf(d2, 0.0, 1.0)
-            minusNd2 = si.norm.cdf(-d2, 0.0, 1.0)
         
-        return b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, minusNd2
-    
-    
-    def _barrier_factors(self):
-        """
-        Calculate the barrier option specific parameters
-
-        Returns
-        -------
-        Various
-            Assigns parameters to the object
-
-        """
-        self.mu = (self.b - ((self.sigma ** 2) / 2)) / (self.sigma ** 2)
-        
-        self.lamb_da = (
-            np.sqrt(self.mu ** 2 + ((2 * self.r) / self.sigma ** 2)))
-        
-        self.z = (
-            (np.log(self.H / self.S) / (self.sigma * np.sqrt(self.T))) 
-            + (self.lamb_da * self.sigma * np.sqrt(self.T)))
-        
-        self.x1 = (
-            np.log(self.S / self.K) / (self.sigma * np.sqrt(self.T)) 
-            + ((1 + self.mu) * self.sigma * np.sqrt(self.T)))
-        
-        self.x2 = (
-            np.log(self.S / self.H) / (self.sigma * np.sqrt(self.T)) 
-            + ((1 + self.mu) * self.sigma * np.sqrt(self.T)))
-        
-        self.y1 = (
-            np.log((self.H ** 2) / (self.S * self.K)) 
-            / (self.sigma * np.sqrt(self.T)) 
-            + ((1 + self.mu) * self.sigma * np.sqrt(self.T)))
-        
-        self.y2 = (
-            np.log(self.H / self.S) / (self.sigma * np.sqrt(self.T)) 
-            + ((1 + self.mu) * self.sigma * np.sqrt(self.T)))
-        
-        self.carry = np.exp((self.b - self.r) * self.T)
-        
-        self.A = (
-            (self.phi * self.S * self.carry 
-             * si.norm.cdf((self.phi * self.x1), 0.0, 1.0)) 
-            - (self.phi * self.K * np.exp(-self.r * self.T) 
-               * si.norm.cdf(((self.phi * self.x1) 
-                              - (self.phi * self.sigma 
-                                 * np.sqrt(self.T))), 0.0, 1.0)))
+        A = (
+            (phi * S * carry 
+             * si.norm.cdf((phi * x1), 0.0, 1.0)) 
+            - (phi * K * np.exp(-r * T) 
+               * si.norm.cdf(((phi * x1) 
+                              - (phi * sigma 
+                                 * np.sqrt(T))), 0.0, 1.0)))
             
 
-        self.B = (
-            (self.phi * self.S * self.carry 
-             * si.norm.cdf((self.phi * self.x2), 0.0, 1.0)) 
-            - (self.phi * self.K * np.exp(-self.r * self.T) 
-               * si.norm.cdf(((self.phi * self.x2) 
-                              - (self.phi * self.sigma 
-                                 * np.sqrt(self.T))), 0.0, 1.0)))
+        B = (
+            (phi * S * carry 
+             * si.norm.cdf((phi * x2), 0.0, 1.0)) 
+            - (phi * K * np.exp(-r * T) 
+               * si.norm.cdf(((phi * x2) 
+                              - (phi * sigma 
+                                 * np.sqrt(T))), 0.0, 1.0)))
         
-        self.C = (
-            (self.phi * self.S * self.carry 
-             * ((self.H / self.S) ** (2 * (self.mu + 1))) 
-             * si.norm.cdf((self.eta * self.y1), 0.0, 1.0)) 
-            - (self.phi * self.K * np.exp(-self.r * self.T) 
-               * ((self.H / self.S) ** (2 * self.mu)) 
-               * si.norm.cdf(((self.eta * self.y1) 
-                              - (self.eta * self.sigma 
-                                 * np.sqrt(self.T))), 0.0, 1.0)))
+        C = (
+            (phi * S * carry 
+             * ((H / S) ** (2 * (mu + 1))) 
+             * si.norm.cdf((eta * y1), 0.0, 1.0)) 
+            - (phi * K * np.exp(-r * T) 
+               * ((H / S) ** (2 * mu)) 
+               * si.norm.cdf(((eta * y1) 
+                              - (eta * sigma 
+                                 * np.sqrt(T))), 0.0, 1.0)))
         
-        self.D = (
-            (self.phi * self.S * self.carry 
-             * ((self.H / self.S) ** (2 * (self.mu + 1))) 
-             * si.norm.cdf((self.eta * self.y2), 0.0, 1.0)) 
-            - (self.phi * self.K * np.exp(-self.r * self.T) 
-               * ((self.H / self.S) ** (2 * self.mu)) 
-               * si.norm.cdf(((self.eta * self.y2) 
-                              - (self.eta * self.sigma 
-                                 * np.sqrt(self.T))), 0.0, 1.0)))
+        D = (
+            (phi * S * carry 
+             * ((H / S) ** (2 * (mu + 1))) 
+             * si.norm.cdf((eta * y2), 0.0, 1.0)) 
+            - (phi * K * np.exp(-r * T) 
+               * ((H / S) ** (2 * mu)) 
+               * si.norm.cdf(((eta * y2) 
+                              - (eta * sigma 
+                                 * np.sqrt(T))), 0.0, 1.0)))
     
-        self.E = (
-            (self.R * np.exp(-self.r * self.T)) 
+        E = (
+            (R * np.exp(-r * T)) 
             * (si.norm.cdf(
-                ((self.eta * self.x2) 
-                 - (self.eta * self.sigma * np.sqrt(self.T))), 0.0, 1.0) 
-                - (((self.H / self.S) ** (2 * self.mu)) 
+                ((eta * x2) 
+                 - (eta * sigma * np.sqrt(T))), 0.0, 1.0) 
+                - (((H / S) ** (2 * mu)) 
                    * si.norm.cdf(
-                       ((self.eta * self.y2) 
-                        - (self.eta * self.sigma 
-                           * np.sqrt(self.T))), 0.0, 1.0))))
+                       ((eta * y2) 
+                        - (eta * sigma 
+                           * np.sqrt(T))), 0.0, 1.0))))
         
-        self.F = (
-            self.R * (((self.H / self.S) ** (self.mu + self.lamb_da)) 
-                      * (si.norm.cdf((self.eta * self.z), 0.0, 1.0)) 
-                      + (((self.H / self.S) ** (self.mu - self.lamb_da)) 
+        F = (
+            R * (((H / S) ** (mu + lamb_da)) 
+                      * (si.norm.cdf((eta * z), 0.0, 1.0)) 
+                      + (((H / S) ** (mu - lamb_da)) 
                          * si.norm.cdf(
-                             ((self.eta * self.z) 
-                              - (2 * self.eta * self.lamb_da * 
-                                 self.sigma * np.sqrt(self.T))), 0.0, 1.0))))
+                             ((eta * z) 
+                              - (2 * eta * lamb_da * 
+                                 sigma * np.sqrt(T))), 0.0, 1.0))))
 
-        return self
+        return A, B, C, D, E, F
 
 
     def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
@@ -1161,7 +908,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)    
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)    
         
         if option == "call":
             opt_price = ((S * carry * Nd1) 
@@ -1224,7 +971,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
                                 
         if option == 'call':
             opt_delta = carry * Nd1
@@ -1283,7 +1030,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
                    
         if option == 'call':
             opt_theta = (
@@ -1350,7 +1097,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_gamma = ((nd1 * carry) / (S * sigma * np.sqrt(T)))
         
@@ -1406,7 +1153,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
 
         opt_vega = ((S * carry * nd1 * np.sqrt(T)) / 100)
         
@@ -1462,7 +1209,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         if option == 'call':
             opt_rho = (
@@ -1527,7 +1274,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_vanna = (
             (((-carry * d2) / sigma) * nd1) / 100) 
@@ -1585,7 +1332,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_vomma = (
             (self.vega(S, K, T, r, q, sigma, option, default=False) 
@@ -1645,7 +1392,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         if option == 'call':
             opt_charm = (
@@ -1711,7 +1458,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_zomma = (
             (self.gamma(S, K, T, r, q, sigma, option, default=False) 
@@ -1772,7 +1519,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_speed = -(self.gamma(S, K, T, r, q, sigma, option, default=False) 
                            * (1 + (d1 / (sigma * np.sqrt(T)))) / S)
@@ -1830,7 +1577,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_color = (
             (self.gamma(S, K, T, r, q, sigma, option, default=False) 
@@ -1892,7 +1639,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_ultima = (
             (self.vomma(S, K, T, r, q, sigma, option, default=False) 
@@ -1952,7 +1699,7 @@ class Option():
         
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
-         minusNd2) = self._refresh_dist_local(S, K, T, r, q, sigma)
+         minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)
         
         opt_vega_bleed = (
             (self.vega(S, K, T, r, q, sigma, option, default=False) 
@@ -2462,127 +2209,177 @@ class Option():
             Barrier option price.
 
         """
+
+        if default is None:
+            default = True
                
-        # Pass parameters to be initialised. If not provided they will 
-        # be populated with default values
-        self._initialise_barriers(
-            S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
-            barrier_direction=barrier_direction, knock=knock, option=option
-            )
-        
+        # If default is set to False the price is to be used in combo 
+        # graphs so the distributions are refreshed but not the 
+        # parameters.    
+        if default:
+            # Update pricing input parameters to default if not supplied
+            (S, K, H, R, T, r, q, sigma, option, barrier_direction, 
+             knock) = itemgetter(
+                 'S', 'K', 'H', 'R', 'T', 'r', 'q', 'sigma', 'option', 
+                 'barrier_direction', 'knock')(self._refresh_params_default(
+                     S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                     option=option, barrier_direction=barrier_direction, 
+                     knock=knock))
+               
+                     
         # Down and In Call
-        if (self.barrier_direction == 'down' 
-                and self.knock == 'in' 
-                and self.option == 'call'):
+        if (barrier_direction == 'down' 
+            and knock == 'in' 
+            and option == 'call'):
             
-            self.eta = 1
-            self.phi = 1
+            eta = 1
+            phi = 1
         
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.C + self.E
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.A - self.B + self.D + self.E
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))     
+        
+            if K > H:
+                opt_barrier_payoff = C + E
+            if K < H:
+                opt_barrier_payoff = A - B + D + E
             
 
         # Up and In Call    
-        if (self.barrier_direction == 'up' 
-                and self.knock == 'in' 
-                and self.option == 'call'):
+        if (barrier_direction == 'up' 
+                and knock == 'in' 
+                and option == 'call'):
             
-            self.eta = -1
-            self.phi = 1
+            eta = -1
+            phi = 1
             
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.A + self.E
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.B - self.C + self.D + self.E
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
+            
+            if K > H:
+                opt_barrier_payoff = A + E
+            if K < H:
+                opt_barrier_payoff = B - C + D + E
 
 
         # Down and In Put
-        if (self.barrier_direction == 'down' 
-                and self.knock == 'in' 
-                and self.option == 'put'):
+        if (barrier_direction == 'down' 
+                and knock == 'in' 
+                and option == 'put'):
 
-            self.eta = 1
-            self.phi = -1
+            eta = 1
+            phi = -1
             
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.B - self.C + self.D + self.E
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.A + self.E
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
+            
+            if K > H:
+                opt_barrier_payoff = B - C + D + E
+            if K < H:
+                opt_barrier_payoff = A + E
                 
                 
         # Up and In Put         
-        if (self.barrier_direction == 'up' 
-            and self.knock == 'in' 
-            and self.option == 'put'):
+        if (barrier_direction == 'up' 
+            and knock == 'in' 
+            and option == 'put'):
             
-            self.eta = -1
-            self.phi = -1
+            eta = -1
+            phi = -1
+            
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
         
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.A - self.B + self.D + self.E
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.C + self.E
+            if K > H:
+                opt_barrier_payoff = A - B + D + E
+            if K < H:
+                opt_barrier_payoff = C + E
                 
                 
         # Down and Out Call
-        if (self.barrier_direction == 'down' 
-            and self.knock == 'out' 
-            and self.option == 'call'):
+        if (barrier_direction == 'down' 
+            and knock == 'out' 
+            and option == 'call'):
             
-            self.eta = 1
-            self.phi = 1
+            eta = 1
+            phi = 1
+            
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
         
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.A - self.C + self.F
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.B - self.D + self.F
+            if K > H:
+                opt_barrier_payoff = A - C + F
+            if K < H:
+                opt_barrier_payoff = B - D + F
             
             
         # Up and Out Call
-        if (self.barrier_direction == 'up' 
-            and self.knock == 'out' 
-            and self.option == 'call'):
+        if (barrier_direction == 'up' 
+            and knock == 'out' 
+            and option == 'call'):
             
-            self.eta = -1
-            self.phi = 1
+            eta = -1
+            phi = 1
             
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.F
-            if self.K < self.H:
-                self.opt_barrier_payoff = (self.A - self.B + self.C 
-                                           - self.D + self.F)
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
+            
+            if K > H:
+                opt_barrier_payoff = F
+            if K < H:
+                opt_barrier_payoff = (A - B + C 
+                                           - D + F)
 
 
         # Down and Out Put
-        if (self.barrier_direction == 'down' 
-            and self.knock == 'out' 
-            and self.option == 'put'):
+        if (barrier_direction == 'down' 
+            and knock == 'out' 
+            and option == 'put'):
             
-            self.eta = 1
-            self.phi = -1
+            eta = 1
+            phi = -1
             
-            if self.K > self.H:
-                self.opt_barrier_payoff = (self.A - self.B + self.C 
-                                           - self.D + self.F)
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.F
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
+            
+            if K > H:
+                opt_barrier_payoff = (A - B + C 
+                                           - D + F)
+            if K < H:
+                opt_barrier_payoff = F
                 
         # Up and Out Put         
-        if (self.barrier_direction == 'up' 
-            and self.knock == 'out' 
-            and self.option == 'put'):
+        if (barrier_direction == 'up' 
+            and knock == 'out' 
+            and option == 'put'):
             
-            self.eta = -1
-            self.phi = -1
+            eta = -1
+            phi = -1
+            
+            A, B, C, D, E, F = itemgetter(
+                'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
+                    eta=eta))
         
-            if self.K > self.H:
-                self.opt_barrier_payoff = self.B - self.D + self.F
-            if self.K < self.H:
-                self.opt_barrier_payoff = self.A - self.C + self.F
+            if K > H:
+                opt_barrier_payoff = B - D + F
+            if K < H:
+                opt_barrier_payoff = A - C + F
 
-        return self.opt_barrier_payoff    
+        return opt_barrier_payoff    
 
 
     def visualize(
@@ -5027,14 +4824,6 @@ class Option():
                 S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, r=r, q=q, sigma=sigma, 
                 direction=direction, value=value, mpl_style=mpl_style, 
                 size2d=size2d))
-                
-        # Pass parameters to be initialised. If not provided they will 
-        # be populated with default values 
-        self._initialise_func(
-            S=S, K1=K1, K2=K2, K3=K3, K4=K4, T=T, T1=T, T2=T, T3=T, T4=T, r=r, 
-            q=q, sigma=sigma, option1='put', option2='put', option3='call', 
-            option4='call', direction=direction, value=value, 
-            mpl_style=mpl_style, size2d=size2d)
         
         # Calculate option prices
         self._return_options(
