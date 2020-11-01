@@ -1939,16 +1939,18 @@ class Option():
             
         if greek == 'vega':
             result = (
-                ((self.price(S=S, K=K, T=T, r=r, q=q, sigma=(sigma+vol_shift), 
-                            option=option, default=False) 
-                 - self.price(S=S, K=K, T=T, r=r, q=q, sigma=(sigma-vol_shift), 
-                              option=option, default=False)) 
+                ((self.price(S=S, K=K, T=T, r=r, q=q, 
+                             sigma=(sigma + vol_shift), option=option, 
+                             default=False) 
+                 - self.price(S=S, K=K, T=T, r=r, q=q, 
+                              sigma=(sigma - vol_shift), option=option, 
+                              default=False)) 
                  / (2 * vol_shift)) 
                 / 100)
         
         if greek == 'theta':
             result = (
-                (self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, sigma=sigma, 
+                (self.price(S=S, K=K, T=(T - ttm_shift), r=r, q=q, sigma=sigma, 
                             option=option, default=False) 
                  - self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
                               option=option, default=False)) 
@@ -1956,20 +1958,21 @@ class Option():
         
         if greek == 'rho':
             result = (
-                (self.price(S=S, K=K, T=T, r=(r+rate_shift), q=q, sigma=sigma, 
-                            option=option, default=False) 
-                 - self.price(S=S, K=K, T=T, r=(r-rate_shift), q=q, 
+                (self.price(S=S, K=K, T=T, r=(r + rate_shift), q=q, 
+                            sigma=sigma, option=option, default=False) 
+                 - self.price(S=S, K=K, T=T, r=(r - rate_shift), q=q, 
                               sigma=sigma, option=option, default=False)) 
                 / (2 * rate_shift * 10000))
                       
         if greek == 'vomma':
             result = (
-                ((self.price(S=S, K=K, T=T, r=r, q=q, sigma=(sigma+vol_shift), 
-                             option=option, default=False) 
+                ((self.price(S=S, K=K, T=T, r=r, q=q, 
+                             sigma=(sigma + vol_shift), option=option, 
+                             default=False) 
                   - (2 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
                                     option=option, default=False)) 
                   + self.price(S=S, K=K, T=T, r=r, q=q, 
-                               sigma=(sigma-vol_shift), option=option, 
+                               sigma=(sigma - vol_shift), option=option, 
                                default=False)) 
                  / (vol_shift ** 2)) 
                 / 10000)              
@@ -1978,25 +1981,25 @@ class Option():
             result = (
                 ((1 / (4 * price_shift * vol_shift)) 
                  * (self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
-                               sigma=(sigma+vol_shift), option=option, 
+                               sigma=(sigma + vol_shift), option=option, 
                                default=False) 
                     - self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
-                                 sigma=(sigma-vol_shift), option=option, 
+                                 sigma=(sigma - vol_shift), option=option, 
                                  default=False) 
                     - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
-                                 sigma=(sigma+vol_shift), option=option, 
+                                 sigma=(sigma + vol_shift), option=option, 
                                  default=False) 
                     + self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
-                                 sigma=(sigma-vol_shift), option=option, 
+                                 sigma=(sigma - vol_shift), option=option, 
                                  default=False))) 
                 / 100)
         
         if greek == 'charm':
             result = (
-                (((self.price(S=(S + price_shift), K=K, T=(T-ttm_shift), r=r, 
+                (((self.price(S=(S + price_shift), K=K, T=(T - ttm_shift), r=r, 
                               q=q, sigma=sigma, option=option, default=False) 
-                   - self.price(S=(S - price_shift), K=K, T=(T-ttm_shift), r=r, 
-                                q=q, sigma=sigma, option=option, 
+                   - self.price(S=(S - price_shift), K=K, T=(T - ttm_shift), 
+                                r=r, q=q, sigma=sigma, option=option, 
                                 default=False)) 
                   / (2 * price_shift)) 
                  - ((self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
@@ -2009,22 +2012,22 @@ class Option():
         if greek == 'zomma':
             result = (
                 ((self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
-                             sigma=(sigma+vol_shift), option=option, 
+                             sigma=(sigma + vol_shift), option=option, 
                              default=False) 
                   - (2 * self.price(S=S, K=K, T=T, r=r, q=q, 
-                                    sigma=(sigma+vol_shift), option=option, 
+                                    sigma=(sigma + vol_shift), option=option, 
                                     default=False)) 
                   + self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
-                               sigma=(sigma+vol_shift), option=option, 
+                               sigma=(sigma + vol_shift), option=option, 
                                default=False)) 
                  - self.price(S=(S + price_shift), K=K, T=T, r=r, q=q, 
-                              sigma=(sigma-vol_shift), option=option, 
+                              sigma=(sigma - vol_shift), option=option, 
                               default=False) 
                  + (2 * self.price(S=S, K=K, T=T, r=r, q=q, 
-                                   sigma=(sigma-vol_shift), option=option, 
+                                   sigma=(sigma - vol_shift), option=option, 
                                    default=False)) 
                  - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
-                              sigma=(sigma-vol_shift), option=option, 
+                              sigma=(sigma - vol_shift), option=option, 
                               default=False)) 
                 / (2 * vol_shift * (price_shift ** 2)) 
                 / 100)
@@ -2039,18 +2042,18 @@ class Option():
                                      default=False)) 
                    + 3 * self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
                                     option=option, default=False) 
-                   - self.price(S=(S-price_shift), K=K, T=T, r=r, q=q, 
+                   - self.price(S=(S - price_shift), K=K, T=T, r=r, q=q, 
                                 sigma=sigma, option=option, default=False)))
                 
         if greek == 'color':
             result = (
-                (((self.price(S=(S + price_shift), K=K, T=(T-ttm_shift), 
+                (((self.price(S=(S + price_shift), K=K, T=(T - ttm_shift), 
                               r=r, q=q, sigma=sigma, option=option, 
                               default=False) 
-                   - (2 * self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, 
+                   - (2 * self.price(S=S, K=K, T=(T - ttm_shift), r=r, q=q, 
                                      sigma=sigma, option=option, 
                                      default=False)) 
-                   + self.price(S=(S - price_shift), K=K, T=(T-ttm_shift), 
+                   + self.price(S=(S - price_shift), K=K, T=(T - ttm_shift), 
                                 r=r, q=q, sigma=sigma, option=option, 
                                 default=False)) 
                   / (price_shift ** 2)) 
@@ -2081,18 +2084,18 @@ class Option():
         
         if greek == 'vega bleed':
             result = (
-                (((self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, 
-                              sigma=(sigma+vol_shift), option=option, 
+                (((self.price(S=S, K=K, T=(T - ttm_shift), r=r, q=q, 
+                              sigma=(sigma + vol_shift), option=option, 
                               default=False) 
-                   - self.price(S=S, K=K, T=(T-ttm_shift), r=r, q=q, 
-                                sigma=(sigma-vol_shift), 
+                   - self.price(S=S, K=K, T=(T - ttm_shift), r=r, q=q, 
+                                sigma=(sigma - vol_shift), 
                                 option=option, default=False)) 
                   / (2 * vol_shift)) 
                  - ((self.price(S=S, K=K, T=T, r=r, q=q, 
-                                sigma=(sigma+vol_shift), 
+                                sigma=(sigma + vol_shift), 
                                 option=option, default=False) 
                      - self.price(S=S, K=K, T=T, r=r, q=q, 
-                                  sigma=(sigma-vol_shift), 
+                                  sigma=(sigma - vol_shift), 
                                   option=option, default=False)) 
                     / (2 * vol_shift))) 
                 / (ttm_shift * 10000))
@@ -2782,9 +2785,9 @@ class Option():
                             S=SA, K=self.__dict__['G'+str(opt)], 
                             T=self.__dict__['T'+str(opt)], r=r, q=q, 
                             sigma=sigma, option=option, greek=y_plot, 
-                            price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)        
+                            price_shift=0.25, vol_shift=0.001, 
+                            ttm_shift=(1 / 365), num_sens=num_sens, 
+                            default=False)        
                             
                 if x_plot == 'vol':
                     
@@ -2794,9 +2797,9 @@ class Option():
                             S=S, K=self.__dict__['G'+str(opt)], 
                             T=self.__dict__['T'+str(opt)], r=r, q=q, 
                             sigma=sigmaA, option=option, greek=y_plot, 
-                            price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)        
+                            price_shift=0.25, vol_shift=0.001, 
+                            ttm_shift=(1 / 365), num_sens=num_sens, 
+                            default=False)        
                             
                 if x_plot == 'time':
                     
@@ -2805,9 +2808,9 @@ class Option():
                         'C'+str(opt)] = self.sensitivities(
                             S=S, K=self.__dict__['G'+str(opt)], T=TA, r=r, 
                             q=q, sigma=sigma, option=option, greek=y_plot, 
-                            price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)
+                            price_shift=0.25, vol_shift=0.001, 
+                            ttm_shift=(1 / 365), num_sens=num_sens, 
+                            default=False)
                     
             
             # Reverse the option value if direction is 'short'        
@@ -2824,7 +2827,7 @@ class Option():
             
             # Set T1 and T2 to the specified time and shifted time
             T1 = T
-            T2 = T + self.time_shift
+            T2 = T + time_shift
             
             # 2 Tenors
             tenor_type = {1:1, 2:2, 3:1, 4:2}
@@ -2840,9 +2843,9 @@ class Option():
                             S=SA, K=G2, 
                             T=self.__dict__['T'+str(tenor_type[opt])], r=r, 
                             q=q, sigma=sigma, option=opt_type[opt], 
-                            greek=y_plot, price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)
+                            greek=y_plot, price_shift=0.25, vol_shift=0.001, 
+                            ttm_shift=(1 / 365), num_sens=num_sens, 
+                            default=False)
                            
                 if x_plot == 'strike':
                     
@@ -2852,9 +2855,9 @@ class Option():
                             S=S, K=SA, 
                             T=self.__dict__['T'+str(tenor_type[opt])], r=r, 
                             q=q, sigma=sigma, option=opt_type[opt], 
-                            greek=y_plot, price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)
+                            greek=y_plot, price_shift=0.25, vol_shift=0.001, 
+                            ttm_shift=(1 / 365), num_sens=num_sens, 
+                            default=False)
                             
                 if x_plot == 'vol':
                     
@@ -2864,9 +2867,9 @@ class Option():
                             S=S, K=G2, 
                             T=self.__dict__['T'+str(tenor_type[opt])], r=r, 
                             q=q, sigma=sigmaA, option=opt_type[opt], 
-                            greek=y_plot, price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)
+                            greek=y_plot, price_shift=0.25, vol_shift=0.001, 
+                            ttm_shift=(1 / 365), num_sens=num_sens, 
+                            default=False)
             
             # Reverse the option value if direction is 'short'        
             if direction == 'short':
@@ -2908,7 +2911,7 @@ class Option():
                 size2d=size2d, mpl_style=mpl_style)       
         
         # Plot Rho charts    
-        elif self.y_plot == 'rho':
+        elif y_plot == 'rho':
             self._vis_greeks_mpl(
                 x_plot=x_plot, yarray1=self.C1, yarray2=self.C2, 
                 yarray3=self.C3, yarray4=self.C4, xarray=xarray, label1=label1, 
@@ -3131,34 +3134,34 @@ class Option():
             if greek == greek_label:
 
                 # Prepare the graph axes                 
-                self._graph_space_prep(greek, S, spacegrain)
+                (x, y, xmin, xmax, ymin, ymax, graph_scale, axis_label1, 
+                 axis_label2) = self._graph_space_prep(
+                     greek=greek, S=S, axis=axis, spacegrain=spacegrain)
  
                 if axis == 'price':
                     
                     # Select the individual greek method from sensitivities
-                    self.z = self.sensitivities(
-                            S=self.x, K=S, T=self.y, r=r, q=q, 
-                            sigma=sigma, option=option, greek=greek, 
-                            price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)
+                    z = self.sensitivities(
+                        S=x, K=S, T=y, r=r, q=q, sigma=sigma, option=option, 
+                        greek=greek, price_shift=0.25, vol_shift=0.001, 
+                        ttm_shift=(1 / 365), num_sens=num_sens, default=False)
                
                 if axis == 'vol':
                     
                     # Select the individual greek method from sensitivities
-                    self.z = self.sensitivities(
-                            S=S, K=S, T=self.y, r=r, q=q, 
-                            sigma=self.x, option=option, greek=greek, 
-                            price_shift=self.price_shift, 
-                            vol_shift=self.vol_shift, ttm_shift=self.ttm_shift, 
-                            num_sens=num_sens, default=False)
+                    z = self.sensitivities(
+                        S=S, K=S, T=y, r=r, q=q, sigma=x, option=option, 
+                        greek=greek, price_shift=0.25, vol_shift=0.001, 
+                        ttm_shift=(1 / 365), num_sens=num_sens, default=False)
         
         # Run the 3D visualisation method            
-        self._vis_greeks_3D(direction, option, greek, interactive, colorscheme, 
-                            colorintensity, size3d, azim, elev, notebook)            
+        self._vis_greeks_3D(
+            x, y, z, xmin, xmax, ymin, ymax, graph_scale, axis_label1, 
+            axis_label2, direction, option, greek, interactive, colorscheme, 
+            colorintensity, size3d, azim, elev, notebook)            
     
     
-    def _graph_space_prep(self, greek, S, spacegrain):
+    def _graph_space_prep(self, greek, S, axis, spacegrain):
         """
         Prepare the axis ranges to be used in 3D graph.
 
@@ -3177,57 +3180,49 @@ class Option():
         
         # Select the strike and Time ranges for each greek from the 3D 
         # chart ranges dictionary 
-        self.SA_lower = self.df_dict['df_3D_chart_ranges'][
-            str(greek)]['SA_lower']
-        self.SA_upper = self.df_dict['df_3D_chart_ranges'][
-            str(greek)]['SA_upper']
-        self.TA_lower = self.df_dict['df_3D_chart_ranges'][
-            str(greek)]['TA_lower']
-        self.TA_upper = self.df_dict['df_3D_chart_ranges'][
-            str(greek)]['TA_upper']
+        SA_lower = self.df_dict['df_3D_chart_ranges'][str(greek)]['SA_lower']
+        SA_upper = self.df_dict['df_3D_chart_ranges'][str(greek)]['SA_upper']
+        TA_lower = self.df_dict['df_3D_chart_ranges'][str(greek)]['TA_lower']
+        TA_upper = self.df_dict['df_3D_chart_ranges'][str(greek)]['TA_upper']
         
         # Set the volatility range from 5% to 50%
-        self.sigmaA_lower = 0.05 
-        self.sigmaA_upper = 0.5 
+        sigmaA_lower = 0.05 
+        sigmaA_upper = 0.5 
 
         # create arrays of 100 equally spaced points for the ranges of 
         # strike prices, volatilities and maturities
-        self.SA = np.linspace(self.SA_lower * S, 
-                              self.SA_upper * S, 
-                              int(spacegrain))
-        self.TA = np.linspace(self.TA_lower, 
-                              self.TA_upper, 
-                              int(spacegrain))
-        self.sigmaA = np.linspace(self.sigmaA_lower, 
-                                  self.sigmaA_upper, 
-                                  int(spacegrain))
+        SA = np.linspace(SA_lower * S, SA_upper * S, int(spacegrain))
+        TA = np.linspace(TA_lower, TA_upper, int(spacegrain))
+        sigmaA = np.linspace(sigmaA_lower, sigmaA_upper, int(spacegrain))
         
         # set y-min and y-max labels 
-        self.ymin = self.TA_lower
-        self.ymax = self.TA_upper
-        self.axis_label2 = 'Time to Expiration (Days)'
+        ymin = TA_lower
+        ymax = TA_upper
+        axis_label2 = 'Time to Expiration (Days)'
         
         # set x-min and x-max labels 
-        if self.axis == 'price':
-            self.x, self.y = np.meshgrid(self.SA, self.TA)
-            self.xmin = self.SA_lower
-            self.xmax = self.SA_upper
-            self.graph_scale = 1
-            self.axis_label1 = 'Underlying Value'            
+        if axis == 'price':
+            x, y = np.meshgrid(SA, TA)
+            xmin = SA_lower
+            xmax = SA_upper
+            graph_scale = 1
+            axis_label1 = 'Underlying Value'            
             
-        if self.axis == 'vol':
-            self.x, self.y = np.meshgrid(self.sigmaA, self.TA)
-            self.xmin = self.sigmaA_lower
-            self.xmax = self.sigmaA_upper    
-            self.graph_scale = 100
-            self.axis_label1 = 'Volatility %'    
+        if axis == 'vol':
+            x, y = np.meshgrid(sigmaA, TA)
+            xmin = sigmaA_lower
+            xmax = sigmaA_upper    
+            graph_scale = 100
+            axis_label1 = 'Volatility %'    
 
-        return self
+        return (x, y, xmin, xmax, ymin, ymax, graph_scale, axis_label1, 
+                axis_label2)
     
    
-    def _vis_greeks_3D(self, direction, option, greek, interactive, 
-                       colorscheme, colorintensity, size3d, azim, elev, 
-                       notebook):
+    def _vis_greeks_3D(
+            self, x, y, z, xmin, xmax, ymin, ymax, graph_scale, axis_label1, 
+            axis_label2, direction, option, greek, interactive, colorscheme, 
+            colorintensity, size3d, azim, elev, notebook):
         """
         Display 3D greeks graph.
 
@@ -3241,7 +3236,7 @@ class Option():
         
         # Reverse the z-axis data if direction is 'short'
         if direction == 'short':
-            self.z = -self.z
+            z = -z
         
         # Label the graph based on whether it is different for calls 
         # & puts or the same
@@ -3259,22 +3254,22 @@ class Option():
         if interactive:
             
             # Set the ranges for the contour values
-            contour_x_start = self.ymin
-            contour_x_stop = self.ymax * 360
+            contour_x_start = ymin
+            contour_x_stop = ymax * 360
             contour_x_size = contour_x_stop / 18
-            contour_y_start = self.xmin
-            contour_y_stop = self.xmax * self.graph_scale
-            contour_y_size = int((self.xmax - self.xmin) / 20)
-            contour_z_start = np.min(self.z)
-            contour_z_stop = np.max(self.z)
-            contour_z_size = int((np.max(self.z) - np.min(self.z)) / 10)
+            contour_y_start = xmin
+            contour_y_stop = xmax * graph_scale
+            contour_y_size = int((xmax - xmin) / 20)
+            contour_z_start = np.min(z)
+            contour_z_stop = np.max(z)
+            contour_z_size = int((np.max(z) - np.min(z)) / 10)
             
             
             # create plotly figure object
             fig = go.Figure(
-                data=[go.Surface(x=self.y*365, 
-                                 y=self.x*self.graph_scale, 
-                                 z=self.z, 
+                data=[go.Surface(x=(y * 365), 
+                                 y=(x * graph_scale), 
+                                 z=z, 
 
                                  # set the colorscale to the chosen 
                                  # colorscheme
@@ -3303,6 +3298,7 @@ class Option():
             
             # Set x-axis to decrease from left to right
             fig.update_scenes(xaxis_autorange="reversed")
+            
             # Set y-axis to increase from left to right
             fig.update_scenes(yaxis_autorange="reversed")
             fig.update_layout(scene = dict(
@@ -3322,8 +3318,8 @@ class Option():
                                     showbackground=True,
                                     zerolinecolor="white",),
                                 # Label axes
-                                xaxis_title=self.axis_label2,
-                                yaxis_title=self.axis_label1,
+                                xaxis_title=axis_label2,
+                                yaxis_title=axis_label1,
                                 zaxis_title=str(greek.title()),),
                               title={'text':titlename,
                                      'y':0.9,
@@ -3378,9 +3374,9 @@ class Option():
                            pad=10)
             
             # Label axes
-            ax.set_xlabel(self.axis_label1, fontsize=ax_font_scale, 
+            ax.set_xlabel(axis_label1, fontsize=ax_font_scale, 
                           labelpad=ax_font_scale*1.2)
-            ax.set_ylabel(self.axis_label2, fontsize=ax_font_scale, 
+            ax.set_ylabel(axis_label2, fontsize=ax_font_scale, 
                           labelpad=ax_font_scale*1.2)
             ax.set_zlabel(str(greek.title()), fontsize=ax_font_scale, 
                           labelpad=ax_font_scale*1.2)
@@ -3394,9 +3390,9 @@ class Option():
             
             # apply graph_scale so that if volatility is the x-axis it 
             # will be * 100
-            ax.plot_surface(self.x * self.graph_scale,
-                            self.y * 365,
-                            self.z,
+            ax.plot_surface(x * graph_scale,
+                            y * 365,
+                            z,
                             rstride=2, cstride=2,
                             
                             # set the colormap to the chosen colorscheme
@@ -3614,28 +3610,28 @@ class Option():
                 value=value, mpl_style=mpl_style, size2d=size2d))
         
         # Calculate option prices
-        self._return_options(legs=1, S=S, K1=K, T1=T, r=r, q=q, sigma=sigma, 
-                             option1='call')
+        SA, C1_0, C1, C1_G = self._return_options(
+            legs=1, S=S, K1=K, T1=T, r=r, q=q, sigma=sigma, option1='call')
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = self.C1 - self.C1_0
+            payoff = C1 - C1_0
             title = 'Long Call'
             if value:
-                payoff2 = self.C1_G - self.C1_0
+                payoff2 = C1_G - C1_0
             else:
                 payoff2 = None
 
         if direction == 'short':
-            payoff = -self.C1 + self.C1_0
+            payoff = -C1 + C1_0
             title = 'Short Call'
             if value:
-                payoff2 = -self.C1_G + self.C1_0
+                payoff2 = -C1_G + C1_0
             else:
                 payoff2 = None
         
         # Visualize payoff        
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)   
                 
         
@@ -3689,28 +3685,28 @@ class Option():
                 value=value, mpl_style=mpl_style, size2d=size2d))
         
         # Calculate option prices
-        self._return_options(legs=1, S=S, K1=K, T1=T, r=r, q=q, sigma=sigma, 
-                             option1='put')
+        SA, C1_0, C1, C1_G = self._return_options(
+            legs=1, S=S, K1=K, T1=T, r=r, q=q, sigma=sigma, option1='put')
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = self.C1 - self.C1_0
+            payoff = C1 - C1_0
             title = 'Long Put'
             if value:
-                payoff2 = self.C1_G - self.C1_0
+                payoff2 = C1_G - C1_0
             else:
                 payoff2 = None
 
         if direction == 'short':
-            payoff = -self.C1 + self.C1_0
+            payoff = -C1 + C1_0
             title = 'Short Put'
             if value:
-                payoff2 = -self.C1_G + self.C1_0
+                payoff2 = -C1_G + C1_0
             else:
                 payoff2 = None
         
         # Visualize payoff        
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)   
                
         
@@ -3747,19 +3743,19 @@ class Option():
                 S=S, direction=direction, mpl_style=mpl_style, size2d=size2d))
         
         # Define strike range
-        self.SA = np.linspace(0.75 * S, 1.25 * S, 1000)
+        SA = np.linspace(0.75 * S, 1.25 * S, 1000)
         
         # Create payoff based on option type
         if direction == 'long':
-            payoff = self.SA - S
+            payoff = SA - S
             title = 'Long Stock'
         
         if direction == 'short':
-            payoff = S - self.SA
+            payoff = S - SA
             title = 'Short Stock'
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=None, size2d=size2d, mpl_style=mpl_style)     
             
     
@@ -3812,8 +3808,9 @@ class Option():
                 cash=cash, mpl_style=mpl_style, size2d=size2d))
                    
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=S, T1=T, r=r, q=q, sigma=sigma, 
-                             option1='call', K2=S, T2=T, option2='put')
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=S, T1=T, r=r, q=q, sigma=sigma, option1='call', 
+            K2=S, T2=T, option2='put')
         
         # Whether to discount the payoff
         if cash:
@@ -3823,15 +3820,15 @@ class Option():
                
         # Create payoff based on option type
         if direction == 'long':
-            payoff = (self.C1 - self.C2 - self.C1_0 + self.C2_0) * pv
+            payoff = (C1 - C2 - C1_0 + C2_0) * pv
             title = 'Long Forward'
             
         if direction == 'short':
-            payoff = -self.C1 + self.C2 + self.C1_0 - self.C2_0 * pv
+            payoff = -C1 + C2 + C1_0 - C2_0 * pv
             title = 'Short Forward'
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          size2d=size2d, mpl_style=mpl_style, payoff2=None)
     
     
@@ -3891,36 +3888,29 @@ class Option():
                 size2d=size2d))
    
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1='put', K2=K2, T2=T, option2='call')
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1='put', 
+            K2=K2, T2=T, option2='call')
         
         # Create payoff based on option type
         if direction == 'long':
-            payoff = (self.SA - S 
-                      + self.C1 - self.C2 
-                      - self.C1_0 + self.C2_0)
+            payoff = (SA - S + C1 - C2 - C1_0 + C2_0)
             title = 'Long Collar'
             if value:
-                payoff2 = (self.SA - S 
-                           + self.C1_G - self.C2_G 
-                           - self.C1_0 + self.C2_0)
+                payoff2 = (SA - S + C1_G - C2_G - C1_0 + C2_0)
             else:
                 payoff2 = None
                 
         if direction == 'short':
-            payoff = (-self.SA + S 
-                      - self.C1 + self.C2 
-                      + self.C1_0 - self.C2_0)
+            payoff = (-SA + S - C1 + C2 + C1_0 - C2_0)
             title = 'Short Collar'
             if value:
-                payoff2 = (-self.SA + S 
-                           - self.C1_G + self.C2_G 
-                           + self.C1_0 - self.C2_0)
+                payoff2 = (-SA + S - C1_G + C2_G + C1_0 - C2_0)
             else:
                 payoff2 = None
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
 
     
@@ -3984,21 +3974,22 @@ class Option():
                 size2d=size2d))
                
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1=option, K2=K2, T2=T, option2=option)
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1=option, 
+            K2=K2, T2=T, option2=option)
  
         # Create payoff based on option type
         if direction == 'long':        
-            payoff = self.C1 - self.C2 - self.C1_0 + self.C2_0
+            payoff = C1 - C2 - C1_0 + C2_0
             if value:
-                payoff2 = self.C1_G - self.C2_G - self.C1_0 + self.C2_0
+                payoff2 = C1_G - C2_G - C1_0 + C2_0
             else:
                 payoff2 = None
                 
         if direction == 'short':
-            payoff = -self.C1 + self.C2 + self.C1_0 - self.C2_0
+            payoff = -C1 + C2 + C1_0 - C2_0
             if value:
-                payoff2 = -self.C1_G + self.C2_G + self.C1_0 - self.C2_0
+                payoff2 = -C1_G + C2_G + C1_0 - C2_0
             else:
                 payoff2 = None
         
@@ -4013,7 +4004,7 @@ class Option():
             title = 'Bear Put Spread' 
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
         
    
@@ -4075,32 +4066,29 @@ class Option():
                 ratio=ratio, value=value, mpl_style=mpl_style, size2d=size2d))
         
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1=option, K2=K2, T2=T, option2=option)
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1=option, 
+            K2=K2, T2=T, option2=option)
         
         # Create payoff based on option type
         if option == 'call':
             title = 'Call Backspread'
-            payoff = (-self.C1 + (ratio * self.C2) 
-                      + self.C1_0 - (ratio * self.C2_0))
+            payoff = (-C1 + (ratio * C2) + C1_0 - (ratio * C2_0))
             if value:
-                payoff2 = (-self.C1_G + (ratio * self.C2_G) 
-                           + self.C1_0 - (ratio * self.C2_0))
+                payoff2 = (-C1_G + (ratio * C2_G) + C1_0 - (ratio * C2_0))
             else:
                 payoff2 = None
         
         if option == 'put':
-            payoff = (ratio * self.C1 - self.C2 
-                      - ratio * self.C1_0 + self.C2_0)
+            payoff = (ratio * C1 - C2 - ratio * C1_0 + C2_0)
             title = 'Put Backspread'
             if value:
-                payoff2 = (ratio * self.C1_G - self.C2_G 
-                           - ratio * self.C1_0 + self.C2_0)
+                payoff2 = (ratio * C1_G - C2_G - ratio * C1_0 + C2_0)
             else:
                 payoff2 = None
         
         # Visualize payoff        
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
         
         
@@ -4164,32 +4152,29 @@ class Option():
                 ratio=ratio, value=value, mpl_style=mpl_style, size2d=size2d))
              
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1=option, K2=K2, T2=T, option2=option)
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1=option, 
+            K2=K2, T2=T, option2=option)
         
         # Create payoff based on option type
         if option == 'call':
             title = 'Call Ratio Vertical Spread'
-            payoff = (self.C1 - ratio * self.C2 
-                      - self.C1_0 + ratio * self.C2_0)
+            payoff = (C1 - ratio * C2 - C1_0 + ratio * C2_0)
             if value:
-                payoff2 = (self.C1_G - ratio * self.C2_G 
-                           - self.C1_0 + ratio * self.C2_0)
+                payoff2 = (C1_G - ratio * C2_G - C1_0 + ratio * C2_0)
             else:
                 payoff2 = None
 
         if option == 'put':
             title = 'Put Ratio Vertical Spread'
-            payoff = (-ratio * self.C1 + self.C2 
-                      + ratio * self.C1_0 - self.C2_0)
+            payoff = (-ratio * C1 + C2 + ratio * C1_0 - C2_0)
             if value:
-                payoff2 = (-ratio * self.C1_G + self.C2_G 
-                           + ratio * self.C1_0 - self.C2_0)
+                payoff2 = (-ratio * C1_G + C2_G + ratio * C1_0 - C2_0)
             else:
                 payoff2 = None
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
         
     
@@ -4245,28 +4230,29 @@ class Option():
                 value=value, mpl_style=mpl_style, size2d=size2d))
                 
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=K, T1=T, r=r, q=q, sigma=sigma, 
-                             option1='put', K2=K, T2=T, option2='call')
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=K, T1=T, r=r, q=q, sigma=sigma, option1='put', 
+            K2=K, T2=T, option2='call')
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = self.C1 + self.C2 - self.C1_0 - self.C2_0
+            payoff = C1 + C2 - C1_0 - C2_0
             title = 'Long Straddle'
             if value:
-                payoff2 = self.C1_G + self.C2_G - self.C1_0 - self.C2_0
+                payoff2 = C1_G + C2_G - C1_0 - C2_0
             else:
                 payoff2 = None
                         
         if direction == 'short':
-            payoff = -self.C1 - self.C2 + self.C1_0 + self.C2_0
+            payoff = -C1 - C2 + C1_0 + C2_0
             title = 'Short Straddle'
             if value:
-                payoff2 = -self.C1_G - self.C2_G + self.C1_0 + self.C2_0
+                payoff2 = -C1_G - C2_G + C1_0 + C2_0
             else:
                 payoff2 = None
         
         # Visualize payoff    
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)    
   
     
@@ -4326,28 +4312,29 @@ class Option():
                 size2d=size2d))
                 
         # Calculate option prices
-        self._return_options(legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1='put', K2=K2, T2=T, option2='call')
+        SA, C1_0, C1, C1_G, C2_0, C2, C2_G = self._return_options(
+            legs=2, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1='put', 
+            K2=K2, T2=T, option2='call')
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = self.C1 + self.C2 - self.C1_0 - self.C2_0
+            payoff = C1 + C2 - C1_0 - C2_0
             title = 'Long Strangle'
             if value:
-                payoff2 = self.C1_G + self.C2_G - self.C1_0 - self.C2_0
+                payoff2 = C1_G + C2_G - C1_0 - C2_0
             else:
                 payoff2 = None
         
         if direction == 'short':
-            payoff = -self.C1 - self.C2 + self.C1_0 + self.C2_0
+            payoff = -C1 - C2 + C1_0 + C2_0
             title = 'Short Strangle'
             if value:
-                payoff2 = -self.C1_G - self.C2_G + self.C1_0 + self.C2_0
+                payoff2 = -C1_G - C2_G + C1_0 + C2_0
             else:
                 payoff2 = None
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)    
 
 
@@ -4413,26 +4400,23 @@ class Option():
                 mpl_style=mpl_style, size2d=size2d))
                 
         # Calculate option prices
-        self._return_options(legs=3, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1=option, K2=K2, T2=T, option2=option, 
-                             K3=K3, T3=T, option3=option)
+        (SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, 
+         C3_G) = self._return_options(
+             legs=3, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1=option, 
+             K2=K2, T2=T, option2=option, K3=K3, T3=T, option3=option)
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = (self.C1 - 2 * self.C2 + self.C3 
-                      - self.C1_0 + 2 * self.C2_0 - self.C3_0)
+            payoff = (C1 - 2 * C2 + C3 - C1_0 + 2 * C2_0 - C3_0)
             if value:
-                payoff2 = (self.C1_G - 2 * self.C2_G + self.C3_G 
-                           - self.C1_0 + 2 * self.C2_0 - self.C3_0)
+                payoff2 = (C1_G - 2 * C2_G + C3_G - C1_0 + 2 * C2_0 - C3_0)
             else:
                 payoff2 = None
                 
         if direction == 'short':    
-            payoff = (-self.C1 + 2*self.C2 - self.C3 
-                      + self.C1_0 - 2*self.C2_0 + self.C3_0)
+            payoff = (-C1 + 2 * C2 - C3 + C1_0 - 2 * C2_0 + C3_0)
             if value:
-                payoff2 = (-self.C1_G + 2 * self.C2_G - self.C3_G 
-                           + self.C1_0 - 2 * self.C2_0 + self.C3_0)
+                payoff2 = (-C1_G + 2 * C2_G - C3_G + C1_0 - 2 * C2_0 + C3_0)
             else:
                 payoff2 = None
         
@@ -4447,7 +4431,7 @@ class Option():
             title = 'Short Butterfly with Puts'
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
 
     
@@ -4513,53 +4497,46 @@ class Option():
                 mpl_style=mpl_style, size2d=size2d))
                  
         # Calculate option prices
-        self._return_options(legs=3, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, 
-                             option1=option, K2=K2, T2=T, option2=option, 
-                             K3=K3, T3=T, option3=option)
+        (SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, 
+         C3_G) = self._return_options(
+             legs=3, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1=option, 
+             K2=K2, T2=T, option2=option, K3=K3, T3=T, option3=option)
         
         # Create payoff based on option type and direction
         if option == 'call' and direction == 'long':
-            payoff = (self.C1 - self.C2 - self.C3 
-                      - self.C1_0 + self.C2_0 + self.C3_0)
+            payoff = (C1 - C2 - C3 - C1_0 + C2_0 + C3_0)
             title = 'Long Christmas Tree with Calls'
             if value:
-                payoff2 = (self.C1_G - self.C2_G - self.C3_G 
-                           - self.C1_0 + self.C2_0 + self.C3_0)
+                payoff2 = (C1_G - C2_G - C3_G - C1_0 + C2_0 + C3_0)
             else:
                 payoff2 = None
                 
         if option == 'put' and direction == 'long':
-            payoff = (-self.C1 - self.C2 + self.C3 
-                      + self.C1_0 + self.C2_0 - self.C3_0)
+            payoff = (-C1 - C2 + C3 + C1_0 + C2_0 - C3_0)
             title = 'Long Christmas Tree with Puts'
             if value:
-                payoff2 = (-self.C1_G - self.C2_G + self.C3_G 
-                           + self.C1_0 + self.C2_0 - self.C3_0)
+                payoff2 = (-C1_G - C2_G + C3_G + C1_0 + C2_0 - C3_0)
             else:
                 payoff2 = None
             
         if option == 'call' and direction == 'short':
-            payoff = (-self.C1 + self.C2 + self.C3 
-                      + self.C1_0 - self.C2_0 - self.C3_0)
+            payoff = (-C1 + C2 + C3 + C1_0 - C2_0 - C3_0)
             title = 'Short Christmas Tree with Calls'
             if value:
-                payoff2 = (-self.C1_G + self.C2_G + self.C3_G 
-                           + self.C1_0 - self.C2_0 - self.C3_0)
+                payoff2 = (-C1_G + C2_G + C3_G + C1_0 - C2_0 - C3_0)
             else:
                 payoff2 = None
             
         if option == 'put' and direction == 'short':
-            payoff = (self.C1 + self.C2 - self.C3 
-                      - self.C1_0 - self.C2_0 + self.C3_0)
+            payoff = (C1 + C2 - C3 - C1_0 - C2_0 + C3_0)
             title = 'Short Christmas Tree with Puts'
             if value:
-                payoff2 = (self.C1_G + self.C2_G - self.C3_G 
-                           - self.C1_0 - self.C2_0 + self.C3_0)
+                payoff2 = (C1_G + C2_G - C3_G - C1_0 - C2_0 + C3_0)
             else:
                 payoff2 = None
         
         # Visualize payoff    
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
 
 
@@ -4628,27 +4605,26 @@ class Option():
                 mpl_style=mpl_style, size2d=size2d))
                 
         # Calculate option prices
-        self._return_options(
+        (SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, C3_G, C4_0, C4, 
+         C4_G) = self._return_options(
             legs=4, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1=option, 
             K2=K2, T2=T, option2=option, K3=K3, T3=T, option3=option, K4=K4, 
             T4=T, option4=option)
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = (self.C1 - self.C2 - self.C3 + self.C4 
-                      - self.C1_0 + self.C2_0 + self.C3_0 - self.C4_0)
+            payoff = (C1 - C2 - C3 + C4 - C1_0 + C2_0 + C3_0 - C4_0)
             if value:
-                payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G 
-                           - self.C1_0 + self.C2_0 + self.C3_0 - self.C4_0)
+                payoff2 = (C1_G - C2_G - C3_G + C4_G 
+                           - C1_0 + C2_0 + C3_0 - C4_0)
             else:
                 payoff2 = None
         
         if direction == 'short':
-            payoff = (-self.C1 + self.C2 + self.C3 - self.C4 
-                      + self.C1_0 - self.C2_0 - self.C3_0 + self.C4_0)
+            payoff = (-C1 + C2 + C3 - C4 + C1_0 - C2_0 - C3_0 + C4_0)
             if value:
-                payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G 
-                           + self.C1_0 - self.C2_0 - self.C3_0 + self.C4_0)
+                payoff2 = (-C1_G + C2_G + C3_G - C4_G 
+                           + C1_0 - C2_0 - C3_0 + C4_0)
             else:
                 payoff2 = None
         
@@ -4663,7 +4639,7 @@ class Option():
             title = 'Short Condor with Puts'    
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
 
 
@@ -4731,34 +4707,33 @@ class Option():
                 size2d=size2d))
            
         # Calculate option prices
-        self._return_options(
+        (SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, C3_G, C4_0, C4, 
+         C4_G) = self._return_options(
             legs=4, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1='put', 
             K2=K2, T2=T, option2='call', K3=K3, T3=T, option3='put', K4=K4, 
             T4=T, option4='call')
         
         # Create payoff based on direction
         if direction == 'long':
-            payoff = (-self.C1 + self.C2 + self.C3 - self.C4 
-                      + self.C1_0 - self.C2_0 - self.C3_0 + self.C4_0)
+            payoff = (-C1 + C2 + C3 - C4 + C1_0 - C2_0 - C3_0 + C4_0)
             title = 'Long Iron Butterfly'
             if value:
-                payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G 
-                           + self.C1_0 - self.C2_0 - self.C3_0 + self.C4_0)
+                payoff2 = (-C1_G + C2_G + C3_G - C4_G 
+                           + C1_0 - C2_0 - C3_0 + C4_0)
             else:
                 payoff2 = None
         
         if direction == 'short':
-            payoff = (self.C1 - self.C2 - self.C3 + self.C4 
-                      - self.C1_0 + self.C2_0 + self.C3_0 - self.C4_0)
+            payoff = (C1 - C2 - C3 + C4 - C1_0 + C2_0 + C3_0 - C4_0)
             title = 'Short Iron Butterfly'
             if value:
-                payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G 
-                           - self.C1_0 + self.C2_0 + self.C3_0 - self.C4_0)
+                payoff2 = (C1_G - C2_G - C3_G + C4_G 
+                           - C1_0 + C2_0 + C3_0 - C4_0)
             else:
                 payoff2 = None
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
     
     
@@ -4826,27 +4801,26 @@ class Option():
                 size2d=size2d))
         
         # Calculate option prices
-        self._return_options(
+        (SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, C3_G, C4_0, C4, 
+         C4_G) = self._return_options(
             legs=4, S=S, K1=K1, T1=T, r=r, q=q, sigma=sigma, option1='put', 
             K2=K2, T2=T, option2='put', K3=K3, T3=T, option3='call', K4=K4, 
             T4=T, option4='call')
         
         # Create payoff based on direction and value flag
         if direction == 'long':
-            payoff = (self.C1 - self.C2 - self.C3 + self.C4 
-                      - self.C1_0 + self.C2_0 + self.C3_0 - self.C4_0)
+            payoff = (C1 - C2 - C3 + C4 - C1_0 + C2_0 + C3_0 - C4_0)
             if value:
-                payoff2 = (self.C1_G - self.C2_G - self.C3_G + self.C4_G 
-                           - self.C1_0 + self.C2_0 + self.C3_0 - self.C4_0)
+                payoff2 = (C1_G - C2_G - C3_G + C4_G 
+                           - C1_0 + C2_0 + C3_0 - C4_0)
             else:
                 payoff2 = None
         
         elif direction == 'short':
-            payoff = (-self.C1 + self.C2 + self.C3 - self.C4 
-                      + self.C1_0 - self.C2_0 - self.C3_0 + self.C4_0)
+            payoff = (-C1 + C2 + C3 - C4 + C1_0 - C2_0 - C3_0 + C4_0)
             if value:
-                payoff2 = (-self.C1_G + self.C2_G + self.C3_G - self.C4_G 
-                           + self.C1_0 - self.C2_0 - self.C3_0 + self.C4_0)
+                payoff2 = (-C1_G + C2_G + C3_G - C4_G 
+                           + C1_0 - C2_0 - C3_0 + C4_0)
             else:
                 payoff2 = None
               
@@ -4858,7 +4832,7 @@ class Option():
             title = 'Short Iron Condor'
         
         # Visualize payoff
-        self._vis_payoff(S=S, SA=self.SA, payoff=payoff, title=title, 
+        self._vis_payoff(S=S, SA=SA, payoff=payoff, title=title, 
                          payoff2=payoff2, size2d=size2d, mpl_style=mpl_style)
 
     
@@ -4961,67 +4935,80 @@ class Option():
         
         # create array of 1000 equally spaced points between 75% of 
         # initial underlying price and 125%
-        self.SA = np.linspace(0.75 * S, 1.25 * S, 1000)
+        SA = np.linspace(0.75 * S, 1.25 * S, 1000)
         
         # Calculate the current price of option 1       
-        self.C1_0 = self.price(S=S, K=K1, T=T1, r=r, q=q, sigma=sigma, 
-                               option=option1, default=False)
+        C1_0 = self.price(S=S, K=K1, T=T1, r=r, q=q, sigma=sigma, 
+                          option=option1, default=False)
         
         # Calculate the prices at maturity for the range of strikes 
         # in SA of option 1
-        self.C1 = self.price(S=self.SA, K=K1, T=0, r=r, q=q, sigma=sigma, 
-                             option=option1, default=False)
+        C1 = self.price(S=SA, K=K1, T=0, r=r, q=q, sigma=sigma, 
+                        option=option1, default=False)
         
         # Calculate the current prices for the range of strikes 
         # in SA of option 1
-        self.C1_G = self.price(S=self.SA, K=K1, T=T1, r=r, q=q, sigma=sigma, 
-                               option=option1, default=False)
+        C1_G = self.price(S=SA, K=K1, T=T1, r=r, q=q, sigma=sigma, 
+                          option=option1, default=False)
+        
         
         if legs > 1:
             # Calculate the current price of option 2
-            self.C2_0 = self.price(S=S, K=K2, T=T2, r=r, q=q, sigma=sigma, 
-                                   option=option2, default=False)
+            C2_0 = self.price(S=S, K=K2, T=T2, r=r, q=q, sigma=sigma, 
+                              option=option2, default=False)
             
             # Calculate the prices at maturity for the range of strikes 
             # in SA of option 2
-            self.C2 = self.price(S=self.SA, K=K2, T=0, r=r, q=q, sigma=sigma, 
-                                 option=option2, default=False)
+            C2 = self.price(S=SA, K=K2, T=0, r=r, q=q, sigma=sigma, 
+                            option=option2, default=False)
             
             # Calculate the current prices for the range of strikes 
             # in SA of option 2
-            self.C2_G = self.price(S=self.SA, K=K2, T=T2, r=r, q=q, 
-                                   sigma=sigma, option=option2, default=False)
+            C2_G = self.price(S=SA, K=K2, T=T2, r=r, q=q, sigma=sigma, 
+                              option=option2, default=False)
 
         if legs > 2:
             # Calculate the current price of option 3
-            self.C3_0 = self.price(S=S, K=K3, T=T3, r=r, q=q, 
-                                   sigma=sigma, option=option3, default=False)
+            C3_0 = self.price(S=S, K=K3, T=T3, r=r, q=q, sigma=sigma, 
+                              option=option3, default=False)
             
             # Calculate the prices at maturity for the range of strikes 
             # in SA of option 3
-            self.C3 = self.price(S=self.SA, K=K3, T=0, r=r, q=q, sigma=sigma, 
-                                 option=option3, default=False)
+            C3 = self.price(S=SA, K=K3, T=0, r=r, q=q, sigma=sigma, 
+                            option=option3, default=False)
             
             # Calculate the current prices for the range of strikes 
             # in SA of option 3
-            self.C3_G = self.price(S=self.SA, K=K3, T=T3, r=r, q=q, 
-                                   sigma=sigma, option=option3, default=False)
+            C3_G = self.price(S=SA, K=K3, T=T3, r=r, q=q, sigma=sigma, 
+                              option=option3, default=False)
         
         if legs > 3:
             # Calculate the current price of option 4
-            self.C4_0 = self.price(S=S, K=K4, T=T4, r=r, q=q, sigma=sigma, 
-                                   option=option4, default=False)
+            C4_0 = self.price(S=S, K=K4, T=T4, r=r, q=q, sigma=sigma, 
+                              option=option4, default=False)
             
             # Calculate the prices at maturity for the range of strikes 
             # in SA of option 4
-            self.C4 = self.price(S=self.SA, K=K4, T=0, r=r, q=q, sigma=sigma, 
-                                 option=option4, default=False)
+            C4 = self.price(S=SA, K=K4, T=0, r=r, q=q, sigma=sigma, 
+                            option=option4, default=False)
             
             # Calculate the current prices for the range of strikes 
             # in SA of option 4
-            self.C4_G = self.price(S=self.SA, K=K4, T=T4, r=r, q=q, 
-                                   sigma=sigma, option=option4, default=False)
+            C4_G = self.price(S=SA, K=K4, T=T4, r=r, q=q, sigma=sigma, 
+                              option=option4, default=False)
        
-        return self
+        if legs == 1:
+            return SA, C1_0, C1, C1_G
+        
+        if legs == 2:
+            return SA, C1_0, C1, C1_G, C2_0, C2, C2_G
+        
+        if legs == 3:
+            return SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, C3_G
+        
+        if legs == 4:
+            return (SA, C1_0, C1, C1_G, C2_0, C2, C2_G, C3_0, C3, C3_G, C4_0, 
+                    C4, C4_G)
+        
         
     
