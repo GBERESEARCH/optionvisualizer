@@ -64,7 +64,7 @@ df_dict = {'df_S':100,
            'df_axis':'price',
            'df_spacegrain':100,
            'df_azim':-60,
-           'df_elev':20,
+           'df_elev':30,
            'df_risk':True,
            'df_mpl_style':'seaborn-darkgrid',
 
@@ -747,6 +747,7 @@ class Option():
                     # Set it to the object value and assign to the object 
                     # and to input dictionary
                     v = self.df_dict['df_'+str(k)]
+                    self.__dict__[k] = v
                     kwargs[k] = v
                 
                 # If the parameter has been provided as an input, 
@@ -1918,6 +1919,10 @@ class Option():
                     greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
                     ttm_shift=ttm_shift, rate_shift=rate_shift))
         
+        if greek == 'price':
+            result = (
+                self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
+                           default=False))
                
         if greek == 'delta':
             result = (
@@ -2754,9 +2759,9 @@ class Option():
             mpl_style=mpl_style, num_sens=num_sens)       
     
 
-    def _2D_general_graph(self, x_plot, y_plot, S, SA, G1, G2, G3, T, T1, T2, 
-                          T3, TA, time_shift, r, q, sigma, sigmaA, option, 
-                          direction, size2d, mpl_style, num_sens):                               
+    def _2D_general_graph(self, x_plot, y_plot, S, G1, G2, G3, T, T1, T2, T3, 
+                          time_shift, r, q, sigma, option, direction, size2d, 
+                          mpl_style, num_sens):                               
         """
         Creates data for 2D greeks graph.
 
@@ -2768,10 +2773,10 @@ class Option():
         
         # create arrays of 1000 equally spaced points for a range of 
         # strike prices, volatilities and maturities
-        SA = np.linspace(0.8 * S, 1.2 * S, 1000)
-        sigmaA = np.linspace(0.05, 0.5, 1000)
-        TA = np.linspace(0.01, 1, 1000)
-        
+        self.SA = np.linspace(0.8 * S, 1.2 * S, 1000)
+        self.sigmaA = np.linspace(0.05, 0.5, 1000)
+        self.TA = np.linspace(0.01, 1, 1000)
+              
         # y-axis parameters other than rho require 3 options to be 
         # graphed
         if y_plot in self.y_name_dict.keys():
@@ -2782,9 +2787,10 @@ class Option():
                     # For price we set S to the array SA 
                     self.__dict__[
                         'C'+str(opt)] = self.sensitivities(
-                            S=SA, K=self.__dict__['G'+str(opt)], 
+                            S=self.SA, K=self.__dict__['G'+str(opt)], 
                             T=self.__dict__['T'+str(opt)], r=r, q=q, 
-                            sigma=sigma, option=option, greek=y_plot, 
+                            sigma=sigma, option=option, 
+                            greek=self.y_name_dict[y_plot], 
                             price_shift=0.25, vol_shift=0.001, 
                             ttm_shift=(1 / 365), num_sens=num_sens, 
                             default=False)        
@@ -2796,7 +2802,8 @@ class Option():
                         'C'+str(opt)] = self.sensitivities(
                             S=S, K=self.__dict__['G'+str(opt)], 
                             T=self.__dict__['T'+str(opt)], r=r, q=q, 
-                            sigma=sigmaA, option=option, greek=y_plot, 
+                            sigma=self.sigmaA, option=option, 
+                            greek=self.y_name_dict[y_plot], 
                             price_shift=0.25, vol_shift=0.001, 
                             ttm_shift=(1 / 365), num_sens=num_sens, 
                             default=False)        
@@ -2806,8 +2813,9 @@ class Option():
                     # For time we set T to the array TA
                     self.__dict__[
                         'C'+str(opt)] = self.sensitivities(
-                            S=S, K=self.__dict__['G'+str(opt)], T=TA, r=r, 
-                            q=q, sigma=sigma, option=option, greek=y_plot, 
+                            S=S, K=self.__dict__['G'+str(opt)], T=self.TA, r=r, 
+                            q=q, sigma=sigma, option=option, 
+                            greek=self.y_name_dict[y_plot], 
                             price_shift=0.25, vol_shift=0.001, 
                             ttm_shift=(1 / 365), num_sens=num_sens, 
                             default=False)
@@ -2820,14 +2828,14 @@ class Option():
             
             # Call strike_tenor_label method to assign labels to chosen 
             # strikes and tenors
-            self._strike_tenor_label(S, G1, G2, G3, T1, T2, T3)
+            self._strike_tenor_label()
  
         # rho requires 4 options to be graphed 
         if y_plot == 'rho':
             
             # Set T1 and T2 to the specified time and shifted time
-            T1 = T
-            T2 = T + time_shift
+            self.T1 = T
+            self.T2 = T + time_shift
             
             # 2 Tenors
             tenor_type = {1:1, 2:2, 3:1, 4:2}
@@ -2840,24 +2848,24 @@ class Option():
                     # For price we set S to the array SA
                     self.__dict__[
                         'C'+str(opt)] = self.sensitivities(
-                            S=SA, K=G2, 
+                            S=self.SA, K=G2, 
                             T=self.__dict__['T'+str(tenor_type[opt])], r=r, 
                             q=q, sigma=sigma, option=opt_type[opt], 
-                            greek=y_plot, price_shift=0.25, vol_shift=0.001, 
-                            ttm_shift=(1 / 365), num_sens=num_sens, 
-                            default=False)
+                            greek=y_plot, price_shift=0.25, 
+                            vol_shift=0.001, ttm_shift=(1 / 365), 
+                            num_sens=num_sens, default=False)
                            
                 if x_plot == 'strike':
                     
                     # For strike we set K to the array SA
                     self.__dict__[
                         'C'+str(opt)] = self.sensitivities(
-                            S=S, K=SA, 
+                            S=S, K=self.SA, 
                             T=self.__dict__['T'+str(tenor_type[opt])], r=r, 
                             q=q, sigma=sigma, option=opt_type[opt], 
-                            greek=y_plot, price_shift=0.25, vol_shift=0.001, 
-                            ttm_shift=(1 / 365), num_sens=num_sens, 
-                            default=False)
+                            greek=y_plot, price_shift=0.25, 
+                            vol_shift=0.001, ttm_shift=(1 / 365), 
+                            num_sens=num_sens, default=False)
                             
                 if x_plot == 'vol':
                     
@@ -2866,10 +2874,10 @@ class Option():
                         'C'+str(opt)] = self.sensitivities(
                             S=S, K=G2, 
                             T=self.__dict__['T'+str(tenor_type[opt])], r=r, 
-                            q=q, sigma=sigmaA, option=opt_type[opt], 
-                            greek=y_plot, price_shift=0.25, vol_shift=0.001, 
-                            ttm_shift=(1 / 365), num_sens=num_sens, 
-                            default=False)
+                            q=q, sigma=self.sigmaA, option=opt_type[opt], 
+                            greek=y_plot, price_shift=0.25, 
+                            vol_shift=0.001, ttm_shift=(1 / 365), 
+                            num_sens=num_sens, default=False)
             
             # Reverse the option value if direction is 'short'        
             if direction == 'short':
@@ -2877,10 +2885,10 @@ class Option():
                     self.__dict__['C'+str(opt)] = -self.__dict__['C'+str(opt)]
     
             # Assign the option labels
-            label1 = str(int(T1 * 365))+' Day Call'
-            label2 = str(int(T2 * 365))+' Day Call'
-            label3 = str(int(T1 * 365))+' Day Put'
-            label4 = str(int(T2 * 365))+' Day Put'
+            self.label1 = str(int(self.T1 * 365))+' Day Call'
+            self.label2 = str(int(self.T2 * 365))+' Day Call'
+            self.label3 = str(int(self.T1 * 365))+' Day Put'
+            self.label4 = str(int(self.T2 * 365))+' Day Put'
     
         # Convert the x-plot and y-plot values to axis labels   
         xlabel = self.label_dict[str(x_plot)]
@@ -2905,44 +2913,40 @@ class Option():
         # Plot 3 option charts    
         if y_plot in self.y_name_dict.keys():        
             self._vis_greeks_mpl(
-                yarray1=self.C1, yarray2=self.C2, yarray3=self.C3, 
-                xarray=xarray, label1=self.label1, label2=self.label2, 
-                label3=self.label3, xlabel=xlabel, ylabel=ylabel, title=title, 
-                size2d=size2d, mpl_style=mpl_style)       
+                x_plot=x_plot, yarray1=self.C1, yarray2=self.C2, 
+                yarray3=self.C3, xarray=xarray, label1=self.label1, 
+                label2=self.label2, label3=self.label3, xlabel=xlabel, 
+                ylabel=ylabel, title=title, size2d=size2d, mpl_style=mpl_style)       
         
         # Plot Rho charts    
         elif y_plot == 'rho':
             self._vis_greeks_mpl(
                 x_plot=x_plot, yarray1=self.C1, yarray2=self.C2, 
-                yarray3=self.C3, yarray4=self.C4, xarray=xarray, label1=label1, 
-                label2=label2, label3=label3, label4=label4, xlabel=xlabel, 
-                ylabel=ylabel, title=title, size2d=size2d, mpl_style=mpl_style)
+                yarray3=self.C3, yarray4=self.C4, xarray=xarray, 
+                label1=self.label1, label2=self.label2, label3=self.label3, 
+                label4=self.label4, xlabel=xlabel, ylabel=ylabel, title=title, 
+                size2d=size2d, mpl_style=mpl_style)
  
         else:
             print("Graph not printed")
     
     
-    def _strike_tenor_label(self, S, G1, G2, G3, T1, T2, T3):
+    def _strike_tenor_label(self):
         """
         Assign labels to chosen strikes and tenors in 2D greeks graph
+
         Returns
         -------
         Str
             Labels for each of the 3 options in 2D greeks graph.
+
         """
-        self.G1 = G1
-        self.G2 = G2
-        self.G3 = G3
-        self.T1 = T1
-        self.T2 = T2
-        self.T3 = T3
-        
         strike_label = dict()
         for key, value in {'G1':'label1', 'G2':'label2', 
                            'G3':'label3'}.items():
             
             # If the strike is 100% change name to 'ATM'
-            if self.__dict__[str(key)] == S:
+            if self.__dict__[str(key)] == self.S:
                 strike_label[value] = 'ATM Strike'
             else:
                 strike_label[value] = str(int(
@@ -2952,16 +2956,15 @@ class Option():
             
             # Make each label value the number of days to maturity 
             # plus the strike level
-            self.__dict__[v] = str(int(self.__dict__[
-                str(k)]*365))+' Day '+strike_label[str(v)]
+            self.__dict__[v] = str(
+                int(self.__dict__[str(k)]*365))+' Day '+strike_label[str(v)]
                 
-        return self                    
-                   
+        return self                           
 
 
     def _vis_greeks_mpl(self, x_plot, xarray, yarray1, yarray2, yarray3, 
-                        yarray4, label1, label2, label3, label4, xlabel, 
-                        ylabel, title, size2d, mpl_style):
+                        label1, label2, label3, xlabel, ylabel, title, size2d, 
+                        mpl_style, yarray4=None, label4=None):
         """
         Display the 2D greeks chart using matplotlib
 
@@ -3375,11 +3378,11 @@ class Option():
             
             # Label axes
             ax.set_xlabel(axis_label1, fontsize=ax_font_scale, 
-                          labelpad=ax_font_scale*1.2)
+                          labelpad=ax_font_scale*1.5)
             ax.set_ylabel(axis_label2, fontsize=ax_font_scale, 
-                          labelpad=ax_font_scale*1.2)
+                          labelpad=ax_font_scale*1.5)
             ax.set_zlabel(str(greek.title()), fontsize=ax_font_scale, 
-                          labelpad=ax_font_scale*1.2)
+                          labelpad=ax_font_scale*1.5)
  
             # Auto scale the z-axis
             ax.set_zlim(auto=True)
@@ -3414,7 +3417,8 @@ class Option():
                               style='italic', 
                               y=1.02)
  
-            st.set_y(0.9)
+            st.set_y(0.98)
+            fig.subplots_adjust(top=1)
                 
             # Display graph
             plt.show()
