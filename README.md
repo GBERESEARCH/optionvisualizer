@@ -1,9 +1,8 @@
 # optionvisualizer
-## Option pricing, risk and visualisation tools
+## Visualize option prices and sensitivities
 
 &nbsp;
 
-A tool to visualize option prices and sensitivities. 
 Each of the functions comes with default parameters and can be run without arguments for ease of illustration or they can be specified individually. Sensitivities can be calculated both analytically and numerically.
 
 &nbsp;

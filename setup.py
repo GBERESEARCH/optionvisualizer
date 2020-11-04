@@ -12,7 +12,7 @@ AUTHOR_EMAIL = 'gberesearch@gmail.com'
 URL = 'https://github.com/GBERESEARCH/optionvisualizer'
 
 LICENSE = 'MIT'
-DESCRIPTION = 'Option Pricing, Risk Management and Visualisation tools'
+DESCRIPTION = 'Visualize option prices and sensitivities'
 LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 
