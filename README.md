@@ -109,6 +109,14 @@ opt.visualize(risk=True, x_plot='strike', y_plot='rho', direction='short')
 
 &nbsp;
 
+#### You can also convert into an animated gif
+```
+opt.animated_2D_gif(x_plot='price', y_plot='vega', direction='long', T=1, gif_folder='images/greeks_2d', gif_filename='price_vega_l')
+```
+![price_vega_l](images/price_vega_l.gif)
+
+&nbsp;
+
 ### 3D greeks graphs:
 #### Each of the greeks above can be plotted showing Time to Expiration against Strike or Volatility
 
@@ -164,6 +172,14 @@ opt.visualize(risk=True, graphtype='3D', greek='vanna', sigma=0.4, interactive=T
 opt.visualize(risk=True, graphtype='3D', greek='zomma', direction='short', interactive=True)
 ```
 ![short_zomma_interactive](images/short_zomma_interactive.png) 
+
+&nbsp;
+
+#### You can also convert into an animated gif
+```
+opt.animated_3D_gif(greek='gamma', direction='short', gif_folder='images/greeks_3d',gif_filename='gamma_s', gif_min_dist=9.0, gif_max_dist=9.1, gif_min_elev=25, gif_max_elev=26, spacegrain=1000, colorscheme='seismic')
+```
+![gamma_s](images/gamma_s.gif)
 
 &nbsp;
 
