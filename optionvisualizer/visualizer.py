@@ -1,8 +1,10 @@
 import os
 import glob
+import math
 import matplotlib.gridspec as gridspec
 import matplotlib.pylab as pylab
 import matplotlib.pyplot as plt
+import optionvisualizer.visualizer_params as vp
 import numpy as np
 import plotly.graph_objects as go
 import scipy.stats as si
@@ -11,650 +13,58 @@ from operator import itemgetter
 from plotly.offline import plot
 from PIL import Image
 
-# Dictionary of default parameters
-df_dict = {'df_S':100, 
-           'df_K':100,
-           'df_K1':95,
-           'df_K2':105,
-           'df_K3':105,
-           'df_K4':105,
-           'df_G1':90,
-           'df_G2':100,
-           'df_G3':110,
-           'df_H':105,
-           'df_R':0,
-           'df_T':0.25,
-           'df_T1':0.25,
-           'df_T2':0.25,
-           'df_T3':0.25,
-           'df_T4':0.25,
-           'df_r':0.005,
-           'df_b':0.005,
-           'df_q':0,
-           'df_sigma':0.2,
-           'df_eta':1,
-           'df_phi':1,
-           'df_barrier_direction':'down',
-           'df_knock':'in',    
-           'df_option':'call',
-           'df_option1':'call',
-           'df_option2':'call',
-           'df_option3':'call',
-           'df_option4':'call',
-           'df_direction':'long',
-           'df_value':False,
-           'df_ratio':2,
-           'df_refresh':'Std',
-           'df_combo_payoff':'straddle',
-           'df_price_shift':0.25,
-           'df_price_shift_type':'avg',
-           'df_vol_shift':0.001,           
-           'df_ttm_shift':1/365,
-           'df_rate_shift':0.0001,
-           'df_greek':'delta',
-           'df_num_sens':False,
-           'df_interactive':False,
-           'df_notebook':True,
-           'df_colorscheme':'jet',
-           'df_colorintensity':1,
-           'df_size3d':(15, 12),
-           'df_size2d':(8, 6),
-           'df_graphtype':'2D',
-           'df_y_plot':'delta',
-           'df_x_plot':'price',
-           'df_time_shift':0.25,
-           'df_cash':False,
-           'df_axis':'price',
-           'df_spacegrain':100,
-           'df_azim':-60,
-           'df_elev':30,
-           'df_risk':True,
-           'df_gif':False,
-           'df_gif_folder':'images/greeks',
-           'df_gif_filename':'greek',
-           'df_gif_steps':36,
-           'df_gif_min_dist':9.0,
-           'df_gif_max_dist':10.0,
-           'df_gif_min_elev':10.0,
-           'df_gif_max_elev':60.0,
-           'df_gif_dpi':50,
-           'df_gif_ms':100,
-           'df_gif_start_azim':0,
-           'df_gif_end_azim':360,
-           'df_mpl_style':'seaborn-darkgrid',
-
-            # List of default parameters used when refreshing 
-            'df_params_list':[
-                'S', 'K', 'K1', 'K2', 'K3', 'K4', 'G1', 'G2', 'G3', 'H', 'R', 
-                'T', 'T1', 'T2', 'T3', 'T4', 'r', 'b', 'q', 'sigma', 'eta', 
-                'phi', 'barrier_direction', 'knock', 'option', 'option1', 
-                'option2', 'option3', 'option4', 'direction', 'value', 
-                'ratio', 'refresh', 'price_shift', 'price_shift_type', 
-                'vol_shift','ttm_shift', 'rate_shift', 'greek', 'num_sens', 
-                'interactive', 'notebook', 'colorscheme', 'colorintensity', 
-                'size3d', 'size2d', 'graphtype', 'cash', 'axis', 'spacegrain', 
-                'azim', 'elev', 'risk', 'mpl_style'
-                ],
-            
-            # List of Greeks where call and put values are the same
-            'df_equal_greeks':[
-                'gamma', 'vega', 'vomma', 'vanna', 'zomma', 'speed', 'color', 
-                'ultima', 'vega bleed'
-                ],
-            
-            # Payoffs requiring changes to default parameters
-            'df_mod_payoffs':[
-                'call', 'put', 'collar', 'straddle', 'butterfly', 
-                'christmas tree', 'condor', 'iron butterfly', 'iron condor'
-                ],
-            
-            # Those parameters that need changing
-            'df_mod_params':[
-                'S', 'K', 'K1', 'K2', 'K3', 'K4', 'T', 'T1', 'T2', 'T3', 'T4'
-                ],
-            
-            # Combo parameter values differing from standard defaults
-            'df_combo_dict':{'call':{'S':100,
-                                     'K':100,
-                                     'K1':100,
-                                     'T1':0.25},
-                             'put':{'S':100,
-                                    'K':100,
-                                    'K1':100,
-                                    'T1':0.25},
-                             'collar':{'S':100,
-                                       'K':100,
-                                       'K1':98,
-                                       'K2':102,
-                                       'T1':0.25,
-                                       'T2':0.25},
-                             'straddle':{'S':100,
-                                         'K':100,
-                                         'K1':100,
-                                         'K2':100,
-                                         'T1':0.25,
-                                         'T2':0.25},
-                             'butterfly':{'S':100,
-                                          'K':100,
-                                          'K1':95,
-                                          'K2':100,
-                                          'K3':105,
-                                          'T1':0.25,
-                                          'T2':0.25,
-                                          'T3':0.25},
-                             'christmas tree':{'S':100,
-                                               'K':100,
-                                               'K1':95,
-                                               'K2':100,
-                                               'K3':105,
-                                               'T1':0.25,
-                                               'T2':0.25,
-                                               'T3':0.25},
-                             'condor':{'S':100,
-                                       'K':100,
-                                       'K1':90,
-                                       'K2':95,
-                                       'K3':100,
-                                       'K4':105,
-                                       'T1':0.25,
-                                       'T2':0.25,
-                                       'T3':0.25,
-                                       'T4':0.25},
-                             'iron butterfly':{'S':100,
-                                               'K':100,
-                                               'K1':95,
-                                               'K2':100,
-                                               'K3':100,
-                                               'K4':105,
-                                               'T1':0.25,
-                                               'T2':0.25,
-                                               'T3':0.25,
-                                               'T4':0.25},
-                             'iron condor':{'S':100,
-                                            'K':100,
-                                            'K1':90,
-                                            'K2':95,
-                                            'K3':100,
-                                            'K4':105,
-                                            'T1':0.25,
-                                            'T2':0.25,
-                                            'T3':0.25,
-                                            'T4':0.25}},
-            
-            # Dictionary mapping function parameters to x axis labels 
-            # for 2D graphs
-            'df_x_name_dict':{'price':'SA', 
-                              'strike':'SA',
-                              'vol':'sigmaA', 
-                              'time':'TA'},
-            
-            # Dictionary mapping scaling parameters to x axis labels 
-            # for 2D graphs
-            'df_x_scale_dict':{'price':1, 
-                               'strike':1,
-                               'vol':100, 
-                               'time':365},
-            
-            # Dictionary mapping function parameters to y axis labels 
-            # for 2D graphs
-            'df_y_name_dict':{'value':'price', 
-                              'delta':'delta', 
-                              'gamma':'gamma', 
-                              'vega':'vega', 
-                              'theta':'theta'},
-
-            # Dictionary mapping function parameters to axis labels 
-            # for 3D graphs
-            'df_label_dict':{'price':'Underlying Price',
-                             'value':'Theoretical Value',
-                             'vol':'Volatility %',
-                             'time':'Time to Expiration (Days)',
-                             'delta':'Delta',
-                             'gamma':'Gamma',
-                             'vega':'Vega',
-                             'theta':'Theta',
-                             'rho':'Rho',
-                             'strike':'Strike Price'},
-            
-            # Ranges of Underlying price and Time to Expiry for 3D 
-            # greeks graphs
-            'df_3D_chart_ranges':{'price':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':1},
-                                  'delta':{'SA_lower':0.25,
-                                           'SA_upper':1.75,
-                                           'TA_lower':0.01,
-                                           'TA_upper':2},
-                                  'gamma':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':5},
-                                  'vega':{'SA_lower':0.5,
-                                          'SA_upper':1.5,
-                                          'TA_lower':0.01,
-                                          'TA_upper':1},
-                                  'theta':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':1},
-                                  'rho':{'SA_lower':0.8,
-                                         'SA_upper':1.2,
-                                         'TA_lower':0.01,
-                                         'TA_upper':0.5},
-                                  'vomma':{'SA_lower':0.5,
-                                           'SA_upper':1.5,
-                                           'TA_lower':0.01,
-                                           'TA_upper':1},
-                                  'vanna':{'SA_lower':0.5,
-                                           'SA_upper':1.5,
-                                           'TA_lower':0.01,
-                                           'TA_upper':1},
-                                  'zomma':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':0.5},
-                                  'speed':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':0.5},
-                                  'color':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':0.5},
-                                  'ultima':{'SA_lower':0.5,
-                                            'SA_upper':1.5,
-                                            'TA_lower':0.01,
-                                            'TA_upper':1},
-                                  'vega bleed':{'SA_lower':0.5,
-                                                'SA_upper':1.5,
-                                                'TA_lower':0.01,
-                                                'TA_upper':1},
-                                  'charm':{'SA_lower':0.8,
-                                           'SA_upper':1.2,
-                                           'TA_lower':0.01,
-                                           'TA_upper':0.25}},
-            
-            # Greek names as function input and individual function 
-            # names            
-            'df_greek_dict':{'price':'price',
-                             'delta':'delta',
-                             'gamma':'gamma',
-                             'vega':'vega',
-                             'theta':'theta',
-                             'rho':'rho',
-                             'vomma':'vomma',
-                             'vanna':'vanna',
-                             'zomma':'zomma',
-                             'speed':'speed',
-                             'color':'color',
-                             'ultima':'ultima',
-                             'vega bleed':'vega_bleed',
-                             'charm':'charm'},
-             
-            # Parameters to overwrite mpl_style defaults
-            'df_mpl_params':{'legend.fontsize': 'x-large',
-                             'legend.fancybox':False,
-                             'figure.dpi':72,
-                             'axes.labelsize': 'medium',
-                             'axes.titlesize':'large',
-                             'axes.spines.bottom':True,
-                             'axes.spines.left':True,
-                             'axes.spines.right':True,
-                             'axes.spines.top':True,
-                             'axes.edgecolor':'black',
-                             'axes.titlepad':20,
-                             'axes.autolimit_mode':'data',#'round_numbers',
-                             'axes.xmargin':0.05,
-                             'axes.ymargin':0.05,
-                             'axes.linewidth':2,
-                             'xtick.labelsize':'medium',
-                             'ytick.labelsize':'medium',
-                             'xtick.major.pad':10,
-                             'ytick.major.pad':10,
-                             'lines.linewidth':3.0,
-                             'lines.color':'black',
-                             'grid.color':'black',
-                             'grid.linestyle':':',
-                             'font.size':14},
-            
-            'df_mpl_3d_params':{'axes.facecolor':'w',
-                                'axes.labelcolor':'k',
-                                'axes.edgecolor':'w',
-                                'axes.titlepad':5,
-                                'lines.linewidth':0.5,
-                                'xtick.labelbottom':True,
-                                'ytick.labelleft':True}
-            }
-
 
 class Option():
     
-    def __init__(self, 
-                 S=df_dict['df_S'], 
-                 K=df_dict['df_K'], 
-                 K1=df_dict['df_K1'], 
-                 K2=df_dict['df_K2'], 
-                 K3=df_dict['df_K3'], 
-                 K4=df_dict['df_K4'], 
-                 G1=df_dict['df_G1'], 
-                 G2=df_dict['df_G2'], 
-                 G3=df_dict['df_G3'], 
-                 H=df_dict['df_H'], 
-                 R=df_dict['df_R'], 
-                 T=df_dict['df_T'], 
-                 T1=df_dict['df_T1'], 
-                 T2=df_dict['df_T2'], 
-                 T3=df_dict['df_T3'], 
-                 T4=df_dict['df_T4'],
-                 r=df_dict['df_r'], 
-                 b=df_dict['df_b'], 
-                 q=df_dict['df_q'], 
-                 sigma=df_dict['df_sigma'], 
-                 eta=df_dict['df_eta'], 
-                 phi=df_dict['df_phi'], 
-                 barrier_direction=df_dict['df_barrier_direction'], 
-                 knock=df_dict['df_knock'], 
-                 option=df_dict['df_option'], 
-                 option1=df_dict['df_option1'], 
-                 option2=df_dict['df_option2'], 
-                 option3=df_dict['df_option3'], 
-                 option4=df_dict['df_option4'], 
-                 direction=df_dict['df_direction'], 
-                 value=df_dict['df_value'], 
-                 ratio=df_dict['df_ratio'], 
-                 refresh=df_dict['df_refresh'], 
-                 combo_payoff=df_dict['df_combo_payoff'], 
-                 price_shift=df_dict['df_price_shift'], 
-                 price_shift_type=df_dict['df_price_shift_type'], 
-                 vol_shift=df_dict['df_vol_shift'], 
-                 ttm_shift=df_dict['df_ttm_shift'], 
-                 rate_shift=df_dict['df_rate_shift'], 
-                 greek=df_dict['df_greek'], 
-                 num_sens=df_dict['df_num_sens'],
-                 interactive=df_dict['df_interactive'], 
-                 notebook=df_dict['df_notebook'], 
-                 colorscheme=df_dict['df_colorscheme'], 
-                 colorintensity=df_dict['df_colorintensity'], 
-                 size3d=df_dict['df_size3d'], 
-                 size2d=df_dict['df_size2d'], 
-                 graphtype=df_dict['df_graphtype'], 
-                 y_plot=df_dict['df_y_plot'], 
-                 x_plot=df_dict['df_x_plot'], 
-                 x_name_dict=df_dict['df_x_name_dict'], 
-                 x_scale_dict=df_dict['df_x_scale_dict'], 
-                 y_name_dict=df_dict['df_y_name_dict'], 
-                 time_shift=df_dict['df_time_shift'], 
-                 cash=df_dict['df_cash'], 
-                 axis=df_dict['df_axis'], 
-                 spacegrain=df_dict['df_spacegrain'], 
-                 azim=df_dict['df_azim'], 
-                 elev=df_dict['df_elev'],
-                 risk=df_dict['df_risk'],
-                 gif=df_dict['df_gif'],
-                 gif_min_dist=df_dict['df_gif_min_dist'],
-                 gif_max_dist=df_dict['df_gif_max_dist'],
-                 gif_min_elev=df_dict['df_gif_min_elev'],
-                 gif_max_elev=df_dict['df_gif_max_elev'],
-                 gif_dpi=df_dict['df_gif_dpi'],
-                 gif_ms=df_dict['df_gif_ms'],
-                 gif_start_azim=df_dict['df_gif_start_azim'],
-                 gif_end_azim=df_dict['df_gif_end_azim'],
-                 gif_folder=df_dict['df_gif_folder'],
-                 gif_filename=df_dict['df_gif_filename'],
-                 mpl_style=df_dict['df_mpl_style'], 
-                 df_combo_dict=df_dict['df_combo_dict'], 
-                 df_params_list=df_dict['df_params_list'], 
-                 equal_greeks=df_dict['df_equal_greeks'], 
-                 mod_payoffs=df_dict['df_mod_payoffs'], 
-                 mod_params=df_dict['df_mod_params'], 
-                 label_dict=df_dict['df_label_dict'], 
-                 greek_dict=df_dict['df_greek_dict'], 
-                 mpl_params=df_dict['df_mpl_params'],
-                 mpl_3d_params=df_dict['df_mpl_3d_params'],
-                 df_dict=df_dict):
+    def __init__(self):
 
-        # Spot price
-        self.S = S 
-        
-        # Strike price
-        self.K = K 
-        
-        # Strike price for combo payoffs
-        self.K1 = K1 
-        
-        # Strike price for combo payoffs
-        self.K2 = K2 
-        
-        # Strike price for combo payoffs
-        self.K3 = K3 
-        
-        # Strike price for combo payoffs
-        self.K4 = K4 
-        
-        # Strike price for 2D Greeks graphs
-        self.G1 = G1 
-        
-        # Strike price for 2D Greeks graphs
-        self.G2 = G2 
-        
-        # Strike price for 2D Greeks graphs
-        self.G3 = G3 
-        
-        # Barrier level
-        self.H = H 
-        
-        # Barrier option rebate
-        self.R = R 
-        
-        # Time to maturity
-        self.T = T 
-        
-        # Time to maturity
-        self.T1 = T1 
-        
-        # Time to maturity
-        self.T2 = T2 
-        
-        # Time to maturity
-        self.T3 = T3 
-        
-        # Time to maturity
-        self.T4 = T4 
-        
-        # Interest rate
-        self.r = r 
-        
-        # Dividend Yield
-        self.q = q  
-        
-        # Cost of carry
-        self.b = self.r - self.q 
-        
-        # Volatility
-        self.sigma = sigma 
-        
-        # Barrier parameter
-        self.eta = eta 
-        
-        # Barrier parameter
-        self.phi = phi 
-        
-        # Whether strike is up or down
-        self.barrier_direction = barrier_direction 
-        
-        # Whether option knocks in or out
-        self.knock = knock 
-        
-        # Option type, call or put
-        self.option = option 
-        
-        # Option type, call or put
-        self.option1 = option1 
-        
-        # Option type, call or put
-        self.option2 = option2 
-        
-        # Option type, call or put
-        self.option3 = option3 
-        
-        # Option type, call or put
-        self.option4 = option4 
-        
-        # Payoff direction, long or short
-        self.direction = direction 
-        
-        # Flag whether to plot Intrinsic Value against payoff
-        self.value = value 
-        
-        # Ratio used in Backspread and Ratio Vertical Spread 
-        self.ratio = ratio 
-        
-        # Flag whether to refresh default values in price formula
-        self.refresh = refresh 
-        
-        # Size of price shift used in shift_greeks function
-        self.price_shift = price_shift 
-        
-        # Shift type - Up, Down or Avg
-        self.price_shift_type = price_shift_type 
-        
-        # Size of vol shift used in shift_greeks function
-        self.vol_shift = vol_shift 
-        
-        # Size of time shift used in shift_greeks function
-        self.ttm_shift = ttm_shift 
-        
-        # Size of interest rate shift used in shift_greeks function
-        self.rate_shift = rate_shift 
-        
         # Dictionary of parameter defaults
-        self.df_dict = df_dict 
-        
-        # Dictionary of payoffs with different default parameters
-        self.df_combo_dict = df_combo_dict 
-        
-        # List of default parameters
-        self.df_params_list = df_params_list 
-        
-        # Option greek to display e.g. delta
-        self.greek = greek 
-        
-        # Whether to calculate numerical or analytical sensitivity
-        self.num_sens = num_sens 
-        
-        # Whether to display static mpl 3D graph or plotly interactive 
-        # graph
-        self.interactive = interactive 
-        
-        # Whether running in iPython notebook or not, False creates a 
-        # popup html page 
-        self.notebook = notebook 
-        
-        # Color palette to use in 3D graphs
-        self.colorscheme = colorscheme 
-        
-        # Alpha level to use in 3D graphs
-        self.colorintensity = colorintensity 
-        
-        # Tuple for size of 3D static graph
-        self.size3d = size3d 
-        
-        # Tuple for size of 2D static graph
-        self.size2d = size2d 
-        
-        # 2D or 3D graph 
-        self.graphtype = graphtype 
-        
-        # X-axis in 2D greeks graph
-        self.y_plot = y_plot 
-        
-        # Y-axis in 2D greeks graph
-        self.x_plot = x_plot 
-        
-        # Dictionary mapping function parameters to x axis labels for 
-        # 2D graphs
-        self.x_name_dict = x_name_dict 
-        
-        # Dictionary mapping scaling parameters to x axis labels for 
-        # 2D graphs
-        self.x_scale_dict = x_scale_dict 
-        
-        # Dictionary mapping function parameters to y axis labels for 
-        # 2D graphs
-        self.y_name_dict = y_name_dict 
-        
-        # Time between periods used in 2D greeks graph
-        self.time_shift = time_shift 
-        
-        # Whether to graph forward at cash or discount
-        self.cash = cash 
-        
-        # Price or Vol against Time in 3D graphs
-        self.axis = axis 
-        
-        # Number of points in each axis linspace argument for 3D graphs
-        self.spacegrain = spacegrain 
-        
-        # L-R view angle for 3D graphs
-        self.azim = azim 
-        
-        # Elevation view angle for 3D graphs
-        self.elev = elev 
-                
-        # Whether to show risk or payoff graphs in visualize method
-        self.risk = risk 
-        
-        # Whether to create animated gif
-        self.gif = gif
-        
-        # Animated gif distance, elevation and viewing angle parameters
-        self.gif_min_dist = gif_min_dist
-        self.gif_max_dist = gif_max_dist
-        self.gif_min_elev = gif_min_elev
-        self.gif_max_elev = gif_max_elev
-        self.gif_start_azim = gif_start_azim
-        self.gif_end_azim = gif_end_azim
-        
-        # Animated gif resolution
-        self.gif_dpi = gif_dpi
-        
-        # Animated gif time per frame (in milliseconds)
-        self.gif_ms = gif_ms
-        
-        # Location for saving gifs to be animated
-        self.gif_folder = gif_folder
-        
-        # Filename for animated gifs
-        self.gif_filename = gif_filename
+        self.df_dict = vp.vis_params_dict
 
-        # Matplotlib style template for 2D risk charts and payoffs
-        self.mpl_style = mpl_style 
+        # Initialize fixed default parameters
+        self._init_fixed_params()
+        
+        
+    def _init_fixed_params(self):
+        """
+        Initialize fixed default parameters using values from parameters dict
 
-        # Combo payoffs needing different default parameters
-        self.mod_payoffs = mod_payoffs 
+        Returns
+        -------
+        Various parameters and dictionaries to the object.
 
-        # Parameters of these payoffs that need changing
-        self.mod_params = mod_params 
-
-        # Dictionary mapping function parameters to axis labels
-        self.label_dict = label_dict 
-
-        # List of Greeks where call and put values are the same
-        self.equal_greeks = equal_greeks 
-
-        # Greek names as function input and individual function names
-        self.greek_dict = greek_dict 
-
+        """
         # Parameters to overwrite mpl_style defaults
-        self.mpl_params = mpl_params 
+        self.mpl_params = self.df_dict['df_mpl_params']
+        self.mpl_3d_params = self.df_dict['df_mpl_3d_params']
         
-        # Parameters to overwrite mpl_style 3d graph defaults
-        self.mpl_3d_params = mpl_3d_params
+        # Greek names as function input and individual function names
+        self.greek_dict = self.df_dict['df_greek_dict']
+        
+        # Greks where the values are the same for a call or a put
+        self.equal_greeks = self.df_dict['df_equal_greeks']        
 
-        # 2D graph payoff structure
-        self.combo_payoff = combo_payoff 
+        # Payoffs requiring changes to default parameters
+        self.mod_payoffs = self.df_dict['df_mod_payoffs']
+        
+        # Those parameters that need changing
+        self.mod_params = self.df_dict['df_mod_params']
+        
+        # Combo parameter values differing from standard defaults
+        self.combo_dict = self.df_dict['df_combo_dict']
 
+        # Dictionary mapping function parameters to x axis labels for 2D graphs        
+        self.x_name_dict = self.df_dict['df_x_name_dict']
+        
+        # Dictionary mapping scaling parameters to x axis labels for 2D graphs
+        self.x_scale_dict = self.df_dict['df_x_scale_dict']
+        
+        # Dictionary mapping function parameters to y axis labels for 2D graphs
+        self.y_name_dict = self.df_dict['df_y_name_dict']
+        
+        # Dictionary mapping function parameters to axis labels  for 3D graphs
+        self.label_dict = self.df_dict['df_label_dict']
+        
     
     def _refresh_params_default(self, **kwargs):
         """
@@ -748,7 +158,7 @@ class Option():
             if no data provided
 
         """
-        
+ 
         # Certain combo payoffs (found in the mod_payoffs list) require 
         # specific default parameters
         if self.combo_payoff in self.mod_payoffs:
@@ -906,7 +316,12 @@ class Option():
                               - (2 * eta * lamb_da * 
                                  sigma * np.sqrt(T))), 0.0, 1.0))))
 
-        return A, B, C, D, E, F
+        return {'A':A, 
+                'B':B, 
+                'C':C, 
+                'D':D, 
+                'E':E,
+                'F':F}
 
 
     def price(self, S=None, K=None, T=None, r=None, q=None, sigma=None, 
@@ -959,11 +374,11 @@ class Option():
         # Update distribution parameters            
         (b, carry, discount, d1, d2, nd1, Nd1, minusNd1, Nd2, 
          minusNd2) = self._refresh_dist(S, K, T, r, q, sigma)    
-        
+
         if option == "call":
             opt_price = ((S * carry * Nd1) 
                 - (K * np.exp(-r * T) * Nd2))  
-        if option == 'put':
+        if option == "put":
             opt_price = ((K * np.exp(-r * T) * minusNd2) 
                 - (S * carry * minusNd1))
         
@@ -1813,7 +1228,7 @@ class Option():
                 'greek')(self._refresh_params_default(
                     S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
                     greek=greek))
-                       
+                    
         for key, value in self.greek_dict.items():
             if str(greek) == key:
                 return getattr(self, value)(
@@ -1967,7 +1382,10 @@ class Option():
                     S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
                     greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
                     ttm_shift=ttm_shift, rate_shift=rate_shift))
-        
+                    
+        if greek in self.equal_greeks:
+            option = 'call'
+                    
         if greek == 'price':
             result = (
                 self.price(S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
@@ -2159,8 +1577,8 @@ class Option():
 
     def sensitivities(self, S=None, K=None, T=None, r=None, q=None, 
                       sigma=None, option=None, greek=None, price_shift=None, 
-                      vol_shift=None, ttm_shift=None, num_sens=None, 
-                      default=None):
+                      vol_shift=None, ttm_shift=None, rate_shift=None, 
+                      num_sens=None, default=None):
         """
         Sensitivities of the option.
 
@@ -2192,7 +1610,10 @@ class Option():
             default is 0.001.
         ttm_shift : Float
             The size of the time to maturity shift in decimal terms. The 
-            default is 1/365. 
+            default is 1/365.
+        rate_shift : Float
+            The size of the interest rate shift in decimal terms. The 
+            default is 0.0001.    
         num_sens : Bool
             Whether to calculate numerical or analytical sensitivity. 
             The default is False.
@@ -2210,13 +1631,13 @@ class Option():
         """
 
         if num_sens is None:
-            num_sens = self.num_sens
-            
+            num_sens = self.df_dict['df_num_sens']
+        
         if num_sens:
             return self.numerical_sensitivities(
                 S=S, K=K, T=T, r=r, q=q, sigma=sigma, option=option, 
                 greek=greek, price_shift=price_shift, vol_shift=vol_shift, 
-                ttm_shift=ttm_shift, default=default)            
+                ttm_shift=ttm_shift, rate_shift=rate_shift, default=default)            
             
         else:
             return self.analytical_sensitivities(
@@ -2289,14 +1710,14 @@ class Option():
             and knock == 'in' 
             and option == 'call'):
             
-            eta = 1
-            phi = 1
+            self.eta = 1
+            self.phi = 1
         
             A, B, C, D, E, F = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))     
-        
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
+                   
             if K > H:
                 opt_barrier_payoff = C + E
             if K < H:
@@ -2308,13 +1729,13 @@ class Option():
                 and knock == 'in' 
                 and option == 'call'):
             
-            eta = -1
-            phi = 1
+            self.eta = -1
+            self.phi = 1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
             
             if K > H:
                 opt_barrier_payoff = A + E
@@ -2327,13 +1748,13 @@ class Option():
                 and knock == 'in' 
                 and option == 'put'):
 
-            eta = 1
-            phi = -1
+            self.eta = 1
+            self.phi = -1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
             
             if K > H:
                 opt_barrier_payoff = B - C + D + E
@@ -2346,13 +1767,13 @@ class Option():
             and knock == 'in' 
             and option == 'put'):
             
-            eta = -1
-            phi = -1
+            self.eta = -1
+            self.phi = -1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
         
             if K > H:
                 opt_barrier_payoff = A - B + D + E
@@ -2365,13 +1786,13 @@ class Option():
             and knock == 'out' 
             and option == 'call'):
             
-            eta = 1
-            phi = 1
+            self.eta = 1
+            self.phi = 1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
         
             if K > H:
                 opt_barrier_payoff = A - C + F
@@ -2384,13 +1805,13 @@ class Option():
             and knock == 'out' 
             and option == 'call'):
             
-            eta = -1
-            phi = 1
+            self.eta = -1
+            self.phi = 1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
             
             if K > H:
                 opt_barrier_payoff = F
@@ -2404,13 +1825,13 @@ class Option():
             and knock == 'out' 
             and option == 'put'):
             
-            eta = 1
-            phi = -1
+            self.eta = 1
+            self.phi = -1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
             
             if K > H:
                 opt_barrier_payoff = (A - B + C 
@@ -2423,13 +1844,13 @@ class Option():
             and knock == 'out' 
             and option == 'put'):
             
-            eta = -1
-            phi = -1
+            self.eta = -1
+            self.phi = -1
             
-            A, B, C, D, E, F = itemgetter(
+            (A, B, C, D, E, F) = itemgetter(
                 'A', 'B', 'C', 'D', 'E', 'F')(self._barrier_factors(
-                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, phi=phi, 
-                    eta=eta))
+                    S=S, K=K, H=H, R=R, T=T, r=r, q=q, sigma=sigma, 
+                    phi=self.phi, eta=self.eta))
         
             if K > H:
                 opt_barrier_payoff = B - D + F
@@ -2587,7 +2008,7 @@ class Option():
         """
         
         if risk is None:
-            risk = self.risk
+            risk = self.df_dict['df_risk']
         
         if risk:
             self.greeks(
@@ -2709,7 +2130,7 @@ class Option():
         """
         
         if graphtype is None:
-            graphtype = self.graphtype
+            graphtype = self.df_dict['df_graphtype']
         
         # Run 2D greeks method
         if graphtype == '2D':
@@ -2841,7 +2262,7 @@ class Option():
         self.SA = np.linspace(0.8 * S, 1.2 * S, 1000)
         self.sigmaA = np.linspace(0.05, 0.5, 1000)
         self.TA = np.linspace(0.01, 1, 1000)
-              
+        
         # y-axis parameters other than rho require 3 options to be 
         # graphed
         if y_plot in self.y_name_dict.keys():
@@ -2857,8 +2278,8 @@ class Option():
                             sigma=sigma, option=option, 
                             greek=self.y_name_dict[y_plot], 
                             price_shift=0.25, vol_shift=0.001, 
-                            ttm_shift=(1 / 365), num_sens=num_sens, 
-                            default=False)        
+                            ttm_shift=(1 / 365), rate_shift=0.0001, 
+                            num_sens=num_sens, default=False)        
                             
                 if x_plot == 'vol':
                     
@@ -2870,8 +2291,8 @@ class Option():
                             sigma=self.sigmaA, option=option, 
                             greek=self.y_name_dict[y_plot], 
                             price_shift=0.25, vol_shift=0.001, 
-                            ttm_shift=(1 / 365), num_sens=num_sens, 
-                            default=False)        
+                            ttm_shift=(1 / 365), rate_shift=0.0001, 
+                            num_sens=num_sens, default=False)        
                             
                 if x_plot == 'time':
                     
@@ -2882,8 +2303,8 @@ class Option():
                             q=q, sigma=sigma, option=option, 
                             greek=self.y_name_dict[y_plot], 
                             price_shift=0.25, vol_shift=0.001, 
-                            ttm_shift=(1 / 365), num_sens=num_sens, 
-                            default=False)
+                            ttm_shift=(1 / 365), rate_shift=0.0001, 
+                            num_sens=num_sens, default=False)
                     
             
             # Reverse the option value if direction is 'short'        
@@ -2918,7 +2339,8 @@ class Option():
                             q=q, sigma=sigma, option=opt_type[opt], 
                             greek=y_plot, price_shift=0.25, 
                             vol_shift=0.001, ttm_shift=(1 / 365), 
-                            num_sens=num_sens, default=False)
+                            rate_shift=0.0001, num_sens=num_sens, 
+                            default=False)
                            
                 if x_plot == 'strike':
                     
@@ -2930,7 +2352,8 @@ class Option():
                             q=q, sigma=sigma, option=opt_type[opt], 
                             greek=y_plot, price_shift=0.25, 
                             vol_shift=0.001, ttm_shift=(1 / 365), 
-                            num_sens=num_sens, default=False)
+                            rate_shift=0.0001, num_sens=num_sens, 
+                            default=False)
                             
                 if x_plot == 'vol':
                     
@@ -2942,7 +2365,8 @@ class Option():
                             q=q, sigma=self.sigmaA, option=opt_type[opt], 
                             greek=y_plot, price_shift=0.25, 
                             vol_shift=0.001, ttm_shift=(1 / 365), 
-                            num_sens=num_sens, default=False)
+                            rate_shift=0.0001, num_sens=num_sens, 
+                            default=False)
             
             # Reverse the option value if direction is 'short'        
             if direction == 'short':
@@ -3077,7 +2501,7 @@ class Option():
 
         """
         
-        # Set style to Seaborn Darkgrid
+        # Set style to chosen mpl_style (default is Seaborn Darkgrid)
         plt.style.use(mpl_style)
 
         # Update chart parameters        
@@ -3129,8 +2553,7 @@ class Option():
                          option=None, interactive=None, notebook=None, 
                          colorscheme=None, colorintensity=None, size3d=None, 
                          direction=None, axis=None, spacegrain=None, azim=None,
-                         elev=None, greek=None, num_sens=None, gif=None, 
-                         gif_folder=None, gif_filename=None):
+                         elev=None, greek=None, num_sens=None, gif=None):
         """
         Plot chosen 3D greeks graph.
 
@@ -3194,20 +2617,17 @@ class Option():
         # be populated with default values
         (S, r, q, sigma, option, interactive, notebook, colorscheme, 
          colorintensity, size3d, azim, elev, direction, axis, spacegrain, 
-         greek, num_sens, gif, gif_folder, gif_filename) = itemgetter(
+         greek, num_sens, gif) = itemgetter(
             'S', 'r', 'q', 'sigma', 'option', 'interactive', 'notebook', 
             'colorscheme', 'colorintensity', 'size3d', 'azim', 'elev', 
             'direction', 'axis', 'spacegrain', 'greek', 
-            'num_sens', 'gif', 'gif_folder', 
-            'gif_filename')(self._refresh_params_default(
+            'num_sens', 'gif')(self._refresh_params_default(
                 S=S, r=r, q=q, sigma=sigma, option=option, 
                 interactive=interactive, notebook=notebook, 
                 colorscheme=colorscheme, colorintensity=colorintensity, 
                 size3d=size3d, azim=azim, elev=elev, direction=direction, 
                 axis=axis, spacegrain=spacegrain, greek=greek, 
-                num_sens=num_sens, gif=gif, gif_folder=gif_folder, 
-                gif_filename=gif_filename))
-        
+                num_sens=num_sens, gif=gif))
                
         # Select the input name and method name from the greek 
         # dictionary 
@@ -3225,7 +2645,7 @@ class Option():
                 (x, y, xmin, xmax, ymin, ymax, graph_scale, axis_label1, 
                  axis_label2) = self._graph_space_prep(
                      greek=greek, S=S, axis=axis, spacegrain=spacegrain)
- 
+                     
                 if axis == 'price':
                     
                     # Select the individual greek method from sensitivities
@@ -3451,6 +2871,9 @@ class Option():
                           margin=dict(l=65, r=50, b=65, t=90),
                           scene_camera=camera)
         
+        if notebook is None:
+            notebook = self.df_dict['df_notebook']
+        
         # If running in an iPython notebook the chart will display 
         # in line
         if notebook:
@@ -3485,7 +2908,9 @@ class Option():
         Matplotlib static graph.
 
         """
+                
         # Update chart parameters        
+        plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_3d_params)
         
         # create figure with specified size tuple
@@ -3559,12 +2984,13 @@ class Option():
             plt.show()
     
     
-    def _gif_defaults_setup(self, gif_folder=None, gif_filename=None):
+    def _gif_defaults_setup(self, gif_folder=None, gif_filename=None, 
+                            gif_type='2d'):
                 
         if gif_folder is None:
-            gif_folder = self.gif_folder
+            gif_folder = self.df_dict['df_gif_folder_'+gif_type]
         if gif_filename is None:
-            gif_filename = self.gif_filename
+            gif_filename = self.df_dict['df_gif_filename_'+gif_type]
         
         working_folder = '{}/{}'.format(gif_folder, gif_filename)
         if not os.path.exists(working_folder):
@@ -3578,7 +3004,7 @@ class Option():
             direction=None, notebook=None, colorscheme=None, 
             colorintensity=None, size3d=None, axis=None, spacegrain=None, 
             azim=None, elev=None, greek=None, num_sens=None, 
-            gif_folder=None, gif_filename=None, gif_steps=None, 
+            gif_folder=None, gif_filename=None, gif_frame_update=None, 
             gif_min_dist=None, gif_max_dist=None, gif_min_elev=None, 
             gif_max_elev=None, gif_start_azim=None, gif_end_azim=None, 
             gif_dpi=None, gif_ms=None):
@@ -3633,9 +3059,9 @@ class Option():
             The folder to save the files into. The default is 'images/greeks'.
         gif_filename : Str
             The filename for the animated gif. The default is 'greek'.
-        gif_steps : Int
-            The number of frames used to construct the animated gif. The 
-            default is 36.
+        gif_frame_update : Int
+            The number of degrees of rotation between each frame used to 
+            construct the animated gif. The default is 2.
         gif_min_dist : Float
             The minimum zoom distance. The default is 9.0.
         gif_max_dist : Float
@@ -3661,31 +3087,37 @@ class Option():
         gif=True
         
         gif_folder, gif_filename, working_folder = self._gif_defaults_setup(
-            gif_folder=gif_folder, gif_filename=gif_filename)
+            gif_folder=gif_folder, gif_filename=gif_filename, gif_type='3d')
         
-        (gif_steps, gif_min_dist, gif_max_dist, gif_min_elev, 
+        (gif_frame_update, gif_min_dist, gif_max_dist, gif_min_elev, 
          gif_max_elev, gif_start_azim, gif_end_azim, gif_dpi, 
          gif_ms) = itemgetter(
-             'gif_steps', 'gif_min_dist', 'gif_max_dist', 'gif_min_elev', 
-             'gif_max_elev', 'gif_start_azim', 'gif_end_azim', 'gif_dpi', 
-             'gif_ms')(self._refresh_params_default(
-                 gif_steps=gif_steps, gif_min_dist=gif_min_dist, 
+             'gif_frame_update', 'gif_min_dist', 'gif_max_dist', 
+             'gif_min_elev', 'gif_max_elev', 'gif_start_azim', 'gif_end_azim', 
+             'gif_dpi', 'gif_ms')(self._refresh_params_default(
+                 gif_frame_update=gif_frame_update, gif_min_dist=gif_min_dist, 
                  gif_max_dist=gif_max_dist, gif_min_elev=gif_min_elev, 
                  gif_max_elev=gif_max_elev, gif_start_azim=gif_start_azim, 
                  gif_end_azim=gif_end_azim, gif_dpi=gif_dpi, gif_ms=gif_ms))    
-        
+                 
         fig, ax, titlename, title_font_scale = self.greeks_graphs_3D(
             S=S, r=r, q=q, sigma=sigma, option=option, 
             interactive=False, notebook=notebook, 
             colorscheme=colorscheme, colorintensity=colorintensity, 
             size3d=size3d, direction=direction, axis=axis, 
             spacegrain=spacegrain, azim=azim, elev=elev, greek=greek, 
-            num_sens=num_sens, gif=gif, gif_folder=gif_folder, 
-            gif_filename=gif_filename)
+            num_sens=num_sens, gif=gif)
         
+        # number of degrees rotation between frames
+        frame_update = gif_frame_update
+        
+        # set the range for horizontal rotation
+        start_azim = gif_start_azim
+        end_azim = gif_end_azim
+        azim_range = end_azim - start_azim
                 
         # set number of frames for the animated gif
-        steps = gif_steps
+        steps = math.floor(azim_range/frame_update)
         
         # a viewing perspective is composed of an elevation, distance, and 
         # azimuth define the range of values we'll cycle through for the 
@@ -3699,19 +3131,16 @@ class Option():
         min_elev = gif_min_elev
         max_elev = gif_max_elev
         elev_range = np.arange(max_elev, min_elev, (min_elev-max_elev)/steps)
-        
-        start_azim = gif_start_azim
-        end_azim = gif_end_azim
-        azim_range = end_azim - start_azim
-        
+                
         # now create the individual frames that will be combined later into the 
         # animation
-        for azimuth in range(start_azim, end_azim, int(azim_range/steps)):
+        for idx, azimuth in enumerate(
+                range(start_azim, end_azim, frame_update)):
             
             # pan down, rotate around, and zoom out
             ax.azim = float(azimuth)
-            ax.elev = elev_range[int(azimuth/(azim_range/steps))]
-            ax.dist = dist_range[int(azimuth/(azim_range/steps))]
+            ax.elev = elev_range[idx]
+            ax.dist = dist_range[idx]
 
             # set the figure title
             st = fig.suptitle(titlename, 
@@ -3807,7 +3236,7 @@ class Option():
         
         # Set up folders to save files 
         gif_folder, gif_filename, working_folder = self._gif_defaults_setup(
-            gif_folder=gif_folder, gif_filename=gif_filename)
+            gif_folder=gif_folder, gif_filename=gif_filename, gif_type='2d')
        
         # split the countdown from T to maturity in steps equal steps 
         time_steps = np.linspace(T, 0.001, steps)
@@ -3959,7 +3388,7 @@ class Option():
 
         """
         if combo_payoff is None:
-            combo_payoff = self.combo_payoff
+            combo_payoff = self.df_dict['df_combo_payoff']
         
         if combo_payoff == 'call':
             self.call(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
@@ -3976,7 +3405,7 @@ class Option():
                        size2d=size2d)
         
         if combo_payoff == 'forward':
-            self.forward(S=S, K=K, T=T, r=r, q=q, sigma=sigma, 
+            self.forward(S=S, T=T, r=r, q=q, sigma=sigma, 
                          direction=direction, cash=cash, mpl_style=mpl_style, 
                          size2d=size2d)
         
