@@ -25,11 +25,11 @@ $ activate optvis
 ```
 Install Python
 ```
-(optvis) $ conda install python
+(optvis) $ conda install python==3.9
 ```
 Install Spyder
 ```
-(optvis) $ conda install spyder=4
+(optvis) $ conda install spyder
 ```
 Install package
 ```
@@ -42,8 +42,8 @@ Install package
 Import visualizer and initialise an Option object
 
 ```
-import optionvisualizer.visualizer as vis
-opt = vis.Option()
+from optionvisualizer.visualizer import Visualizer
+opt = Visualizer()
 ```
 
 &nbsp;
@@ -65,7 +65,7 @@ opt = vis.Option()
   - Vega Bleed: sensitivity of vega to changes in time to maturity
 
 ```
-opt.price(S=3477, K=3400, T=0.5, r=0.005, q=0, sigma=0.3, option='put')
+opt.option_data(option_value='price', S=3477, K=3400, T=0.5, r=0.005, q=0, sigma=0.3, option='put')
 ```
 
 ```
@@ -111,7 +111,7 @@ opt.visualize(risk=True, x_plot='strike', y_plot='rho', direction='short')
 
 #### You can also convert into an animated gif
 ```
-opt.animated_2D_gif(x_plot='price', y_plot='vega', direction='long', T=1, gif_folder='images/greeks_2d', gif_filename='price_vega_l')
+opt.animated_gif(graphtype='2D', x_plot='price', y_plot='vega', direction='long', T=1, gif_folder='images/greeks_2d', gif_filename='price_vega_l')
 ```
 ![price_vega_l](images/price_vega_l.gif)
 
@@ -177,7 +177,7 @@ opt.visualize(risk=True, graphtype='3D', greek='zomma', direction='short', inter
 
 #### You can also convert into an animated gif
 ```
-opt.animated_3D_gif(greek='gamma', direction='short', gif_folder='images/greeks_3d',gif_filename='gamma_s', gif_min_dist=9.0, gif_max_dist=9.1, gif_min_elev=25, gif_max_elev=26, spacegrain=1000, colorscheme='seismic')
+opt.animated_gif(graphtype='3D', greek='gamma', direction='short', gif_folder='images/greeks_3d',gif_filename='gamma_s', gif_min_dist=9.0, gif_max_dist=9.1, gif_min_elev=25, gif_max_elev=26, spacegrain=1000, colorscheme='seismic')
 ```
 ![gamma_s](images/gamma_s.gif)
 
