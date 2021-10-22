@@ -1,5 +1,6 @@
 Workings
 pypi
+.vscode
 **/__pycache__
 **/*.pyc
 
