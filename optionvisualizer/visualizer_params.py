@@ -53,6 +53,7 @@ vis_params_dict = {
     'num_sens':False,
     'interactive':False,
     'notebook':True,
+    'web_graph':False,
     'colorscheme':'jet',
     'colorintensity':1,
     'size3d':(15, 12),

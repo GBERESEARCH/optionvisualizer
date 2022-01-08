@@ -793,10 +793,16 @@ class Greeks():
         # in line
         if params['notebook']:
             fig.show()
+            return
+
+        # If output is sent to Dash 
+        if params['web_graph']:
+            return fig
 
         # Otherwise create an HTML file that opens in a new window
         else:
             plot(fig, auto_open=True)
+            return
 
 
     @staticmethod
