@@ -792,12 +792,12 @@ class Greeks():
         # If running in an iPython notebook the chart will display
         # in line
         if params['notebook']:
-            fig.show()
-            return
-
-        # If output is sent to Dash 
-        if params['web_graph']:
-            return fig
+            # If output is sent to Dash 
+            if params['web_graph']:
+                return fig            
+            else:
+                fig.show()
+                return
 
         # Otherwise create an HTML file that opens in a new window
         else:
