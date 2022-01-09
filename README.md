@@ -202,7 +202,7 @@ opt.animated_gif(graphtype='3D', greek='gamma', direction='short', gif_folder='i
 
 #### Short Call:
 ```
-opt.visualize(risk=False, combo_payoff='call', S=90, K=95, T=0.75, r=0.05, q=0, sigma=0.3, direction='short', value=True)
+opt.visualize(risk=False, payoff_type='call', S=90, K=95, T=0.75, r=0.05, q=0, sigma=0.3, direction='short', value=True)
 ```
 ![short_call](images/short_call.png)
 
@@ -210,7 +210,7 @@ opt.visualize(risk=False, combo_payoff='call', S=90, K=95, T=0.75, r=0.05, q=0, 
 
 #### Long Straddle:
 ```
-opt.visualize(risk=False, combo_payoff='straddle', mpl_style='ggplot')
+opt.visualize(risk=False, payoff_type='straddle', mpl_style='ggplot')
 ```
 ![straddle](images/straddle.png)
 
@@ -218,7 +218,7 @@ opt.visualize(risk=False, combo_payoff='straddle', mpl_style='ggplot')
 
 #### Short Christmas Tree:
 ```
-opt.visualize(risk=False, combo_payoff='christmas tree', value=True, direction='short')
+opt.visualize(risk=False, payoff_type='christmas tree', value=True, direction='short')
 ```
 ![christmas_tree](images/christmas_tree.png)
 
