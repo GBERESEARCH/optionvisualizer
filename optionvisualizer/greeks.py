@@ -268,18 +268,27 @@ class Greeks():
 
         # Plot 3 option charts
         if params['y_plot'] in params['y_name_dict'].keys():
-
-            if params['gif']:
-                fig, ax = cls._vis_greeks_mpl(
+            if params['interactive']:
+                return cls._vis_greeks_plotly(
                     vis_params=vis_params, params=params)
-                return fig, ax
+            else:
+                if params['gif']:
+                    fig, ax = cls._vis_greeks_mpl(
+                        vis_params=vis_params, params=params)
+                    return fig, ax
 
-            return cls._vis_greeks_mpl(vis_params=vis_params, params=params)
+                return cls._vis_greeks_mpl(
+                    vis_params=vis_params, params=params)
 
         # Plot Rho charts
         if params['y_plot'] == 'rho':
-            vis_params.update({'gif':False})
-            return cls._vis_greeks_mpl(vis_params=vis_params, params=params)
+            if params['interactive']:
+                return cls._vis_greeks_plotly(
+                    vis_params=vis_params, params=params)
+            else:
+                vis_params.update({'gif':False})
+                return cls._vis_greeks_mpl(
+                    vis_params=vis_params, params=params)
 
         return print("Please select a valid pair")
 
@@ -532,6 +541,194 @@ class Greeks():
 
             # Display the chart
         return plt.show()
+
+
+    @classmethod
+    def _vis_greeks_plotly(cls, vis_params, params):
+        """
+        Display the 2D greeks chart using plotly
+
+        Parameters
+        ----------
+        xarray : Array
+            x-axis values.
+        yarray1 : Array
+            y-axis values for option 1.
+        yarray2 : Array
+            y-axis values for option 2.
+        yarray3 : Array
+            y-axis values for option 3.
+        yarray4 : Array
+            y-axis values for option 4.
+        label1 : Str
+            Option 1 label.
+        label2 : Str
+            Option 2 label.
+        label3 : Str
+            Option 3 label.
+        label4 : Str
+            Option 4 label.
+        xlabel : Str
+            x-axis label.
+        ylabel : Str
+            y-axis label.
+        title : Str
+            Chart title.
+
+        Returns
+        -------
+        2D Greeks chart.
+
+        """
+
+        # Create the figure
+        fig = go.Figure()
+
+        # If plotting against time, show time to maturity reducing left
+        # to right
+        if vis_params['x_plot'] == 'time':
+            fig.update_xaxes(autorange="reversed")
+
+        # Plot the 1st option
+        fig.add_trace(go.Scatter(x=vis_params['xarray'],
+                                 y=vis_params['yarray1'],
+                                 line=dict(color='blue'),
+                                 name=vis_params['label1']))
+
+        # Plot the 2nd option
+        fig.add_trace(go.Scatter(x=vis_params['xarray'],
+                                 y=vis_params['yarray2'],
+                                 line=dict(color='red'),
+                                 name=vis_params['label2']))
+
+        # Plot the 3rd option
+        fig.add_trace(go.Scatter(x=vis_params['xarray'],
+                                 y=vis_params['yarray3'],
+                                 line=dict(color='green'),
+                                 name=vis_params['label3']))
+
+        # 4th option only used in Rho graphs
+        if vis_params['label4'] is not None:
+            fig.add_trace(go.Scatter(x=vis_params['xarray'],
+                                     y=vis_params['yarray4'],
+                                     line=dict(color='orange'),
+                                     name=vis_params['label4']))
+
+        xmin, xmax, ymin, ymax = cls._graph_range_2d(vis_params)
+
+        fig.update_layout(
+            title={'text': vis_params['title'],
+                   'y':0.95,
+                   'x':0.5,
+                   'xanchor':'center',
+                   'yanchor':'top',
+                   'font':dict(size=20,
+                               color="#f2f5fa")},
+            xaxis_title={'text': vis_params['xlabel'],
+                         'font':dict(size=15,
+                                     color="#f2f5fa")},
+            yaxis_title={'text': vis_params['ylabel'],
+                         'font':dict(size=15,
+                                     color="#f2f5fa")},
+            font={'color': '#f2f5fa'},
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            legend=dict(
+                x=0.05,
+                y=0.95,
+                traceorder="normal",
+                bgcolor='rgba(0, 0, 0, 0)',
+                font=dict(
+                    family="sans-serif",
+                    size=12,
+                    color="#f2f5fa"
+                ),
+            ),
+
+            width=800,
+            height=600
+        )
+
+        fig.update_xaxes(showline=True,
+                         linewidth=2,
+                         linecolor='#2a3f5f',
+                         mirror=True,
+                         range = [xmin, xmax],
+                         gridwidth=1,
+                         gridcolor='#2a3f5f',
+                         zeroline=False)
+
+        fig.update_yaxes(showline=True,
+                         linewidth=2,
+                         linecolor='#2a3f5f',
+                         mirror=True,
+                         range = [ymin, ymax],
+                         gridwidth=1,
+                         gridcolor='#2a3f5f',
+                         zeroline=False)
+
+        # If running in an iPython notebook the chart will display
+        # in line
+        if params['notebook']:
+            # If output is sent to Dash
+            if params['web_graph']:
+                return fig
+            else:
+                fig.show()
+                return
+
+        # Otherwise create an HTML file that opens in a new window
+        else:
+            plot(fig, auto_open=True)
+            return
+
+
+    @staticmethod
+    def _graph_range_2d(vis_params):
+        """
+        Set 2D graph ranges
+
+        Parameters
+        ----------
+        vis_params : Dict
+            Dictionary of parameters.
+
+        Returns
+        -------
+        xmin : Float
+            x-axis minimum.
+        xmax : Float
+            x-axis maximum.
+        ymin : Float
+            y-axis minimum.
+        ymax : Float
+            y-axis maximum.
+
+        """
+        x_scale_shift = (
+            max(vis_params['xarray']) - min(vis_params['xarray'])) * 0.05
+        xmin = min(vis_params['xarray']) - x_scale_shift
+        xmax = max(vis_params['xarray']) + x_scale_shift
+        y_scale_shift = (
+            (max(vis_params['yarray1'].max(),
+                 vis_params['yarray2'].max(),
+                 vis_params['yarray3'].max())
+            - min(vis_params['yarray1'].min(),
+                  vis_params['yarray2'].min(),
+                  vis_params['yarray3'].min()))
+            * 0.05)
+        ymin = min(
+            (vis_params['yarray1'].min(),
+             vis_params['yarray2'].min(),
+             vis_params['yarray3'].min())
+            - y_scale_shift)
+        ymax = max(
+            (vis_params['yarray1'].max(),
+             vis_params['yarray2'].max(),
+             vis_params['yarray3'].max())
+            + y_scale_shift)
+
+        return xmin, xmax, ymin, ymax
 
 
     @staticmethod
@@ -792,9 +989,9 @@ class Greeks():
         # If running in an iPython notebook the chart will display
         # in line
         if params['notebook']:
-            # If output is sent to Dash 
+            # If output is sent to Dash
             if params['web_graph']:
-                return fig            
+                return fig
             else:
                 fig.show()
                 return
