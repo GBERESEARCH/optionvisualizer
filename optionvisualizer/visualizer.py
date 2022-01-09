@@ -370,7 +370,12 @@ class Visualizer():
                 return Greeks.greeks_graphs_3D(params=self.params)
 
         else:
-            return self.payoffs(payoff_type=self.params['payoff_type'])
+            # Update pricing input parameters to default if not supplied
+            self.params = Utils.refresh_combo_params(
+                params=self.params, inputs=kwargs)
+
+            return self.payoffs(
+                payoff_type=self.params['payoff_type'], params=self.params)
 
 
     def greeks(self, **kwargs):
@@ -542,19 +547,23 @@ class Visualizer():
         Runs the specified combo payoff method.
 
         """
-        # Update params with the specified parameters
-        for key, value in kwargs.items():
+        if 'params' not in kwargs.keys():
+            # Update params with the specified parameters
+            for key, value in kwargs.items():
 
-            # Replace the default parameter with that provided
-            self.params[key] = value
+                # Replace the default parameter with that provided
+                self.params[key] = value
 
-        # Specify the combo payoff so that parameter initialisation
-        # takes into account specific defaults
-        self.params['combo_payoff'] = payoff_type
+            # Specify the combo payoff so that parameter initialisation
+            # takes into account specific defaults
+            self.params['combo_payoff'] = payoff_type
 
-        # Update pricing input parameters to default if not supplied
-        self.params = Utils.refresh_combo_params(
-            params=self.params, inputs=kwargs)
+            # Update pricing input parameters to default if not supplied
+            self.params = Utils.refresh_combo_params(
+                params=self.params, inputs=kwargs)
+
+        else:
+            self.params = kwargs['params']
 
         if payoff_type in self.params['combo_simple_dict']:
 
