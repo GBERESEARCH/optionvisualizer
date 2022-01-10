@@ -613,8 +613,10 @@ class Greeks():
                                      y=vis_params['yarray4'],
                                      line=dict(color='orange'),
                                      name=vis_params['label4']))
+            rho_graph=True
 
-        xmin, xmax, ymin, ymax = cls._graph_range_2d(vis_params)
+        xmin, xmax, ymin, ymax = cls._graph_range_2d(
+            vis_params=vis_params, rho_graph=rho_graph)
 
         fig.update_layout(
             title={'text': vis_params['title'],
@@ -684,7 +686,7 @@ class Greeks():
 
 
     @staticmethod
-    def _graph_range_2d(vis_params):
+    def _graph_range_2d(vis_params, rho_graph):
         """
         Set 2D graph ranges
 
@@ -705,28 +707,32 @@ class Greeks():
             y-axis maximum.
 
         """
-        x_scale_shift = (
-            max(vis_params['xarray']) - min(vis_params['xarray'])) * 0.05
-        xmin = min(vis_params['xarray']) - x_scale_shift
-        xmax = max(vis_params['xarray']) + x_scale_shift
+
+        min_x = vis_params['xarray'].min()
+        max_x = vis_params['xarray'].max()
+        min_y1 = vis_params['yarray1'].min()
+        max_y1 = vis_params['yarray1'].max()
+        min_y2 = vis_params['yarray2'].min()
+        max_y2 = vis_params['yarray2'].max()
+        min_y3 = vis_params['yarray3'].min()
+        max_y3 = vis_params['yarray3'].max()
+
+        if rho_graph:
+            min_y4 = vis_params['yarray4'].min()
+            max_y4 = vis_params['yarray4'].max()
+        else:
+            min_y4 = min_y1
+            max_y4 = max_y1
+
+        x_scale_shift = (max_x - min_x) * 0.05
+        xmin = min_x - x_scale_shift
+        xmax = max_x + x_scale_shift
         y_scale_shift = (
-            (max(vis_params['yarray1'].max(),
-                 vis_params['yarray2'].max(),
-                 vis_params['yarray3'].max())
-            - min(vis_params['yarray1'].min(),
-                  vis_params['yarray2'].min(),
-                  vis_params['yarray3'].min()))
+            (max(max_y1, max_y2, max_y3, max_y4)
+            - min(min_y1, min_y2, min_y3, min_y4))
             * 0.05)
-        ymin = min(
-            (vis_params['yarray1'].min(),
-             vis_params['yarray2'].min(),
-             vis_params['yarray3'].min())
-            - y_scale_shift)
-        ymax = max(
-            (vis_params['yarray1'].max(),
-             vis_params['yarray2'].max(),
-             vis_params['yarray3'].max())
-            + y_scale_shift)
+        ymin = min(min_y1, min_y2, min_y3, min_y4) - y_scale_shift
+        ymax = max(max_y1, max_y2, max_y3, max_y4) + y_scale_shift
 
         return xmin, xmax, ymin, ymax
 
