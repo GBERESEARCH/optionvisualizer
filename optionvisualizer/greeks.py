@@ -614,6 +614,8 @@ class Greeks():
                                      line=dict(color='orange'),
                                      name=vis_params['label4']))
             rho_graph=True
+        else:
+            rho_graph=False
 
         xmin, xmax, ymin, ymax = cls._graph_range_2d(
             vis_params=vis_params, rho_graph=rho_graph)
