@@ -370,6 +370,10 @@ class Visualizer():
                 return Greeks.greeks_graphs_3D(params=self.params)
 
         else:
+            # Specify the combo payoff so that parameter initialisation
+            # takes into account specific defaults
+            self.params['combo_payoff'] = self.params['payoff_type']
+
             # Update pricing input parameters to default if not supplied
             self.params = Utils.refresh_combo_params(
                 params=self.params, inputs=kwargs)
