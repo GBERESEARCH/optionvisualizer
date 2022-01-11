@@ -94,7 +94,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -179,7 +179,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -229,7 +229,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -317,7 +317,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -418,7 +418,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -524,7 +524,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -630,7 +630,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -738,7 +738,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -831,7 +831,7 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -926,5 +926,5 @@ class SimplePayoff():
             }
 
         # Visualize payoff
-        MultiPayoff.vis_payoff(
+        return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)

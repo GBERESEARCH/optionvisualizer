@@ -479,11 +479,11 @@ class Visualizer():
 
         # Run 2D greeks method
         if self.params['graphtype'] == '2D':
-            Greeks.greeks_graphs_2D(params=self.params)
+            return Greeks.greeks_graphs_2D(params=self.params)
 
         # Run 3D greeks method
         elif self.params['graphtype'] == '3D':
-            Greeks.greeks_graphs_3D(params=self.params)
+            return Greeks.greeks_graphs_3D(params=self.params)
 
         else:
             print("Please select a '2D' or '3D' graphtype")

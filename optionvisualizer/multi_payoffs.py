@@ -5,6 +5,8 @@ Three and Four Option Payoffs
 from matplotlib import gridspec
 from matplotlib import pylab
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.offline import plot
 from optionvisualizer.option_formulas import Option
 # pylint: disable=invalid-name
 
@@ -125,7 +127,7 @@ class MultiPayoff():
             }
 
         # Visualize payoff
-        cls.vis_payoff(
+        return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -256,7 +258,7 @@ class MultiPayoff():
             }
 
         # Visualize payoff
-        cls.vis_payoff(
+        return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -381,7 +383,7 @@ class MultiPayoff():
             }
 
         # Visualize payoff
-        cls.vis_payoff(
+        return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -498,7 +500,7 @@ class MultiPayoff():
             }
 
         # Visualize payoff
-        cls.vis_payoff(
+        return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
@@ -620,12 +622,52 @@ class MultiPayoff():
             }
 
         # Visualize payoff
-        cls.vis_payoff(
+        return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
+    @classmethod
+    def vis_payoff(cls, payoff_dict, params):
+        """
+        Display the payoff diagrams
+
+        Parameters
+        ----------
+        payoff_dict : Dict
+            S : Float
+                 Underlying Stock Price. The default is 100.
+            SA : Array
+                 Range of Strikes to provide x-axis values. The default
+                 is 75% to 125%.
+            payoff : Array
+                Terminal payoff value less initial cost.
+            label : Str
+                Label for terminal payoff. The default is 'Payoff'
+            title : Str
+                Chart title giving name of combo. The default
+                is 'Option Payoff'
+            payoff2 : Array
+                Current payoff value less initial cost.
+            label2 : Str
+                Label for current payoff value.
+        params : Dict
+            Dictionary of key parameters
+
+        Returns
+        -------
+        2D Payoff Graph.
+
+        """
+
+        if params['interactive']:
+            return cls._vis_payoff_plotly(
+                payoff_dict=payoff_dict, params=params)
+
+        return cls._vis_payoff_mpl(payoff_dict=payoff_dict, params=params)
+
+
     @staticmethod
-    def vis_payoff(payoff_dict, params):
+    def _vis_payoff_mpl(payoff_dict, params):
         """
         Display the payoff diagrams using matplotlib
 
@@ -708,3 +750,123 @@ class MultiPayoff():
 
         # Display the chart
         plt.show()
+
+
+    @staticmethod
+    def _vis_payoff_plotly(payoff_dict, params):
+        """
+        Display the payoff diagrams using plotly
+
+        Parameters
+        ----------
+        payoff_dict : Dict
+            S : Float
+                 Underlying Stock Price. The default is 100.
+            SA : Array
+                 Range of Strikes to provide x-axis values. The default
+                 is 75% to 125%.
+            payoff : Array
+                Terminal payoff value less initial cost.
+            label : Str
+                Label for terminal payoff. The default is 'Payoff'
+            title : Str
+                Chart title giving name of combo. The default
+                is 'Option Payoff'
+            payoff2 : Array
+                Current payoff value less initial cost.
+            label2 : Str
+                Label for current payoff value.
+        params : Dict
+            Dictionary of key parameters
+
+        Returns
+        -------
+        Payoff chart.
+
+        """
+
+        # Create the figure
+        fig = go.Figure()
+
+        # Plot the terminal payoff
+        fig.add_trace(go.Scatter(x=payoff_dict['SA'],
+                                 y=payoff_dict['payoff'],
+                                 line=dict(color='blue'),
+                                 name='Payoff'))
+
+        # If the value flag is selected, plot the payoff with the
+        # current time to maturity
+        if payoff_dict['payoff2'] is not None:
+            fig.add_trace(go.Scatter(x=payoff_dict['SA'],
+                                     y=payoff_dict['payoff2'],
+                                     line=dict(color='red'),
+                                     name='Value'))
+
+
+        fig.update_layout(
+            title={'text': payoff_dict['title'],
+                   'y':0.95,
+                   'x':0.5,
+                   'xanchor':'center',
+                   'yanchor':'top',
+                   'font':dict(size=20,
+                               color="#f2f5fa")},
+            xaxis_title={'text': 'Stock Price',
+                         'font':dict(size=15,
+                                     color="#f2f5fa")},
+            yaxis_title={'text': 'P&L',
+                         'font':dict(size=15,
+                                     color="#f2f5fa")},
+            font={'color': '#f2f5fa'},
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            legend=dict(
+                x=0.05,
+                y=0.95,
+                traceorder="normal",
+                bgcolor='rgba(0, 0, 0, 0)',
+                font=dict(
+                    family="sans-serif",
+                    size=12,
+                    color="#f2f5fa"
+                ),
+            ),
+
+            width=800,
+            height=600
+        )
+
+        fig.add_vline(x=payoff_dict['S'], line_width=0.5, line_color="white")
+        fig.add_hline(y=0, line_width=0.5, line_color="white")
+
+        fig.update_xaxes(showline=True,
+                         linewidth=2,
+                         linecolor='#2a3f5f',
+                         mirror=True,
+                         #range = [xmin, xmax],
+                         gridwidth=1,
+                         gridcolor='#2a3f5f',
+                         zeroline=False)
+
+        fig.update_yaxes(showline=True,
+                         linewidth=2,
+                         linecolor='#2a3f5f',
+                         mirror=True,
+                         #range = [ymin, ymax],
+                         gridwidth=1,
+                         gridcolor='#2a3f5f',
+                         zeroline=False)
+
+        # If running in an iPython notebook the chart will display
+        # in line
+        if params['notebook']:
+            # If output is sent to Dash
+            if params['web_graph']:
+                return fig
+
+            fig.show()
+            return
+
+        # Otherwise create an HTML file that opens in a new window
+        plot(fig, auto_open=True)
+        return
