@@ -259,10 +259,15 @@ class Greeks_3D():
                                  'yanchor':'top',
                                  'font':dict(size=20,
                                              color="black")},
-                          autosize=False,
-                          width=800, height=800,
                           margin=dict(l=65, r=50, b=65, t=90),
                           scene_camera=camera)
+        
+        if params['web_graph'] is False:
+            fig.update_layout(
+                autosize=False,
+                width=800,
+                height=800
+                )
 
         # If running in an iPython notebook the chart will display
         # in line
