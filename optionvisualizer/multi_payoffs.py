@@ -831,10 +831,14 @@ class MultiPayoff():
                     color="#f2f5fa"
                 ),
             ),
-
-            width=800,
-            height=600
         )
+
+        if params['web_graph'] is False:
+            fig.update_layout(
+                autosize=False,
+                width=800,
+                height=600
+                )
 
         fig.add_vline(x=payoff_dict['S'], line_width=0.5, line_color="white")
         fig.add_hline(y=0, line_width=0.5, line_color="white")

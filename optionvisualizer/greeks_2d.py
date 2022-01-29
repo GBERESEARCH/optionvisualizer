@@ -473,10 +473,14 @@ class Greeks_2D():
                     color="#f2f5fa"
                 ),
             ),
-
-            width=800,
-            height=600
         )
+
+        if params['web_graph'] is False:
+            fig.update_layout(
+                autosize=False,
+                width=800,
+                height=600
+                )
 
         fig.update_xaxes(showline=True,
                          linewidth=2,
