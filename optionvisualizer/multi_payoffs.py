@@ -811,7 +811,7 @@ class MultiPayoff():
                    'yanchor':'top',
                    'font':dict(size=20,
                                color="#f2f5fa")},
-            xaxis_title={'text': 'Stock Price',
+            xaxis_title={'text': 'Underlying Price',
                          'font':dict(size=15,
                                      color="#f2f5fa")},
             yaxis_title={'text': 'P&L',
