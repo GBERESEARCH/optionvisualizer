@@ -90,7 +90,7 @@ class Barrier():
             and params['knock'] == 'out'
             and params['option'] == 'call'):
 
-            opt_barrier_payoff = cls._do_put(params)
+            opt_barrier_payoff = cls._do_call(params)
 
 
         # Up and Out Call
