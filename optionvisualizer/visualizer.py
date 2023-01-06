@@ -352,11 +352,19 @@ class Visualizer():
 
         """
 
-        # Update params with the specified parameters
+        # Store initial inputs
+        inputs = {}
         for key, value in kwargs.items():
+            inputs[key] = value
+
+        # Initialise system parameters
+        self.params = Utils._init_params(inputs)
+
+        # Update params with the specified parameters
+        #for key, value in kwargs.items():
 
             # Replace the default parameter with that provided
-            self.params[key] = value
+            #self.params[key] = value
 
         # If a risk graph is selected
         if self.params['risk']:
