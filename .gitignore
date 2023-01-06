@@ -1,5 +1,6 @@
 Workings
 pypi
+pypi_toml
 .vscode
 **/__pycache__
 **/*.pyc

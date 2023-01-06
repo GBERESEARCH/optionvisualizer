@@ -69,7 +69,7 @@ opt.option_data(option_value='price', S=3477, K=3400, T=0.5, r=0.005, q=0, sigma
 ```
 
 ```
-opt.sensitivities(greek='delta, S=3477, K=3400, T=0.5, r=0.005, q=0, sigma=0.3, option='put')
+opt.sensitivities(greek='delta', S=3477, K=3400, T=0.5, r=0.005, q=0, sigma=0.3, option='put')
 ```
 
 &nbsp;
