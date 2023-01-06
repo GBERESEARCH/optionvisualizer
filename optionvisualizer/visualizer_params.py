@@ -84,7 +84,7 @@ vis_params_dict = {
     'gif_ms':100,
     'gif_start_azim':0,
     'gif_end_azim':360,
-    'mpl_style':'seaborn-darkgrid',
+    'mpl_style':'seaborn-v0_8-darkgrid',
     'steps':40,
     'titlename':None,
     'title_font_scale':None,

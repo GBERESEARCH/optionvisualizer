@@ -3,7 +3,8 @@ Display 2D Greeks graphs
 
 """
 
-from matplotlib import pylab
+#from matplotlib import pylab
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D # pylint: disable=unused-import
 import numpy as np
@@ -311,7 +312,8 @@ class Greeks_2D():
         plt.style.use(vis_params['mpl_style'])
 
         # Update chart parameters
-        pylab.rcParams.update(params['mpl_params'])
+        #pylab.rcParams.update(params['mpl_params'])
+        mpl.rcParams.update(params['mpl_params'])
 
         # Create the figure and axes objects
         fig, ax = plt.subplots(figsize=vis_params['size2d'])
@@ -350,8 +352,10 @@ class Greeks_2D():
         plt.grid(True)
 
         # Apply a black border to the chart
-        ax.patch.set_edgecolor('black')
-        ax.patch.set_linewidth('1')
+        #ax.patch.set_edgecolor('black')
+        #ax.patch.set_linewidth('1')
+
+        fig.patch.set(linewidth=1, edgecolor='black')
 
         # Set x and y axis labels and title
         ax.set(xlabel=vis_params['xlabel'],

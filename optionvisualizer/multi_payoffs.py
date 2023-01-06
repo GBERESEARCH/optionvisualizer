@@ -3,7 +3,8 @@ Three and Four Option Payoffs
 
 """
 from matplotlib import gridspec
-from matplotlib import pylab
+#from matplotlib import pylab
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.offline import plot
@@ -703,7 +704,8 @@ class MultiPayoff():
         plt.style.use(payoff_dict['mpl_style'])
 
         # Update chart parameters
-        pylab.rcParams.update(params['mpl_params'])
+        #pylab.rcParams.update(params['mpl_params'])
+        mpl.rcParams.update(params['mpl_params'])
 
         # Create the figure and axes objects
         fig = plt.figure(figsize=payoff_dict['size2d'])
@@ -733,8 +735,10 @@ class MultiPayoff():
         ax.axvline(x=payoff_dict['S'], linewidth=0.5, color='k')
 
         # Apply a black border to the chart
-        ax.patch.set_edgecolor('black')
-        ax.patch.set_linewidth('1')
+        #ax.patch.set_edgecolor('black')
+        #ax.patch.set_linewidth('1')
+
+        fig.patch.set(linewidth=1, edgecolor='black')
 
         # Apply a grid
         plt.grid(True)
