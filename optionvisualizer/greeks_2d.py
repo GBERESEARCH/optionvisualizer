@@ -92,7 +92,8 @@ class Greeks_2D():
             'title':title,
             'size2d':params['size2d'],
             'mpl_style':params['mpl_style'],
-            'gif':params['gif']
+            'gif':params['gif'],
+            'graph_figure':params['graph_figure'] 
             }
 
         # Plot 3 option charts
@@ -101,7 +102,7 @@ class Greeks_2D():
                 return cls._vis_greeks_plotly(
                     vis_params=vis_params, params=params)
 
-            if params['gif']:
+            if params['gif'] or params['graph_figure']:
                 fig, ax = cls._vis_greeks_mpl(
                     vis_params=vis_params, params=params)
                 return fig, ax
@@ -116,6 +117,10 @@ class Greeks_2D():
                     vis_params=vis_params, params=params)
 
             vis_params.update({'gif':False})
+            if params['graph_figure']:
+                fig, ax = cls._vis_greeks_mpl(
+                vis_params=vis_params, params=params)
+                return fig, ax
             return cls._vis_greeks_mpl(
                 vis_params=vis_params, params=params)
 
@@ -368,10 +373,11 @@ class Greeks_2D():
         # Create a legend
         ax.legend(loc=0, fontsize=10)
 
-        if vis_params['gif']:
+        if vis_params['gif'] or vis_params['graph_figure']:
+            plt.show()
             return fig, ax
 
-            # Display the chart
+        # Display the chart
         return plt.show()
 
 

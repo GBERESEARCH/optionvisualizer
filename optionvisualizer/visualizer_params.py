@@ -79,6 +79,7 @@ vis_params_dict = {
     'azim':-60,
     'elev':30,
     'risk':True,
+    'graph_figure': False,
     'gif':False,
     'gif_folder':None,
     'gif_filename':None,

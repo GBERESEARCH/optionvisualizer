@@ -371,6 +371,9 @@ class Visualizer():
 
             # Run 2D greeks method
             if self.params['graphtype'] == '2D':
+                if self.params['graph_figure']:
+                    fig, ax = Greeks.greeks_graphs_2D(params=self.params)
+                    return fig, ax    
                 return Greeks.greeks_graphs_2D(params=self.params)
 
             # Run 3D greeks method
@@ -491,6 +494,9 @@ class Visualizer():
 
         # Run 2D greeks method
         if self.params['graphtype'] == '2D':
+            if self.params['graph_figure']:
+                fig, ax = Greeks.greeks_graphs_2D(params=self.params)
+                return fig, ax
             return Greeks.greeks_graphs_2D(params=self.params)
 
         # Run 3D greeks method

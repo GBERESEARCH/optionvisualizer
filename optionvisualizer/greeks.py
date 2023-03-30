@@ -76,7 +76,7 @@ class Greeks():
 
         """
 
-        if params['gif']:
+        if params['gif'] or params['graph_figure']:
             fig, ax = Greeks_2D.vis_greeks_2D(params=params)
             return fig, ax
 
