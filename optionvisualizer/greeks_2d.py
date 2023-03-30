@@ -84,6 +84,10 @@ class Greeks_2D():
             'label2':params['label2'],
             'label3':params['label3'],
             'label4':params['label4'],
+            'color1':params['option1_color'],
+            'color2':params['option2_color'],
+            'color3':params['option3_color'],
+            'color4':params['option4_color'],
             'xlabel':xlabel,
             'ylabel':ylabel,
             'title':title,
@@ -326,26 +330,26 @@ class Greeks_2D():
         # Plot the 1st option
         ax.plot(vis_params['xarray'],
                 vis_params['yarray1'],
-                color='blue',
+                vis_params['color1'],
                 label=vis_params['label1'])
 
         # Plot the 2nd option
         ax.plot(vis_params['xarray'],
                 vis_params['yarray2'],
-                color='red',
+                vis_params['color2'],
                 label=vis_params['label2'])
 
         # Plot the 3rd option
         ax.plot(vis_params['xarray'],
                 vis_params['yarray3'],
-                color='green',
+                vis_params['color3'],
                 label=vis_params['label3'])
 
         # 4th option only used in Rho graphs
         if vis_params['label4'] is not None:
             ax.plot(vis_params['xarray'],
                     vis_params['yarray4'],
-                    color='orange',
+                    vis_params['color4'],
                     label=vis_params['label4'])
 
         # Apply a grid
