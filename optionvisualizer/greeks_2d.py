@@ -31,11 +31,10 @@ class Greeks_2D():
 
         """
 
-        # create arrays of 1000 equally spaced points for a range of
-        # strike prices, volatilities and maturities
-        params['SA'] = np.linspace(0.8 * params['S'], 1.2 * params['S'], 1000)
-        params['sigmaA'] = np.linspace(0.05, 0.5, 1000)
-        params['TA'] = np.linspace(0.01, 1, 1000)
+        # create arrays of (default is 1000) equally spaced points for a range of strike prices, volatilities and maturities
+        params['SA'] = np.linspace(params['strike_min'] * params['S'], params['strike_max'] * params['S'], params['linspace_granularity'])
+        params['sigmaA'] = np.linspace(params['vol_min'], params['vol_max'], params['linspace_granularity'])
+        params['TA'] = np.linspace(params['time_min'], params['time_max'], params['linspace_granularity'])
 
         # y-axis parameters other than rho require 3 options to be
         # graphed
