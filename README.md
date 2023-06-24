@@ -15,6 +15,31 @@ $ pip install optionvisualizer
 
 &nbsp;
 
+Install in a new environment using Python venv:
+
+Create base environment of Python 3.11
+```
+$ py -3.11 -m venv .venv
+```
+Activate new environment
+```
+$ .venv\scripts\activate
+```
+Ensure pip is up to date
+``` 
+$ (.venv) python -m pip install --upgrade pip
+```
+Install Spyder
+```
+$ (.venv) python -m pip install spyder
+```
+Install package
+```
+$ (.venv) python -m pip install optionvisualizer
+```
+
+&nbsp;
+
 Or to install in new environment using anaconda:
 ```
 $ conda create --name optvis
