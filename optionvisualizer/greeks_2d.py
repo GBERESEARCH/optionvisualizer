@@ -5,10 +5,12 @@ Display 2D Greeks graphs
 
 #from matplotlib import pylab
 import matplotlib as mpl
+import matplotlib.figure as mplfig
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D # pylint: disable=unused-import
 import numpy as np
 import plotly.graph_objects as go
+from matplotlib import axes
 from plotly.offline import plot
 from optionvisualizer.sensitivities import Sens
 
@@ -21,7 +23,9 @@ class Greeks_2D():
     """
 
     @classmethod
-    def vis_greeks_2D(cls, params):
+    def vis_greeks_2D(
+        cls,
+        params: dict) -> tuple[mplfig.Figure, axes.Axes] | go.Figure | None:
         """
         Creates data for 2D greeks graph.
 
@@ -128,7 +132,7 @@ class Greeks_2D():
 
 
     @classmethod
-    def _non_rho_data(cls, params):
+    def _non_rho_data(cls, params: dict) -> dict:
 
         for opt in [1, 2, 3]:
             if params['x_plot'] == 'price':
@@ -181,7 +185,7 @@ class Greeks_2D():
 
 
     @staticmethod
-    def _rho_data(params):
+    def _rho_data(params: dict) -> dict:
 
         # Set T1 and T2 to the specified time and shifted time
         params['T1'] = params['T']
@@ -241,7 +245,7 @@ class Greeks_2D():
 
 
     @staticmethod
-    def _strike_tenor_label(params):
+    def _strike_tenor_label(params: dict) -> dict:
         """
         Assign labels to chosen strikes and tenors in 2D greeks graph
 
@@ -279,7 +283,9 @@ class Greeks_2D():
 
 
     @staticmethod
-    def _vis_greeks_mpl(vis_params, params):
+    def _vis_greeks_mpl(
+        vis_params: dict,
+        params: dict) -> tuple[mplfig.Figure, axes.Axes] | None:
         """
         Display the 2D greeks chart using matplotlib
 
@@ -382,7 +388,10 @@ class Greeks_2D():
 
 
     @classmethod
-    def _vis_greeks_plotly(cls, vis_params, params):
+    def _vis_greeks_plotly(
+        cls,
+        vis_params: dict,
+        params: dict) -> go.Figure | None:
         """
         Display the 2D greeks chart using plotly
 
@@ -529,7 +538,9 @@ class Greeks_2D():
 
 
     @staticmethod
-    def _graph_range_2d(vis_params, rho_graph):
+    def _graph_range_2d(
+        vis_params: dict,
+        rho_graph: bool) -> tuple[float, float, float, float]:
         """
         Set 2D graph ranges
 
