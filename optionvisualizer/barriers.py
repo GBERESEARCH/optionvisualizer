@@ -12,7 +12,7 @@ class Barrier():
 
     """
     @classmethod
-    def barrier_price(cls, params):
+    def barrier_price(cls, params: dict) -> tuple[float, dict]:
         """
         Return the Barrier option price
 
@@ -119,7 +119,7 @@ class Barrier():
 
 
     @staticmethod
-    def _di_call(params):
+    def _di_call(params: dict) -> float:
 
         params['eta'] = 1
         params['phi'] = 1
@@ -138,7 +138,7 @@ class Barrier():
 
 
     @staticmethod
-    def _ui_call(params):
+    def _ui_call(params: dict) -> float:
 
         params['eta'] = -1
         params['phi'] = 1
@@ -157,7 +157,7 @@ class Barrier():
 
 
     @staticmethod
-    def _di_put(params):
+    def _di_put(params: dict) -> float:
 
         params['eta'] = 1
         params['phi'] = -1
@@ -176,7 +176,7 @@ class Barrier():
 
 
     @staticmethod
-    def _ui_put(params):
+    def _ui_put(params: dict) -> float:
 
         params['eta'] = -1
         params['phi'] = -1
@@ -195,7 +195,7 @@ class Barrier():
 
 
     @staticmethod
-    def _do_call(params):
+    def _do_call(params: dict) -> float:
 
         params['eta'] = 1
         params['phi'] = 1
@@ -215,7 +215,7 @@ class Barrier():
 
 
     @staticmethod
-    def _uo_call(params):
+    def _uo_call(params: dict) -> float:
 
         params['eta'] = -1
         params['phi'] = 1
@@ -234,7 +234,7 @@ class Barrier():
 
 
     @staticmethod
-    def _do_put(params):
+    def _do_put(params: dict) -> float:
 
         params['eta'] = 1
         params['phi'] = -1
@@ -253,7 +253,7 @@ class Barrier():
 
 
     @staticmethod
-    def _uo_put(params):
+    def _uo_put(params: dict) -> float:
 
         params['eta'] = -1
         params['phi'] = -1
