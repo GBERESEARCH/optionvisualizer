@@ -3,6 +3,9 @@ Visualize option payoffs and greeks
 
 """
 import copy
+import matplotlib.figure as mplfig
+from matplotlib import axes
+import plotly.graph_objects as go
 from optionvisualizer.visualizer_params import vis_params_dict
 from optionvisualizer.option_formulas import Option
 from optionvisualizer.simple_payoffs import SimplePayoff
@@ -20,7 +23,7 @@ class Visualizer():
     Visualize option payoffs and greeks
 
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
 
         # Dictionary of parameter defaults
         self.df_dict = copy.deepcopy(vis_params_dict)
@@ -36,7 +39,7 @@ class Visualizer():
         self.params = params
 
 
-    def option_data(self, option_value, **kwargs):
+    def option_data(self, option_value: str, **kwargs) -> float | None:
         """
         Calculate Option prices or Greeks
 
@@ -96,7 +99,7 @@ class Visualizer():
                            "'vega bleed', 'charm'")
 
 
-    def barrier(self, **kwargs):
+    def barrier(self, **kwargs) -> float:
         """
         Return the Barrier option price
 
@@ -143,7 +146,7 @@ class Visualizer():
         return barrier_price
 
 
-    def sensitivities(self, **kwargs):
+    def sensitivities(self, **kwargs) -> float | None:
         """
         Sensitivities of the option.
 
@@ -214,7 +217,7 @@ class Visualizer():
             opt_params=opt_params, params=self.params)
 
 
-    def visualize(self, **kwargs):
+    def visualize(self, **kwargs) -> (tuple[mplfig.Figure, axes.Axes] | None):
         """
         Plot the chosen graph of risk or payoff.
 
@@ -393,7 +396,7 @@ class Visualizer():
                 payoff_type=self.params['payoff_type'], params=self.params)
 
 
-    def greeks(self, **kwargs):
+    def greeks(self, **kwargs) -> (tuple[mplfig.Figure, axes.Axes] | None):
         """
         Plot the chosen 2D or 3D graph
 
@@ -507,7 +510,7 @@ class Visualizer():
             print("Please select a '2D' or '3D' graphtype")
 
 
-    def payoffs(self, payoff_type, **kwargs):
+    def payoffs(self, payoff_type: str, **kwargs) -> go.Figure | None:
         """
         Displays the graph of the specified combo payoff.
 
@@ -587,12 +590,26 @@ class Visualizer():
 
             # Select the chosen payoff from the available functions
             function = self.params['combo_name_dict'][payoff_type]
+            if (
+                self.params['interactive'] and 
+                self.params['notebook'] and 
+                self.params['web_graph']
+                ):
+                result = getattr(SimplePayoff, function)(params=self.params)
+                return result
             return getattr(SimplePayoff, function)(params=self.params)
 
         if payoff_type in self.params['combo_multi_dict']:
 
             # Select the chosen payoff from the available functions
             function = self.params['combo_name_dict'][payoff_type]
+            if (
+                self.params['interactive'] and 
+                self.params['notebook'] and 
+                self.params['web_graph']
+                ):
+                result = getattr(MultiPayoff, function)(params=self.params)
+                return result
             return getattr(MultiPayoff, function)(params=self.params)
 
         # Otherwise prompt for a valid payoff
@@ -603,7 +620,7 @@ class Visualizer():
                            "'iron butterfly', 'iron condor'")
 
 
-    def animated_gif(self, graphtype, **kwargs):
+    def animated_gif(self, graphtype: str, **kwargs) -> None:
         """
         Create an animated gif of the selected pair of parameters or the
         selected greek 3D graph..
