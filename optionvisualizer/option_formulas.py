@@ -13,7 +13,9 @@ class Option():
     """
 
     @staticmethod
-    def price(opt_params, params):
+    def price(
+        opt_params: dict,
+        params: dict) -> float:
         """
         Black Scholes Option Price
 
@@ -68,7 +70,9 @@ class Option():
 
 
     @staticmethod
-    def delta(opt_params, params):
+    def delta(
+        opt_params: dict,
+        params: dict) -> float:
         """
         Sensitivity of the option price to changes in asset price
 
@@ -112,7 +116,9 @@ class Option():
 
 
     @staticmethod
-    def theta(opt_params, params):
+    def theta(
+        opt_params: dict,
+        params: dict) -> float:
         """
         Sensitivity of the option price to changes in time to maturity
 
@@ -183,7 +189,9 @@ class Option():
 
 
     @staticmethod
-    def gamma(opt_params, params):
+    def gamma(
+        opt_params: dict,
+        params: dict) -> float:
         """
         Sensitivity of delta to changes in the underlying asset price
 
@@ -226,7 +234,9 @@ class Option():
 
 
     @staticmethod
-    def vega(opt_params, params):
+    def vega(
+        opt_params: dict,
+        params: dict) -> float:
         """
         Sensitivity of the option price to changes in volatility
 
@@ -268,7 +278,9 @@ class Option():
 
 
     @staticmethod
-    def rho(opt_params, params):
+    def rho(
+        opt_params: dict,
+        params: dict) -> float:
         """
         Sensitivity of the option price to changes in the risk free rate
 
@@ -319,7 +331,9 @@ class Option():
 
 
     @staticmethod
-    def vanna(opt_params, params):
+    def vanna(
+        opt_params: dict,
+        params: dict) -> float:
         """
         DdeltaDvol, DvegaDspot
         Sensitivity of delta to changes in volatility
@@ -364,7 +378,10 @@ class Option():
 
 
     @classmethod
-    def vomma(cls, opt_params, params):
+    def vomma(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         """
         DvegaDvol, Vega Convexity, Volga, Vol Gamma
         Sensitivity of vega to changes in volatility
@@ -408,7 +425,9 @@ class Option():
 
 
     @staticmethod
-    def charm(opt_params, params):
+    def charm(
+        opt_params: dict,
+        params: dict) -> float:
         """
         DdeltaDtime, Delta Bleed
         Sensitivity of delta to changes in time to maturity
@@ -466,7 +485,10 @@ class Option():
 
 
     @classmethod
-    def zomma(cls, opt_params, params):
+    def zomma(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         """
         DgammaDvol
         Sensitivity of gamma to changes in volatility
@@ -511,7 +533,10 @@ class Option():
 
 
     @classmethod
-    def speed(cls, opt_params, params):
+    def speed(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         """
         DgammaDspot
         Sensitivity of gamma to changes in asset price
@@ -558,7 +583,10 @@ class Option():
 
 
     @classmethod
-    def color(cls, opt_params, params):
+    def color(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         """
         DgammaDtime, Gamma Bleed, Gamma Theta
         Sensitivity of gamma to changes in time to maturity
@@ -606,7 +634,10 @@ class Option():
 
 
     @classmethod
-    def ultima(cls, opt_params, params):
+    def ultima(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         """
         DvommaDvol
         Sensitivity of vomma to changes in volatility
@@ -654,7 +685,10 @@ class Option():
 
 
     @classmethod
-    def vega_bleed(cls, opt_params, params):
+    def vega_bleed(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         """
         DvegaDtime
         Sensitivity of vega to changes in time to maturity.
@@ -704,7 +738,10 @@ class Option():
 
 
     @classmethod
-    def return_options(cls, opt_dict, params):
+    def return_options(
+        cls,
+        opt_dict: dict,
+        params: dict) -> dict:
 
         """
         Calculate option prices to be used in payoff diagrams.
