@@ -15,7 +15,7 @@ class Utils():
 
     """
     @staticmethod
-    def _init_params(inputs):
+    def _init_params(inputs: dict) -> dict:
         """
         Initialise parameter dictionary
         Parameters
@@ -40,7 +40,9 @@ class Utils():
 
 
     @staticmethod
-    def refresh_dist_params(opt_params, params):
+    def refresh_dist_params(
+        opt_params: dict,
+        params: dict) -> dict:
         """
         Calculate various parameters and distributions
 
@@ -85,7 +87,9 @@ class Utils():
 
 
     @staticmethod
-    def refresh_combo_params(params, inputs):
+    def refresh_combo_params(
+        params: dict,
+        inputs: dict) -> dict:
         """
         Set parameters for use in various pricing functions
 
@@ -158,7 +162,7 @@ class Utils():
 
 
     @staticmethod
-    def barrier_factors(params):
+    def barrier_factors(params: dict) -> tuple[dict, dict]:
         """
         Calculate the barrier option specific parameters
 
