@@ -18,7 +18,9 @@ class MultiPayoff():
 
     """
     @classmethod
-    def butterfly(cls, params):
+    def butterfly(
+        cls,
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the butterfly strategy:
             Long one ITM option
@@ -128,12 +130,22 @@ class MultiPayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = cls.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
-
     @classmethod
-    def christmas_tree(cls, params):
+    def christmas_tree(
+        cls,
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the christmas tree strategy:
             Long one ITM option
@@ -259,12 +271,23 @@ class MultiPayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = cls.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @classmethod
-    def condor(cls, params):
+    def condor(
+        cls,
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the condor strategy:
             Long one low strike option
@@ -384,12 +407,23 @@ class MultiPayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = cls.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @classmethod
-    def iron_butterfly(cls, params):
+    def iron_butterfly(
+        cls,
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the iron butterfly strategy:
             Short one OTM put
@@ -501,12 +535,23 @@ class MultiPayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = cls.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @classmethod
-    def iron_condor(cls, params):
+    def iron_condor(
+        cls,
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the iron condor strategy:
             Long one OTM put
@@ -623,12 +668,24 @@ class MultiPayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = cls.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @classmethod
-    def vis_payoff(cls, payoff_dict, params):
+    def vis_payoff(
+        cls,
+        payoff_dict: dict,
+        params: dict) -> go.Figure | None:
         """
         Display the payoff diagrams
 
@@ -660,7 +717,12 @@ class MultiPayoff():
 
         """
 
-        if params['interactive']:
+        if params['interactive']: 
+            if(params['notebook'] and params['web_graph']):
+                fig = cls._vis_payoff_plotly(
+                    payoff_dict=payoff_dict, params=params)
+                return fig
+            
             return cls._vis_payoff_plotly(
                 payoff_dict=payoff_dict, params=params)
 
@@ -668,7 +730,9 @@ class MultiPayoff():
 
 
     @staticmethod
-    def _vis_payoff_mpl(payoff_dict, params):
+    def _vis_payoff_mpl(
+        payoff_dict: dict,
+        params: dict) -> None:
         """
         Display the payoff diagrams using matplotlib
 
@@ -757,7 +821,9 @@ class MultiPayoff():
 
 
     @staticmethod
-    def _vis_payoff_plotly(payoff_dict, params):
+    def _vis_payoff_plotly(
+        payoff_dict: dict,
+        params: dict) -> go.Figure | None:
         """
         Display the payoff diagrams using plotly
 
@@ -808,33 +874,45 @@ class MultiPayoff():
 
 
         fig.update_layout(
-            title={'text': payoff_dict['title'],
-                   'y':0.95,
-                   'x':0.5,
-                   'xanchor':'center',
-                   'yanchor':'top',
-                   'font':dict(size=20,
-                               color="#f2f5fa")},
-            xaxis_title={'text': 'Underlying Price',
-                         'font':dict(size=15,
-                                     color="#f2f5fa")},
-            yaxis_title={'text': 'P&L',
-                         'font':dict(size=15,
-                                     color="#f2f5fa")},
+            title={
+                'text': payoff_dict['title'],
+                'y': 0.95,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font':{
+                    'size': 20,
+                    'color': "#f2f5fa"
+                }
+            },
+            xaxis_title={
+                'text': 'Underlying Price',
+                'font':{
+                    'size': 15,
+                    'color': "#f2f5fa"
+                }
+            },
+            yaxis_title={
+                'text': 'P&L',
+                'font':{
+                    'size': 15,
+                    'color': "#f2f5fa"
+                }
+            },
             font={'color': '#f2f5fa'},
             paper_bgcolor='black',
             plot_bgcolor='black',
-            legend=dict(
-                x=0.05,
-                y=0.95,
-                traceorder="normal",
-                bgcolor='rgba(0, 0, 0, 0)',
-                font=dict(
-                    family="sans-serif",
-                    size=12,
-                    color="#f2f5fa"
-                ),
-            ),
+            legend={
+                'x': 0.05,
+                'y': 0.95,
+                'traceorder': "normal",
+                'bgcolor': 'rgba(0, 0, 0, 0)',
+                'font': {
+                    'family': "sans-serif",
+                    'size': 12,
+                    'color': "#f2f5fa"
+                },
+            },
         )
 
         if params['web_graph'] is False:
