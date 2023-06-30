@@ -3,6 +3,7 @@ One and Two Option Payoffs
 
 """
 import numpy as np
+import plotly.graph_objects as go
 from optionvisualizer.multi_payoffs import MultiPayoff
 from optionvisualizer.option_formulas import Option
 # pylint: disable=invalid-name
@@ -14,7 +15,8 @@ class SimplePayoff():
     """
 
     @staticmethod
-    def call(params):
+    def call(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the call.
 
@@ -94,12 +96,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def put(params):
+    def put(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the put.
 
@@ -179,12 +191,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def stock(params):
+    def stock(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the underlying.
 
@@ -229,12 +251,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def forward(params):
+    def forward(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the synthetic forward strategy:
             Long one ATM call
@@ -317,12 +349,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def collar(params):
+    def collar(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the collar strategy:
             Long one OTM put
@@ -418,12 +460,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def spread(params):
+    def spread(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the spread strategy:
             Long one ITM option
@@ -524,12 +576,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def backspread(params):
+    def backspread(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the backspread strategy:
             Short one ITM option
@@ -630,12 +692,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def ratio_vertical_spread(params):
+    def ratio_vertical_spread(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the ratio vertical spread strategy:
             Long one ITM option
@@ -738,12 +810,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def straddle(params):
+    def straddle(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the straddle strategy:
             Long one ATM put
@@ -831,12 +913,22 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
 
     @staticmethod
-    def strangle(params):
+    def strangle(
+        params: dict) -> go.Figure | None:
         """
         Displays the graph of the strangle strategy:
             Long one OTM put
@@ -926,5 +1018,14 @@ class SimplePayoff():
             }
 
         # Visualize payoff
+        if (
+            params['interactive'] and 
+            params['notebook'] and 
+            params['web_graph']
+            ):
+            fig = MultiPayoff.vis_payoff(
+            payoff_dict=params['payoff_dict'], params=params)
+            return fig
+
         return MultiPayoff.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
