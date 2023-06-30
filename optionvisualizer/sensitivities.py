@@ -12,7 +12,10 @@ class Sens():
 
     """
     @classmethod
-    def sensitivities_static(cls, params, **kwargs):
+    def sensitivities_static(
+        cls,
+        params: dict,
+        **kwargs) -> float | None:
         """
         Sensitivities of the option.
 
@@ -86,7 +89,9 @@ class Sens():
 
 
     @staticmethod
-    def analytical_sensitivities(opt_params, params):
+    def analytical_sensitivities(
+        opt_params: dict,
+        params: dict) -> float | None:
         """
         Sensitivities of the option calculated analytically from closed
         form solutions.
@@ -128,7 +133,10 @@ class Sens():
 
 
     @classmethod
-    def numerical_sensitivities(cls, opt_params, params):
+    def numerical_sensitivities(
+        cls,
+        opt_params: dict,
+        params: dict) -> float | None:
         """
         Sensitivities of the option calculated numerically using shifts
         in parameters.
@@ -182,7 +190,10 @@ class Sens():
 
 
     @classmethod
-    def _num_price(cls, opt_params, params):
+    def _num_price(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = []
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -190,7 +201,10 @@ class Sens():
 
 
     @classmethod
-    def _num_delta(cls, opt_params, params):
+    def _num_delta(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['price_up', 'price_down']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -199,7 +213,10 @@ class Sens():
 
 
     @classmethod
-    def _num_gamma(cls, opt_params, params):
+    def _num_gamma(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['price_up', 'price_down']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -210,7 +227,10 @@ class Sens():
 
 
     @classmethod
-    def _num_vega(cls, opt_params, params):
+    def _num_vega(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['vol_up', 'vol_down']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -219,7 +239,10 @@ class Sens():
 
 
     @classmethod
-    def _num_theta(cls, opt_params, params):
+    def _num_theta(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['ttm_down']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -228,7 +251,10 @@ class Sens():
 
 
     @classmethod
-    def _num_rho(cls, opt_params, params):
+    def _num_rho(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['rate_up', 'rate_down']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -237,7 +263,10 @@ class Sens():
 
 
     @classmethod
-    def _num_vomma(cls, opt_params, params):
+    def _num_vomma(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['vol_up', 'vol_down']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -248,7 +277,10 @@ class Sens():
 
 
     @classmethod
-    def _num_vanna(cls, opt_params, params):
+    def _num_vanna(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['price_up_vol_up', 'price_up_vol_down',
                         'price_down_vol_up', 'price_down_vol_down']
         opt_dict = cls._option_prices(
@@ -261,7 +293,10 @@ class Sens():
 
 
     @classmethod
-    def _num_charm(cls, opt_params, params):
+    def _num_charm(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['price_up', 'price_down',
                         'price_up_ttm_down', 'price_down_ttm_down']
         opt_dict = cls._option_prices(
@@ -276,7 +311,10 @@ class Sens():
 
 
     @classmethod
-    def _num_zomma(cls, opt_params, params):
+    def _num_zomma(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['vol_up', 'vol_down', 'price_up_vol_up',
                         'price_up_vol_down', 'price_down_vol_up',
                         'price_down_vol_down']
@@ -293,7 +331,10 @@ class Sens():
 
 
     @classmethod
-    def _num_speed(cls, opt_params, params):
+    def _num_speed(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['price_up', 'price_down', 'double_price_up']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -305,7 +346,10 @@ class Sens():
 
 
     @classmethod
-    def _num_color(cls, opt_params, params):
+    def _num_color(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['price_up', 'price_down', 'price_up_ttm_down',
                         'price_down_ttm_down', 'ttm_down']
         opt_dict = cls._option_prices(
@@ -322,7 +366,10 @@ class Sens():
 
 
     @classmethod
-    def _num_ultima(cls, opt_params, params):
+    def _num_ultima(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['vol_up', 'vol_down', 'double_vol_up']
         opt_dict = cls._option_prices(
             opt_params=opt_params, params=params, option_names=option_names)
@@ -335,7 +382,10 @@ class Sens():
 
 
     @classmethod
-    def _num_vega_bleed(cls, opt_params, params):
+    def _num_vega_bleed(
+        cls,
+        opt_params: dict,
+        params: dict) -> float:
         option_names = ['vol_up', 'vol_down', 'vol_up_ttm_down',
                         'vol_down_ttm_down']
         opt_dict = cls._option_prices(
@@ -350,7 +400,11 @@ class Sens():
 
 
     @classmethod
-    def _option_prices(cls, opt_params, params, option_names):
+    def _option_prices(
+        cls,
+        opt_params: dict,
+        params: dict,
+        option_names: list) -> dict:
 
         if params['greek'] in params['equal_greeks']:
             opt_params['option'] = 'call'
@@ -370,7 +424,9 @@ class Sens():
 
 
     @staticmethod
-    def _parameter_shifts(opt_params, params):
+    def _parameter_shifts(
+        opt_params: dict,
+        params: dict) -> dict:
 
         shift_dict = {}
         shift_inputs = {'price':'S',
@@ -438,7 +494,10 @@ class Sens():
 
 
     @staticmethod
-    def option_data_static(params, option_value, **kwargs):
+    def option_data_static(
+        params: dict, 
+        option_value: str,
+        **kwargs) -> float | None:
         """
         Calculate Option prices or Greeks
 
@@ -483,8 +542,9 @@ class Sens():
         try:
             # Select the chosen option value from the available functions
             function = params['greek_dict'][option_value]
-            return getattr(Option, function)(
+            output = getattr(Option, function)(
                 opt_params=opt_params, params=params)
+            return output
 
         except KeyError:
             return print("Please enter a valid function from 'price', "\
