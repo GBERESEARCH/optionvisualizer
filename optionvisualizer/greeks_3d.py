@@ -2,11 +2,12 @@
 Display 3D Greeks graphs
 
 """
-
+import matplotlib.figure as mplfig
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D # pylint: disable=unused-import
 import numpy as np
 import plotly.graph_objects as go
+from matplotlib import axes
 from plotly.offline import plot
 # pylint: disable=invalid-name
 
@@ -17,7 +18,7 @@ class Greeks_3D():
     """
 
     @staticmethod
-    def graph_space_prep(params):
+    def graph_space_prep(params:dict) -> dict:
         """
         Prepare the axis ranges to be used in 3D graph.
 
@@ -93,7 +94,10 @@ class Greeks_3D():
 
 
     @classmethod
-    def vis_greeks_3D(cls, graph_params, params):
+    def vis_greeks_3D(
+        cls,
+        graph_params: dict,
+        params: dict) -> None | tuple[mplfig.Figure, axes.Axes, str, int]:
         """
         Display 3D greeks graph.
 
@@ -132,7 +136,7 @@ class Greeks_3D():
 
 
     @staticmethod
-    def _titlename(params):
+    def _titlename(params: dict) -> str:
         """
         Create graph title based on option type, direction and greek
 
@@ -152,7 +156,7 @@ class Greeks_3D():
 
 
     @staticmethod
-    def _plotly_3D_ranges(graph_params):
+    def _plotly_3D_ranges(graph_params: dict) -> dict:
         """
         Generate contour ranges and format axes for plotly 3D graph
 
@@ -182,7 +186,9 @@ class Greeks_3D():
 
 
     @staticmethod
-    def _plotly_3D(graph_params, params):
+    def _plotly_3D(
+        graph_params: dict,
+        params: dict) -> go.Figure | None:
         """
         Display 3D greeks graph.
 
@@ -193,74 +199,92 @@ class Greeks_3D():
         """
         # create plotly figure object
         fig = go.Figure(
-            data=[go.Surface(x=graph_params['x'],
-                             y=graph_params['y'],
-                             z=graph_params['z'],
+            data=[go.Surface(
+                x=graph_params['x'],
+                y=graph_params['y'],
+                z=graph_params['z'],
 
-                             # set the colorscale to the chosen
-                             # colorscheme
-                             colorscale=params['colorscheme'],
+                # set the colorscale to the chosen
+                # colorscheme
+                colorscale=params['colorscheme'],
 
-                             # Define the contours
-                             contours = {
-                                 "x": {"show": True,
-                                       "start": graph_params['x_start'],
-                                       "end": graph_params['x_stop'],
-                                       "size": graph_params['x_size'],
-                                       "color":"white"},
-                                 "y": {"show": True,
-                                       "start": graph_params['y_start'],
-                                       "end": graph_params['y_stop'],
-                                       "size": graph_params['y_size'],
-                                       "color":"white"},
-                                 "z": {"show": True,
-                                       "start": graph_params['z_start'],
-                                       "end": graph_params['z_stop'],
-                                       "size": graph_params['z_size']}
-                                 },
-                             )
-                  ]
-            )
+                # Define the contours
+                contours = {
+                    "x": {"show": True,
+                        "start": graph_params['x_start'],
+                        "end": graph_params['x_stop'],
+                        "size": graph_params['x_size'],
+                        "color": "white"},
+                    "y": {"show": True,
+                        "start": graph_params['y_start'],
+                        "end": graph_params['y_stop'],
+                        "size": graph_params['y_size'],
+                        "color": "white"},
+                    "z": {"show": True,
+                        "start": graph_params['z_start'],
+                        "end": graph_params['z_stop'],
+                        "size": graph_params['z_size']}
+                    },
+                )
+            ]
+        )
 
         # Set initial view position
-        camera = dict(
-            eye=dict(x=2, y=1, z=1)
-        )
+        camera = {
+            'eye': {
+                'x': 2,
+                'y': 1,
+                'z': 1
+            }
+        }
 
         # Set x-axis to decrease from left to right
         fig.update_scenes(xaxis_autorange="reversed")
 
         # Set y-axis to increase from left to right
         fig.update_scenes(yaxis_autorange="reversed")
-        fig.update_layout(scene = dict(
-                            xaxis = dict(
-                                 backgroundcolor="rgb(200, 200, 230)",
-                                 gridcolor="white",
-                                 showbackground=True,
-                                 zerolinecolor="white",),
-                            yaxis = dict(
-                                backgroundcolor="rgb(230, 200,230)",
-                                gridcolor="white",
-                                showbackground=True,
-                                zerolinecolor="white"),
-                            zaxis = dict(
-                                backgroundcolor="rgb(230, 230,200)",
-                                gridcolor="white",
-                                showbackground=True,
-                                zerolinecolor="white",),
-                            # Label axes
-                            xaxis_title=graph_params['axis_label2'],
-                            yaxis_title=graph_params['axis_label1'],
-                            zaxis_title=graph_params['axis_label3'],),
-                          title={'text':graph_params['titlename'],
-                                 'y':0.9,
-                                 'x':0.5,
-                                 'xanchor':'center',
-                                 'yanchor':'top',
-                                 'font':dict(size=20,
-                                             color="black")},
-                          margin=dict(l=65, r=50, b=65, t=90),
-                          scene_camera=camera)
+        fig.update_layout(
+            scene={
+                'xaxis': {
+                    'backgroundcolor': "rgb(200, 200, 230)",
+                    'gridcolor': "white",
+                    'showbackground': True,
+                    'zerolinecolor': "white"
+                    },
+                'yaxis': {
+                    'backgroundcolor': "rgb(230, 200, 230)",
+                    'gridcolor': "white",
+                    'showbackground': True,
+                    'zerolinecolor': "white"
+                    },
+                'zaxis': {
+                    'backgroundcolor': "rgb(230, 230, 200)",
+                    'gridcolor': "white",
+                    'showbackground': True,
+                    'zerolinecolor': "white"
+                    },
+                    # Label axes
+                    'xaxis_title': graph_params['axis_label2'],
+                    'yaxis_title': graph_params['axis_label1'],
+                    'zaxis_title': graph_params['axis_label3']
+                    },
+            title={
+                'text': graph_params['titlename'],
+                'y': 0.9,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font': {
+                    'size': 20,
+                    'color': "black"},
+            },
+            margin={
+                'l': 65,
+                'r': 50,
+                'b': 65,
+                't': 90
+            },
+            scene_camera=camera)
         
         if params['web_graph'] is False:
             fig.update_layout(
@@ -285,7 +309,7 @@ class Greeks_3D():
 
 
     @staticmethod
-    def _mpl_axis_format(graph_params):
+    def _mpl_axis_format(graph_params: dict) -> dict:
         """
         Rescale Matplotlib axis values
 
@@ -301,7 +325,9 @@ class Greeks_3D():
 
 
     @staticmethod
-    def _mpl_3D(params, graph_params):
+    def _mpl_3D(
+        params: dict,
+        graph_params: dict) -> tuple[mplfig.Figure, axes.Axes, str, int] | None:
         """
         Display 3D greeks graph.
 
