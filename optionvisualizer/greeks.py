@@ -2,7 +2,8 @@
 Display 2D and 3D Greeks graphs
 
 """
-
+import matplotlib.figure as mplfig
+from matplotlib import axes
 from optionvisualizer.sensitivities import Sens
 from optionvisualizer.greeks_2d import Greeks_2D
 from optionvisualizer.greeks_3d import Greeks_3D
@@ -16,7 +17,8 @@ class Greeks():
     """
 
     @staticmethod
-    def greeks_graphs_2D(params):
+    def greeks_graphs_2D(
+        params: dict) -> tuple[mplfig.Figure, axes.Axes] | None:
         """
         Plot chosen 2D greeks graph.
 
@@ -84,7 +86,8 @@ class Greeks():
 
 
     @staticmethod
-    def greeks_graphs_3D(params):
+    def greeks_graphs_3D(
+        params: dict) -> tuple[mplfig.Figure, axes.Axes, str, int] | None:
         """
         Plot chosen 3D greeks graph.
 

@@ -25,7 +25,7 @@ class Greeks_2D():
     @classmethod
     def vis_greeks_2D(
         cls,
-        params: dict) -> tuple[mplfig.Figure, axes.Axes] | go.Figure | None:
+        params: dict) -> tuple[mplfig.Figure, axes.Axes] | None:
         """
         Creates data for 2D greeks graph.
 
