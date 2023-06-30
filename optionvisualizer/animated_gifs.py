@@ -17,7 +17,7 @@ class Gif():
 
     """
     @classmethod
-    def animated_2D_gif(cls, params):
+    def animated_2D_gif(cls, params: dict) -> None:
         """
         Create an animated gif of the selected pair of parameters.
 
@@ -108,7 +108,7 @@ class Gif():
 
 
     @classmethod
-    def animated_3D_gif(cls, params):
+    def animated_3D_gif(cls, params: dict) -> None:
         """
         Create an animated gif of the selected greek 3D graph.
 
@@ -256,7 +256,7 @@ class Gif():
 
 
     @staticmethod
-    def _gif_defaults_setup(params):
+    def _gif_defaults_setup(params: dict) -> dict:
 
         if params['gif_folder'] is None:
             params['gif_folder'] = params['gif_folder_'+params['graphtype']]
@@ -272,7 +272,7 @@ class Gif():
 
 
     @staticmethod
-    def _create_animation(params):
+    def _create_animation(params: dict) -> None:
 
         # load all the static images into a list then save as an animated gif
         gif_filepath = '{}/{}.gif'.format(
