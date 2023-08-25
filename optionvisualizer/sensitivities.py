@@ -495,7 +495,7 @@ class Sens():
 
     @staticmethod
     def option_data_static(
-        params: dict, 
+        params: dict,
         option_value: str,
         **kwargs) -> float | None:
         """

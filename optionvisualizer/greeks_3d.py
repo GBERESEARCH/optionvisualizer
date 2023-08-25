@@ -285,7 +285,7 @@ class Greeks_3D():
                 't': 90
             },
             scene_camera=camera)
-        
+
         if params['web_graph'] is False:
             fig.update_layout(
                 autosize=False,
@@ -301,11 +301,11 @@ class Greeks_3D():
                 return fig
 
             fig.show()
-            return
+            return None
 
         # Otherwise create an HTML file that opens in a new window
         plot(fig, auto_open=True)
-        return
+        return None
 
 
     @staticmethod

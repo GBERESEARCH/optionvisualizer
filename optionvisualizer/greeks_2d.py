@@ -35,10 +35,20 @@ class Greeks_2D():
 
         """
 
-        # create arrays of (default is 1000) equally spaced points for a range of strike prices, volatilities and maturities
-        params['SA'] = np.linspace(params['strike_min'] * params['S'], params['strike_max'] * params['S'], params['linspace_granularity'])
-        params['sigmaA'] = np.linspace(params['vol_min'], params['vol_max'], params['linspace_granularity'])
-        params['TA'] = np.linspace(params['time_min'], params['time_max'], params['linspace_granularity'])
+        # create arrays of (default is 1000) equally spaced points for a range
+        # of strike prices, volatilities and maturities
+        params['SA'] = np.linspace(
+            params['strike_min'] * params['S'],
+            params['strike_max'] * params['S'],
+            params['linspace_granularity'])
+        params['sigmaA'] = np.linspace(
+            params['vol_min'],
+            params['vol_max'],
+            params['linspace_granularity'])
+        params['TA'] = np.linspace(
+            params['time_min'],
+            params['time_max'],
+            params['linspace_granularity'])
 
         # y-axis parameters other than rho require 3 options to be
         # graphed
@@ -97,7 +107,7 @@ class Greeks_2D():
             'size2d':params['size2d'],
             'mpl_style':params['mpl_style'],
             'gif':params['gif'],
-            'graph_figure':params['graph_figure'] 
+            'graph_figure':params['graph_figure']
             }
 
         # Plot 3 option charts
@@ -255,7 +265,7 @@ class Greeks_2D():
             Labels for each of the 3 options in 2D greeks graph.
 
         """
-        strike_label = dict()
+        strike_label = {}
         for strike, strike_value in {'G1':'label1',
                                      'G2':'label2',
                                      'G3':'label3'}.items():
@@ -439,26 +449,26 @@ class Greeks_2D():
         # Plot the 1st option
         fig.add_trace(go.Scatter(x=vis_params['xarray'],
                                  y=vis_params['yarray1'],
-                                 line=dict(color='blue'),
+                                 line={'color': 'blue'},
                                  name=vis_params['label1']))
 
         # Plot the 2nd option
         fig.add_trace(go.Scatter(x=vis_params['xarray'],
                                  y=vis_params['yarray2'],
-                                 line=dict(color='red'),
+                                 line={'color': 'red'},
                                  name=vis_params['label2']))
 
         # Plot the 3rd option
         fig.add_trace(go.Scatter(x=vis_params['xarray'],
                                  y=vis_params['yarray3'],
-                                 line=dict(color='green'),
+                                 line={'color': 'green'},
                                  name=vis_params['label3']))
 
         # 4th option only used in Rho graphs
         if vis_params['label4'] is not None:
             fig.add_trace(go.Scatter(x=vis_params['xarray'],
                                      y=vis_params['yarray4'],
-                                     line=dict(color='orange'),
+                                     line={'color': 'orange'},
                                      name=vis_params['label4']))
             rho_graph=True
         else:
@@ -468,33 +478,45 @@ class Greeks_2D():
             vis_params=vis_params, rho_graph=rho_graph)
 
         fig.update_layout(
-            title={'text': vis_params['title'],
-                   'y':0.95,
-                   'x':0.5,
-                   'xanchor':'center',
-                   'yanchor':'top',
-                   'font':dict(size=20,
-                               color="#f2f5fa")},
-            xaxis_title={'text': vis_params['xlabel'],
-                         'font':dict(size=15,
-                                     color="#f2f5fa")},
-            yaxis_title={'text': vis_params['ylabel'],
-                         'font':dict(size=15,
-                                     color="#f2f5fa")},
+            title={
+                'text': vis_params['title'],
+                'y':0.95,
+                'x':0.5,
+                'xanchor':'center',
+                'yanchor':'top',
+                'font':{
+                    'size': 20,
+                    'color': "#f2f5fa"
+                }
+            },
+            xaxis_title={
+                'text': vis_params['xlabel'],
+                'font': {
+                    'size': 15,
+                    'color': "#f2f5fa"
+                }
+            },
+            yaxis_title={
+                'text': vis_params['ylabel'],
+                'font': {
+                    'size': 15,
+                    'color': "#f2f5fa"
+                }
+            },
             font={'color': '#f2f5fa'},
             paper_bgcolor='black',
             plot_bgcolor='black',
-            legend=dict(
-                x=0.05,
-                y=0.95,
-                traceorder="normal",
-                bgcolor='rgba(0, 0, 0, 0)',
-                font=dict(
-                    family="sans-serif",
-                    size=12,
-                    color="#f2f5fa"
-                ),
-            ),
+            legend={
+                'x': 0.05,
+                'y': 0.95,
+                'traceorder': "normal",
+                'bgcolor': 'rgba(0, 0, 0, 0)',
+                'font': {
+                    'family': "sans-serif",
+                    'size': 12,
+                    'color': "#f2f5fa"
+                },
+            },
         )
 
         if params['web_graph'] is False:
@@ -530,11 +552,11 @@ class Greeks_2D():
                 return fig
 
             fig.show()
-            return
+            return None
 
         # Otherwise create an HTML file that opens in a new window
         plot(fig, auto_open=True)
-        return
+        return None
 
 
     @staticmethod

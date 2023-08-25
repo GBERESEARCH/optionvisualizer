@@ -131,8 +131,8 @@ class MultiPayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = cls.vis_payoff(
@@ -272,8 +272,8 @@ class MultiPayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = cls.vis_payoff(
@@ -408,8 +408,8 @@ class MultiPayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = cls.vis_payoff(
@@ -536,8 +536,8 @@ class MultiPayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = cls.vis_payoff(
@@ -669,8 +669,8 @@ class MultiPayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = cls.vis_payoff(
@@ -717,12 +717,12 @@ class MultiPayoff():
 
         """
 
-        if params['interactive']: 
+        if params['interactive']:
             if(params['notebook'] and params['web_graph']):
                 fig = cls._vis_payoff_plotly(
                     payoff_dict=payoff_dict, params=params)
                 return fig
-            
+
             return cls._vis_payoff_plotly(
                 payoff_dict=payoff_dict, params=params)
 
@@ -861,7 +861,7 @@ class MultiPayoff():
         # Plot the terminal payoff
         fig.add_trace(go.Scatter(x=payoff_dict['SA'],
                                  y=payoff_dict['payoff'],
-                                 line=dict(color='blue'),
+                                 line={'color': 'blue'},
                                  name='Payoff'))
 
         # If the value flag is selected, plot the payoff with the
@@ -869,7 +869,7 @@ class MultiPayoff():
         if payoff_dict['payoff2'] is not None:
             fig.add_trace(go.Scatter(x=payoff_dict['SA'],
                                      y=payoff_dict['payoff2'],
-                                     line=dict(color='red'),
+                                     line={'color': 'red'},
                                      name='Value'))
 
 
@@ -951,8 +951,8 @@ class MultiPayoff():
                 return fig
 
             fig.show()
-            return
+            return None
 
         # Otherwise create an HTML file that opens in a new window
         plot(fig, auto_open=True)
-        return
+        return None

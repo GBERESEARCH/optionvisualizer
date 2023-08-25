@@ -15,7 +15,7 @@ class Utils():
 
     """
     @staticmethod
-    def _init_params(inputs: dict) -> dict:
+    def init_params(inputs: dict) -> dict:
         """
         Initialise parameter dictionary
         Parameters

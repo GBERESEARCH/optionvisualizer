@@ -97,8 +97,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -192,8 +192,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -252,8 +252,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -350,8 +350,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -461,8 +461,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -577,8 +577,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -693,8 +693,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -811,8 +811,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -914,8 +914,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(
@@ -1019,8 +1019,8 @@ class SimplePayoff():
 
         # Visualize payoff
         if (
-            params['interactive'] and 
-            params['notebook'] and 
+            params['interactive'] and
+            params['notebook'] and
             params['web_graph']
             ):
             fig = MultiPayoff.vis_payoff(

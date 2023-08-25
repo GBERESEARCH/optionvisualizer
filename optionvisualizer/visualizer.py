@@ -16,7 +16,8 @@ from optionvisualizer.sensitivities import Sens
 from optionvisualizer.animated_gifs import Gif
 from optionvisualizer.barriers import Barrier
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, no-else-return
+#, inconsistent-return-statements
 
 class Visualizer():
     """
@@ -34,7 +35,7 @@ class Visualizer():
             inputs[key] = value
 
         # Initialise system parameters
-        params = Utils._init_params(inputs)
+        params = Utils.init_params(inputs)
 
         self.params = params
 
@@ -361,7 +362,7 @@ class Visualizer():
             inputs[key] = value
 
         # Initialise system parameters
-        self.params = Utils._init_params(inputs)
+        self.params = Utils.init_params(inputs)
 
         # Update params with the specified parameters
         #for key, value in kwargs.items():
@@ -376,12 +377,13 @@ class Visualizer():
             if self.params['graphtype'] == '2D':
                 if self.params['graph_figure']:
                     fig, ax = Greeks.greeks_graphs_2D(params=self.params)
-                    return fig, ax    
-                return Greeks.greeks_graphs_2D(params=self.params)
+                    return fig, ax
+                Greeks.greeks_graphs_2D(params=self.params)
+                return None
 
             # Run 3D greeks method
-            if self.params['graphtype'] == '3D':
-                return Greeks.greeks_graphs_3D(params=self.params)
+            Greeks.greeks_graphs_3D(params=self.params)
+            return None
 
         else:
             # Specify the combo payoff so that parameter initialisation
@@ -392,8 +394,10 @@ class Visualizer():
             self.params = Utils.refresh_combo_params(
                 params=self.params, inputs=kwargs)
 
-            return self.payoffs(
+            self.payoffs(
                 payoff_type=self.params['payoff_type'], params=self.params)
+
+            return None
 
 
     def greeks(self, **kwargs) -> (tuple[mplfig.Figure, axes.Axes] | None):
@@ -500,14 +504,17 @@ class Visualizer():
             if self.params['graph_figure']:
                 fig, ax = Greeks.greeks_graphs_2D(params=self.params)
                 return fig, ax
-            return Greeks.greeks_graphs_2D(params=self.params)
+            Greeks.greeks_graphs_2D(params=self.params)
+            return None
 
         # Run 3D greeks method
         elif self.params['graphtype'] == '3D':
-            return Greeks.greeks_graphs_3D(params=self.params)
+            Greeks.greeks_graphs_3D(params=self.params)
+            return None
 
         else:
             print("Please select a '2D' or '3D' graphtype")
+            return None
 
 
     def payoffs(self, payoff_type: str, **kwargs) -> go.Figure | None:
@@ -568,7 +575,7 @@ class Visualizer():
         Runs the specified combo payoff method.
 
         """
-        if 'params' not in kwargs.keys():
+        if 'params' not in kwargs:
             # Update params with the specified parameters
             for key, value in kwargs.items():
 
@@ -591,26 +598,28 @@ class Visualizer():
             # Select the chosen payoff from the available functions
             function = self.params['combo_name_dict'][payoff_type]
             if (
-                self.params['interactive'] and 
-                self.params['notebook'] and 
+                self.params['interactive'] and
+                self.params['notebook'] and
                 self.params['web_graph']
                 ):
                 result = getattr(SimplePayoff, function)(params=self.params)
                 return result
-            return getattr(SimplePayoff, function)(params=self.params)
+            getattr(SimplePayoff, function)(params=self.params)
+            return None
 
         if payoff_type in self.params['combo_multi_dict']:
 
             # Select the chosen payoff from the available functions
             function = self.params['combo_name_dict'][payoff_type]
             if (
-                self.params['interactive'] and 
-                self.params['notebook'] and 
+                self.params['interactive'] and
+                self.params['notebook'] and
                 self.params['web_graph']
                 ):
                 result = getattr(MultiPayoff, function)(params=self.params)
                 return result
-            return getattr(MultiPayoff, function)(params=self.params)
+            getattr(MultiPayoff, function)(params=self.params)
+            return None
 
         # Otherwise prompt for a valid payoff
         return print("Please enter a valid payoff from 'call', 'put', "\

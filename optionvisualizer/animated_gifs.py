@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from optionvisualizer.greeks import Greeks
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, consider-using-f-string, unused-variable
 
 class Gif():
     """
