@@ -97,7 +97,7 @@ class Greeks_3D():
     def vis_greeks_3D(
         cls,
         graph_params: dict,
-        params: dict) -> None | tuple[mplfig.Figure, axes.Axes, str, int]:
+        params: dict) -> None | dict | tuple[mplfig.Figure, axes.Axes, str, int]:
         """
         Display 3D greeks graph.
 
@@ -122,6 +122,12 @@ class Greeks_3D():
             # Set the ranges for the contour values and reverse / rescale axes
             graph_params = cls._plotly_3D_ranges(graph_params=graph_params)
 
+            if params['data_output']:
+                return {
+                    'params': params,
+                    'graph-params': graph_params
+                }
+            
             return cls._plotly_3D(graph_params=graph_params, params=params)
 
         # Otherwise create a matplotlib graph

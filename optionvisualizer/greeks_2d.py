@@ -25,7 +25,7 @@ class Greeks_2D():
     @classmethod
     def vis_greeks_2D(
         cls,
-        params: dict) -> tuple[mplfig.Figure, axes.Axes] | go.Figure | None:
+        params: dict) -> tuple[mplfig.Figure, axes.Axes] | dict | go.Figure | None:
         """
         Creates data for 2D greeks graph.
 
@@ -113,6 +113,11 @@ class Greeks_2D():
         # Plot 3 option charts
         if params['y_plot'] in params['y_name_dict'].keys():
             if params['interactive']:
+                if params['data_output']:
+                    return {
+                        'params': params,
+                        'vis-params': vis_params
+                    }
                 return cls._vis_greeks_plotly(
                     vis_params=vis_params, params=params)
 
@@ -127,6 +132,11 @@ class Greeks_2D():
         # Plot Rho charts
         if params['y_plot'] == 'rho':
             if params['interactive']:
+                if params['data_output']:
+                    return {
+                        'params': params,
+                        'vis-params': vis_params
+                    }
                 return cls._vis_greeks_plotly(
                     vis_params=vis_params, params=params)
 

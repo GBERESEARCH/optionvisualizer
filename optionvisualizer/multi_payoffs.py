@@ -20,7 +20,7 @@ class MultiPayoff():
     @classmethod
     def butterfly(
         cls,
-        params: dict) -> go.Figure | None:
+        params: dict) -> go.Figure | dict | None:
         """
         Displays the graph of the butterfly strategy:
             Long one ITM option
@@ -139,13 +139,20 @@ class MultiPayoff():
             payoff_dict=params['payoff_dict'], params=params)
             return fig
 
+        if params['data_output']:
+            data_dict = cls.vis_payoff(
+                payoff_dict=params['payoff_dict'], 
+                params=params
+                )
+            return data_dict
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
     @classmethod
     def christmas_tree(
         cls,
-        params: dict) -> go.Figure | None:
+        params: dict) -> go.Figure | dict | None:
         """
         Displays the graph of the christmas tree strategy:
             Long one ITM option
@@ -280,6 +287,13 @@ class MultiPayoff():
             payoff_dict=params['payoff_dict'], params=params)
             return fig
 
+        if params['data_output']:
+            data_dict = cls.vis_payoff(
+                payoff_dict=params['payoff_dict'], 
+                params=params
+                )
+            return data_dict
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
@@ -287,7 +301,7 @@ class MultiPayoff():
     @classmethod
     def condor(
         cls,
-        params: dict) -> go.Figure | None:
+        params: dict) -> go.Figure | dict | None:
         """
         Displays the graph of the condor strategy:
             Long one low strike option
@@ -416,6 +430,13 @@ class MultiPayoff():
             payoff_dict=params['payoff_dict'], params=params)
             return fig
 
+        if params['data_output']:
+            data_dict = cls.vis_payoff(
+                payoff_dict=params['payoff_dict'], 
+                params=params
+                )
+            return data_dict
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
@@ -423,7 +444,7 @@ class MultiPayoff():
     @classmethod
     def iron_butterfly(
         cls,
-        params: dict) -> go.Figure | None:
+        params: dict) -> go.Figure | dict | None:
         """
         Displays the graph of the iron butterfly strategy:
             Short one OTM put
@@ -544,6 +565,13 @@ class MultiPayoff():
             payoff_dict=params['payoff_dict'], params=params)
             return fig
 
+        if params['data_output']:
+            data_dict = cls.vis_payoff(
+                payoff_dict=params['payoff_dict'], 
+                params=params
+                )
+            return data_dict
+
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
 
@@ -551,7 +579,7 @@ class MultiPayoff():
     @classmethod
     def iron_condor(
         cls,
-        params: dict) -> go.Figure | None:
+        params: dict) -> go.Figure | dict | None:
         """
         Displays the graph of the iron condor strategy:
             Long one OTM put
@@ -676,6 +704,13 @@ class MultiPayoff():
             fig = cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
             return fig
+    
+        if params['data_output']:
+            data_dict = cls.vis_payoff(
+                payoff_dict=params['payoff_dict'], 
+                params=params
+                )
+            return data_dict
 
         return cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
@@ -685,7 +720,7 @@ class MultiPayoff():
     def vis_payoff(
         cls,
         payoff_dict: dict,
-        params: dict) -> go.Figure | None:
+        params: dict) -> go.Figure | dict | None:
         """
         Display the payoff diagrams
 
@@ -723,6 +758,12 @@ class MultiPayoff():
                     payoff_dict=payoff_dict, params=params)
                 return fig
 
+            if params['data_output']:
+                return {
+                    'params': params,
+                    'payoff-dict': payoff_dict
+                }
+            
             return cls._vis_payoff_plotly(
                 payoff_dict=payoff_dict, params=params)
 

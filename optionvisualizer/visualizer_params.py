@@ -64,6 +64,7 @@ vis_params_dict = {
     'num_sens':False,
     'interactive':False,
     'notebook':True,
+    'data_output':False,
     'web_graph':False,
     'colorscheme':'jet',
     'colorintensity':1,

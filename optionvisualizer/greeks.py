@@ -18,7 +18,7 @@ class Greeks():
 
     @staticmethod
     def greeks_graphs_2D(
-        params: dict) -> tuple[mplfig.Figure, axes.Axes] | None:
+        params: dict) -> tuple[mplfig.Figure, axes.Axes] | dict | None:
         """
         Plot chosen 2D greeks graph.
 
@@ -82,12 +82,16 @@ class Greeks():
             fig, ax = Greeks_2D.vis_greeks_2D(params=params)
             return fig, ax
 
+        if params['data_output']:
+            data_dict = Greeks_2D.vis_greeks_2D(params=params)
+            return data_dict
+
         return Greeks_2D.vis_greeks_2D(params=params)
 
 
     @staticmethod
     def greeks_graphs_3D(
-        params: dict) -> tuple[mplfig.Figure, axes.Axes, str, int] | None:
+        params: dict) -> tuple[mplfig.Figure, axes.Axes, str, int] | dict | None:
         """
         Plot chosen 3D greeks graph.
 
@@ -191,6 +195,11 @@ class Greeks():
             fig, ax, titlename, title_font_scale = Greeks_3D.vis_greeks_3D(
                 graph_params=graph_params, params=params)
             return fig, ax, titlename, title_font_scale
+
+        if params['data_output']:
+            data_dict = Greeks_3D.vis_greeks_3D(
+                graph_params=graph_params, params=params)
+            return data_dict
 
         return Greeks_3D.vis_greeks_3D(
             graph_params=graph_params, params=params)

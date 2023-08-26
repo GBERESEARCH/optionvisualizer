@@ -218,7 +218,7 @@ class Visualizer():
             opt_params=opt_params, params=self.params)
 
 
-    def visualize(self, **kwargs) -> (tuple[mplfig.Figure, axes.Axes] | None):
+    def visualize(self, **kwargs) -> (tuple[mplfig.Figure, axes.Axes] | dict |None):
         """
         Plot the chosen graph of risk or payoff.
 
@@ -378,10 +378,19 @@ class Visualizer():
                 if self.params['graph_figure']:
                     fig, ax = Greeks.greeks_graphs_2D(params=self.params)
                     return fig, ax
+                
+                if self.params['data_output']:
+                    data_dict = Greeks.greeks_graphs_2D(params=self.params)
+                    return data_dict
+                
                 Greeks.greeks_graphs_2D(params=self.params)
                 return None
 
             # Run 3D greeks method
+            if self.params['data_output']:
+                data_dict = Greeks.greeks_graphs_3D(params=self.params)
+                return data_dict
+            
             Greeks.greeks_graphs_3D(params=self.params)
             return None
 
@@ -394,13 +403,21 @@ class Visualizer():
             self.params = Utils.refresh_combo_params(
                 params=self.params, inputs=kwargs)
 
+            if self.params['data_output']:
+                data_dict = self.payoffs(
+                    payoff_type=self.params['payoff_type'], 
+                    params=self.params
+                    )
+                return data_dict
+            
             self.payoffs(
                 payoff_type=self.params['payoff_type'], params=self.params)
 
             return None
 
 
-    def greeks(self, **kwargs) -> (tuple[mplfig.Figure, axes.Axes] | None):
+    def greeks(self, **kwargs) -> (
+        tuple[mplfig.Figure, axes.Axes] | dict | None):
         """
         Plot the chosen 2D or 3D graph
 
@@ -504,11 +521,20 @@ class Visualizer():
             if self.params['graph_figure']:
                 fig, ax = Greeks.greeks_graphs_2D(params=self.params)
                 return fig, ax
+            
+            if self.params['data_output']:
+                data_dict = Greeks.greeks_graphs_2D(params=self.params)
+                return data_dict
+            
             Greeks.greeks_graphs_2D(params=self.params)
             return None
 
         # Run 3D greeks method
         elif self.params['graphtype'] == '3D':
+            if self.params['data_output']:
+                data_dict = Greeks.greeks_graphs_3D(params=self.params)
+                return data_dict
+            
             Greeks.greeks_graphs_3D(params=self.params)
             return None
 
@@ -517,7 +543,7 @@ class Visualizer():
             return None
 
 
-    def payoffs(self, payoff_type: str, **kwargs) -> go.Figure | None:
+    def payoffs(self, payoff_type: str, **kwargs) -> go.Figure | dict | None:
         """
         Displays the graph of the specified combo payoff.
 
@@ -604,6 +630,11 @@ class Visualizer():
                 ):
                 result = getattr(SimplePayoff, function)(params=self.params)
                 return result
+            
+            if self.params['data_output']:
+                data_dict = getattr(SimplePayoff, function)(params=self.params)
+                return data_dict
+
             getattr(SimplePayoff, function)(params=self.params)
             return None
 
@@ -618,6 +649,11 @@ class Visualizer():
                 ):
                 result = getattr(MultiPayoff, function)(params=self.params)
                 return result
+            
+            if self.params['data_output']:
+                data_dict = getattr(MultiPayoff, function)(params=self.params)
+                return data_dict
+
             getattr(MultiPayoff, function)(params=self.params)
             return None
 
