@@ -761,7 +761,7 @@ class MultiPayoff():
             if params['data_output']:
                 return {
                     'params': params,
-                    'payoff-dict': payoff_dict
+                    'payoff_dict': payoff_dict
                 }
             
             return cls._vis_payoff_plotly(

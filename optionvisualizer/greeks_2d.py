@@ -116,7 +116,7 @@ class Greeks_2D():
                 if params['data_output']:
                     return {
                         'params': params,
-                        'vis-params': vis_params
+                        'vis_params': vis_params
                     }
                 return cls._vis_greeks_plotly(
                     vis_params=vis_params, params=params)
@@ -135,7 +135,7 @@ class Greeks_2D():
                 if params['data_output']:
                     return {
                         'params': params,
-                        'vis-params': vis_params
+                        'vis_params': vis_params
                     }
                 return cls._vis_greeks_plotly(
                     vis_params=vis_params, params=params)

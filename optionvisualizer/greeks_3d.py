@@ -125,7 +125,7 @@ class Greeks_3D():
             if params['data_output']:
                 return {
                     'params': params,
-                    'graph-params': graph_params
+                    'graph_params': graph_params
                 }
             
             return cls._plotly_3D(graph_params=graph_params, params=params)
