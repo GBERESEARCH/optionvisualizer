@@ -110,8 +110,12 @@ class Greeks_2D():
             'graph_figure':params['graph_figure']
             }
 
+        
+
         # Plot 3 option charts
         if params['y_plot'] in params['y_name_dict'].keys():
+            vis_params = cls._graph_range_2d(
+                vis_params=vis_params, rho_graph=False)
             if params['interactive']:
                 if params['data_output']:
                     return {
@@ -131,6 +135,8 @@ class Greeks_2D():
 
         # Plot Rho charts
         if params['y_plot'] == 'rho':
+            vis_params = cls._graph_range_2d(
+                vis_params=vis_params, rho_graph=True)
             if params['interactive']:
                 if params['data_output']:
                     return {
@@ -143,7 +149,7 @@ class Greeks_2D():
             vis_params.update({'gif':False})
             if params['graph_figure']:
                 fig, ax = cls._vis_greeks_mpl(
-                vis_params=vis_params, params=params)
+                    vis_params=vis_params, params=params)
                 return fig, ax
             return cls._vis_greeks_mpl(
                 vis_params=vis_params, params=params)
@@ -480,12 +486,7 @@ class Greeks_2D():
                                      y=vis_params['yarray4'],
                                      line={'color': 'orange'},
                                      name=vis_params['label4']))
-            rho_graph=True
-        else:
-            rho_graph=False
 
-        xmin, xmax, ymin, ymax = cls._graph_range_2d(
-            vis_params=vis_params, rho_graph=rho_graph)
 
         fig.update_layout(
             title={
@@ -540,7 +541,7 @@ class Greeks_2D():
                          linewidth=2,
                          linecolor='#2a3f5f',
                          mirror=True,
-                         range = [xmin, xmax],
+                         range = [vis_params['xmin'], vis_params['xmax']],
                          gridwidth=1,
                          gridcolor='#2a3f5f',
                          zeroline=False)
@@ -549,7 +550,7 @@ class Greeks_2D():
                          linewidth=2,
                          linecolor='#2a3f5f',
                          mirror=True,
-                         range = [ymin, ymax],
+                         range = [vis_params['ymin'], vis_params['ymax']],
                          gridwidth=1,
                          gridcolor='#2a3f5f',
                          zeroline=False)
@@ -572,7 +573,7 @@ class Greeks_2D():
     @staticmethod
     def _graph_range_2d(
         vis_params: dict,
-        rho_graph: bool) -> tuple[float, float, float, float]:
+        rho_graph: bool) -> dict:
         """
         Set 2D graph ranges
 
@@ -633,4 +634,9 @@ class Greeks_2D():
                    ranges['max_y3'],
                    ranges['max_y4']) + y_scale_shift
 
-        return xmin, xmax, ymin, ymax
+        vis_params['xmin'] = xmin
+        vis_params['xmax'] = xmax
+        vis_params['ymin'] = ymin
+        vis_params['ymax'] = ymax
+
+        return vis_params
