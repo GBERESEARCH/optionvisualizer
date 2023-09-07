@@ -81,7 +81,7 @@ class Greeks_3D():
             graph_params['xmin'] = SA_lower
             graph_params['xmax'] = SA_upper
             graph_params['graph_scale'] = 1
-            graph_params['axis_label1'] = 'Underlying Value'
+            graph_params['axis_label1'] = 'Underlying Price'
 
         if params['axis'] == 'vol':
             graph_params['x'], graph_params['y'] = np.meshgrid(sigmaA, TA)
