@@ -64,7 +64,7 @@ class Option():
         else:
             print("Please supply an option type, 'put' or 'call'")
 
-        np.nan_to_num(opt_price, copy=False)
+        opt_price = np.nan_to_num(opt_price)
 
         return opt_price
 
