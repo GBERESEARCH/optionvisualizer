@@ -17,9 +17,9 @@ $ pip install optionvisualizer
 
 Install in a new environment using Python venv:
 
-Create base environment of Python 3.11
+Create base environment of Python 3.13
 ```
-$ py -3.11 -m venv .venv
+$ py -3.13 -m venv .venv
 ```
 Activate new environment
 ```
@@ -50,7 +50,7 @@ $ activate optvis
 ```
 Install Python
 ```
-(optvis) $ conda install python==3.9
+(optvis) $ conda install python==3.13
 ```
 Install Spyder
 ```
