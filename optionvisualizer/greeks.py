@@ -67,7 +67,7 @@ class Greeks():
             Figure size for matplotlib chart. The default is (6, 4).
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
         num_sens : Bool
             Whether to calculate numerical or analytical sensitivity.
             The default is False.

@@ -54,7 +54,7 @@ class MultiPayoff():
             payoff. The default is False.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
 
         Returns
         -------
@@ -186,7 +186,7 @@ class MultiPayoff():
             payoff. The default is False.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
 
         Returns
         -------
@@ -338,7 +338,7 @@ class MultiPayoff():
             payoff. The default is False.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
 
         Returns
         -------
@@ -481,7 +481,7 @@ class MultiPayoff():
             payoff. The default is False.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
 
         Returns
         -------
@@ -616,7 +616,7 @@ class MultiPayoff():
             payoff. The default is False.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
 
         Returns
         -------

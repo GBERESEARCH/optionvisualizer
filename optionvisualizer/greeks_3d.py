@@ -344,7 +344,7 @@ class Greeks_3D():
         """
 
         # Update chart parameters
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_3d_params'])
 
         # create figure with specified size tuple
@@ -363,9 +363,9 @@ class Greeks_3D():
 
         # Tint the axis panes, RGB values from 0-1 and alpha denoting
         # color intensity
-        ax.w_xaxis.set_pane_color((0.9, 0.8, 0.9, 0.8))
-        ax.w_yaxis.set_pane_color((0.8, 0.8, 0.9, 0.8))
-        ax.w_zaxis.set_pane_color((0.9, 0.9, 0.8, 0.8))
+        ax.xaxis.set_pane_color((0.9, 0.8, 0.9, 0.8))
+        ax.yaxis.set_pane_color((0.8, 0.8, 0.9, 0.8))
+        ax.zaxis.set_pane_color((0.9, 0.9, 0.8, 0.8))
 
         # Set z-axis to left hand side
         ax.zaxis._axinfo['juggled'] = (1, 2, 0) # pylint: disable=protected-access
@@ -373,25 +373,29 @@ class Greeks_3D():
         # Set fontsize of axis ticks
         ax.tick_params(axis='both',
                        which='major',
-                       labelsize=ax_font_scale,
-                       pad=10)
+                       labelsize=ax_font_scale*0.8,
+                       pad=2)
 
         # Label axes
         ax.set_xlabel(graph_params['axis_label1'],
-                      fontsize=ax_font_scale,
-                      labelpad=ax_font_scale*1.5)
+                      fontsize=ax_font_scale*0.9,
+                      labelpad=ax_font_scale*0.6)
         ax.set_ylabel(graph_params['axis_label2'],
-                      fontsize=ax_font_scale,
-                      labelpad=ax_font_scale*1.5)
+                      fontsize=ax_font_scale*0.9,
+                      labelpad=ax_font_scale*0.6)
         ax.set_zlabel(graph_params['axis_label3'],
-                      fontsize=ax_font_scale,
-                      labelpad=ax_font_scale*1.5)
+                      fontsize=ax_font_scale*0.9,
+                      labelpad=ax_font_scale*0.2,
+                      rotation='vertical')
 
         # Auto scale the z-axis
         ax.set_zlim(auto=True)
 
-        # Set x-axis to decrease from left to right
-        ax.invert_xaxis()
+        # Set x-axis to decrease from left to right 
+        #ax.invert_xaxis()
+
+        # Set y-axis to increase from left to right 
+        #ax.invert_yaxis()
 
         # apply graph_scale so that if volatility is the x-axis it
         # will be * 100

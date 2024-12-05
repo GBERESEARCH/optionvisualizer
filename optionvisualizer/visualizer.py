@@ -343,7 +343,7 @@ class Visualizer():
             default is 'straddle'.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
         num_sens : Bool
             Whether to calculate numerical or analytical sensitivity.
             The default is False.
@@ -497,7 +497,7 @@ class Visualizer():
             Whether to plot 2D or 3D graph. The default is 2D.
         mpl_style : Str
             Matplotlib style template for 2D risk charts and payoffs.
-            The default is 'seaborn-darkgrid'.
+            The default is 'seaborn-v0_8-darkgrid'.
         num_sens : Bool
             Whether to calculate numerical or analytical sensitivity.
             The default is False.
@@ -594,7 +594,7 @@ class Visualizer():
                 The payoff to be displayed.
             mpl_style : Str
                 Matplotlib style template for 2D risk charts and payoffs.
-                The default is 'seaborn-darkgrid'.
+                The default is 'seaborn-v0_8-darkgrid'.
 
         Returns
         -------
@@ -710,7 +710,7 @@ class Visualizer():
                 Figure size for matplotlib chart. The default is (6, 4).
             mpl_style : Str
                 Matplotlib style template for 2D risk charts and payoffs.
-                The default is 'seaborn-darkgrid'.
+                The default is 'seaborn-v0_8-darkgrid'.
             num_sens : Bool
                 Whether to calculate numerical or analytical sensitivity.
                 The default is False.
