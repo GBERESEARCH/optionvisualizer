@@ -40,29 +40,6 @@ $ (.venv) python -m pip install optionvisualizer
 
 &nbsp;
 
-Or to install in new environment using anaconda:
-```
-$ conda create --name optvis
-```
-Activate new environment
-```
-$ activate optvis
-```
-Install Python
-```
-(optvis) $ conda install python==3.13
-```
-Install Spyder
-```
-(optvis) $ conda install spyder
-```
-Install package
-```
-(optvis) $ pip install optionvisualizer
-```
-
-&nbsp;
-
 ### Setup
 Import visualizer and initialise an Option object
 
