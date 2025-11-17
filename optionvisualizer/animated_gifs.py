@@ -93,8 +93,7 @@ class Gif():
             params['T3'] = step
 
             # call the greeks_graphs_2d function to create graph
-            fig, ax = Greeks.greeks_graphs_2D(
-                params=params)
+            fig, ax = Greeks.greeks_graphs_2D(params=params) # type: ignore
 
             # save the image as a file
             plt.savefig('{}/{}/img{}.png'.format(
@@ -192,7 +191,7 @@ class Gif():
         params = cls._gif_defaults_setup(params=params)
 
         fig, ax, params['titlename'], \
-            params['title_font_scale'] = Greeks.greeks_graphs_3D(
+            params['title_font_scale'] = Greeks.greeks_graphs_3D( # type: ignore
                 params=params)
 
         # set the range for horizontal rotation
@@ -227,9 +226,9 @@ class Gif():
                       params['gif_frame_update'])):
 
             # pan down, rotate around, and zoom out
-            ax.azim = float(azimuth)
-            ax.elev = params['elev_range'][idx]
-            ax.dist = params['dist_range'][idx]
+            ax.azim = float(azimuth) # type: ignore
+            ax.elev = params['elev_range'][idx] # type: ignore
+            ax.dist = params['dist_range'][idx] # type: ignore
 
             # set the figure title
             st = fig.suptitle(params['titlename'],
