@@ -40,7 +40,7 @@ class Visualizer():
         self.params = params
 
 
-    def option_data(self, option_value: str, **kwargs) -> float | None:
+    def option_data(self, option_value: str, **kwargs) -> float:
         """
         Calculate Option prices or Greeks
 
@@ -93,11 +93,13 @@ class Visualizer():
             return getattr(Option, function)(
                 opt_params=opt_params, params=self.params)
 
-        except KeyError:
-            return print("Please enter a valid function from 'price', "\
-                   "'delta', 'gamma', 'vega', 'theta', 'rho', 'vomma', "\
-                       "'vanna', 'zomma', 'speed', 'color', 'ultima', "\
-                           "'vega bleed', 'charm'")
+        except KeyError as exc:
+            raise ValueError(
+                "Please enter a valid function from 'price', "
+                "'delta', 'gamma', 'vega', 'theta', 'rho', 'vomma', "
+                "'vanna', 'zomma', 'speed', 'color', 'ultima', "
+                "'vega bleed', 'charm'"
+            ) from exc
 
 
     def barrier(self, **kwargs) -> float:
@@ -376,21 +378,26 @@ class Visualizer():
             # Run 2D greeks method
             if self.params['graphtype'] == '2D':
                 if self.params['graph_figure']:
-                    fig, ax = Greeks.greeks_graphs_2D(params=self.params)
+                    result = Greeks.greeks_graphs_2D(params=self.params)
+                    assert isinstance(result, tuple), (
+                        "Expected tuple when gif or graph_figure is True"
+                        )
+                    fig, ax = result
                     return fig, ax
-                
+
                 if self.params['data_output']:
                     data_dict = Greeks.greeks_graphs_2D(params=self.params)
                     return data_dict
-                
+
                 Greeks.greeks_graphs_2D(params=self.params)
                 return None
 
             # Run 3D greeks method
             if self.params['data_output']:
                 data_dict = Greeks.greeks_graphs_3D(params=self.params)
+                assert isinstance(data_dict, dict), "Expected dict when data_output is True"
                 return data_dict
-            
+
             Greeks.greeks_graphs_3D(params=self.params)
             return None
 
@@ -405,11 +412,12 @@ class Visualizer():
 
             if self.params['data_output']:
                 data_dict = self.payoffs(
-                    payoff_type=self.params['payoff_type'], 
+                    payoff_type=self.params['payoff_type'],
                     params=self.params
                     )
+                assert isinstance(data_dict, dict), "Expected dict when data_output is True"
                 return data_dict
-            
+
             self.payoffs(
                 payoff_type=self.params['payoff_type'], params=self.params)
 
@@ -519,13 +527,15 @@ class Visualizer():
         # Run 2D greeks method
         if self.params['graphtype'] == '2D':
             if self.params['graph_figure']:
-                fig, ax = Greeks.greeks_graphs_2D(params=self.params)
+                result = Greeks.greeks_graphs_2D(params=self.params)
+                assert isinstance(result, tuple), "Expected tuple when gif or graph_figure is True"
+                fig, ax = result
                 return fig, ax
-            
+
             if self.params['data_output']:
                 data_dict = Greeks.greeks_graphs_2D(params=self.params)
                 return data_dict
-            
+
             Greeks.greeks_graphs_2D(params=self.params)
             return None
 
@@ -533,14 +543,14 @@ class Visualizer():
         elif self.params['graphtype'] == '3D':
             if self.params['data_output']:
                 data_dict = Greeks.greeks_graphs_3D(params=self.params)
+                assert isinstance(data_dict, dict), "Expected dict when data_output is True"
                 return data_dict
-            
+
             Greeks.greeks_graphs_3D(params=self.params)
             return None
 
         else:
-            print("Please select a '2D' or '3D' graphtype")
-            return None
+            raise ValueError("Please select a '2D' or '3D' graphtype")
 
 
     def payoffs(self, payoff_type: str, **kwargs) -> go.Figure | dict | None:
@@ -630,7 +640,7 @@ class Visualizer():
                 ):
                 result = getattr(SimplePayoff, function)(params=self.params)
                 return result
-            
+
             if self.params['data_output']:
                 data_dict = getattr(SimplePayoff, function)(params=self.params)
                 return data_dict
@@ -649,7 +659,7 @@ class Visualizer():
                 ):
                 result = getattr(MultiPayoff, function)(params=self.params)
                 return result
-            
+
             if self.params['data_output']:
                 data_dict = getattr(MultiPayoff, function)(params=self.params)
                 return data_dict
@@ -658,7 +668,7 @@ class Visualizer():
             return None
 
         # Otherwise prompt for a valid payoff
-        return print("Please enter a valid payoff from 'call', 'put', "\
+        raise ValueError("Please enter a valid payoff from 'call', 'put', "\
                "'stock', 'forward', 'collar', 'spread', 'backspread', "\
                    "'ratio vertical spread', 'straddle', 'strangle', "\
                        "'butterfly', 'christmas tree', 'condor', "\
@@ -792,4 +802,4 @@ class Visualizer():
             return Gif.animated_3D_gif(params=self.params)
 
         # Otherwise prompt for a valid gif type
-        return print("Please select gif_type as '2D' or '3D'")
+        raise ValueError("Please select gif_type as '2D' or '3D'")
