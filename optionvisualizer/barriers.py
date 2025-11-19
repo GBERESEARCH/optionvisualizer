@@ -62,7 +62,7 @@ class Barrier():
 
 
         # Up and In Call
-        if (params['barrier_direction'] == 'up'
+        elif (params['barrier_direction'] == 'up'
                 and params['knock'] == 'in'
                 and params['option'] == 'call'):
 
@@ -70,7 +70,7 @@ class Barrier():
 
 
         # Down and In Put
-        if (params['barrier_direction'] == 'down'
+        elif (params['barrier_direction'] == 'down'
                 and params['knock'] == 'in'
                 and params['option'] == 'put'):
 
@@ -78,7 +78,7 @@ class Barrier():
 
 
         # Up and In Put
-        if (params['barrier_direction'] == 'up'
+        elif (params['barrier_direction'] == 'up'
             and params['knock'] == 'in'
             and params['option'] == 'put'):
 
@@ -86,7 +86,7 @@ class Barrier():
 
 
         # Down and Out Call
-        if (params['barrier_direction'] == 'down'
+        elif (params['barrier_direction'] == 'down'
             and params['knock'] == 'out'
             and params['option'] == 'call'):
 
@@ -94,7 +94,7 @@ class Barrier():
 
 
         # Up and Out Call
-        if (params['barrier_direction'] == 'up'
+        elif (params['barrier_direction'] == 'up'
             and params['knock'] == 'out'
             and params['option'] == 'call'):
 
@@ -102,18 +102,25 @@ class Barrier():
 
 
         # Down and Out Put
-        if (params['barrier_direction'] == 'down'
+        elif (params['barrier_direction'] == 'down'
             and params['knock'] == 'out'
             and params['option'] == 'put'):
 
             opt_barrier_payoff = cls._do_put(params)
 
         # Up and Out Put
-        if (params['barrier_direction'] == 'up'
+        elif (params['barrier_direction'] == 'up'
             and params['knock'] == 'out'
             and params['option'] == 'put'):
 
             opt_barrier_payoff = cls._uo_put(params)
+
+        else:
+            raise ValueError(
+                f"Invalid barrier parameters: "
+                f"direction={params['barrier_direction']}, "
+                f"knock={params['knock']}, option={params['option']}"
+            )
 
         return opt_barrier_payoff, params
 
