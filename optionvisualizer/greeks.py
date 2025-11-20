@@ -79,14 +79,18 @@ class Greeks():
         """
 
         if params['gif'] or params['graph_figure']:
-            fig, ax = Greeks_2D.vis_greeks_2D(params=params)
+            result = Greeks_2D.vis_greeks_2D(params=params)
+            assert isinstance(result, tuple), "Expected tuple when gif or graph_figure is True"
+            fig, ax = result
             return fig, ax
 
         if params['data_output']:
             data_dict = Greeks_2D.vis_greeks_2D(params=params)
+            assert isinstance(data_dict, dict), "Expected dict when data_output is True"
             return data_dict
 
-        return Greeks_2D.vis_greeks_2D(params=params)
+        Greeks_2D.vis_greeks_2D(params=params)
+        return None
 
 
     @staticmethod
@@ -192,14 +196,19 @@ class Greeks():
 
         # Run the 3D visualisation method
         if params['gif']:
-            fig, ax, titlename, title_font_scale = Greeks_3D.vis_greeks_3D(
+            result = Greeks_3D.vis_greeks_3D(
                 graph_params=graph_params, params=params)
+            assert isinstance(result, tuple) and len(result) == 4, \
+                "Expected 4-tuple when gif is True"
+            fig, ax, titlename, title_font_scale = result
             return fig, ax, titlename, title_font_scale
 
         if params['data_output']:
             data_dict = Greeks_3D.vis_greeks_3D(
                 graph_params=graph_params, params=params)
+            assert isinstance(data_dict, dict), \
+                "Expected dict when data_output is True"
             return data_dict
 
-        return Greeks_3D.vis_greeks_3D(
-            graph_params=graph_params, params=params)
+        Greeks_3D.vis_greeks_3D(graph_params=graph_params, params=params)
+        return None
