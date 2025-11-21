@@ -85,6 +85,8 @@ class Greeks_2D():
         if x_name in params['x_name_dict'].keys():
             xarray = (params[str(params['x_name_dict'][x_name])] *
                       params['x_scale_dict'][x_name])
+        else:
+            raise ValueError(f"Invalid x_plot value: {x_name}")
 
         vis_params = {
             'x_plot':params['x_plot'],
@@ -110,7 +112,7 @@ class Greeks_2D():
             'graph_figure':params['graph_figure']
             }
 
-        
+
 
         # Plot 3 option charts
         if params['y_plot'] in params['y_name_dict'].keys():
@@ -126,8 +128,10 @@ class Greeks_2D():
                     vis_params=vis_params, params=params)
 
             if params['gif'] or params['graph_figure']:
-                fig, ax = cls._vis_greeks_mpl(
+                result = cls._vis_greeks_mpl(
                     vis_params=vis_params, params=params)
+                assert result is not None, "Expected fig and ax from _vis_greeks_mpl"
+                fig, ax = result
                 return fig, ax
 
             return cls._vis_greeks_mpl(
@@ -148,13 +152,18 @@ class Greeks_2D():
 
             vis_params.update({'gif':False})
             if params['graph_figure']:
-                fig, ax = cls._vis_greeks_mpl(
+                result = cls._vis_greeks_mpl(
                     vis_params=vis_params, params=params)
+                assert result is not None, "Expected fig and ax from _vis_greeks_mpl"
+                fig, ax = result
                 return fig, ax
             return cls._vis_greeks_mpl(
                 vis_params=vis_params, params=params)
 
-        return print("Please select a valid pair")
+        raise ValueError(
+            f"Invalid y_plot value: '{params['y_plot']}'. "
+            "Please select a valid pair"
+        )
 
 
     @classmethod
@@ -410,7 +419,8 @@ class Greeks_2D():
             return fig, ax
 
         # Display the chart
-        return plt.show()
+        plt.show()
+        return None
 
 
     @classmethod
