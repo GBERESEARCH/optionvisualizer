@@ -97,7 +97,7 @@ class Greeks_3D():
     def vis_greeks_3D(
         cls,
         graph_params: dict,
-        params: dict) -> None | dict | tuple[mplfig.Figure, axes.Axes, str, int]:
+        params: dict) -> None | dict | tuple[mplfig.Figure, axes.Axes, str, int] | go.Figure:
         """
         Display 3D greeks graph.
 
@@ -127,18 +127,22 @@ class Greeks_3D():
                     'params': params,
                     'graph_params': graph_params
                 }
-            
+
             return cls._plotly_3D(graph_params=graph_params, params=params)
 
         # Otherwise create a matplotlib graph
         graph_params = cls._mpl_axis_format(graph_params=graph_params)
 
         if params['gif']:
-            fig, ax, titlename, title_font_scale = cls._mpl_3D(
+            result = cls._mpl_3D(
                 graph_params=graph_params, params=params)
+            assert isinstance(result, tuple) and len(result) == 4, \
+                "Expected 4-tuple when gif is True"
+            fig, ax, titlename, title_font_scale = result
             return fig, ax, titlename, title_font_scale
 
-        return cls._mpl_3D(graph_params=graph_params, params=params)
+        cls._mpl_3D(graph_params=graph_params, params=params)
+        return None
 
 
     @staticmethod
@@ -363,12 +367,12 @@ class Greeks_3D():
 
         # Tint the axis panes, RGB values from 0-1 and alpha denoting
         # color intensity
-        ax.xaxis.set_pane_color((0.9, 0.8, 0.9, 0.8))
-        ax.yaxis.set_pane_color((0.8, 0.8, 0.9, 0.8))
-        ax.zaxis.set_pane_color((0.9, 0.9, 0.8, 0.8))
+        ax.xaxis.set_pane_color((0.9, 0.8, 0.9, 0.8)) # type: ignore
+        ax.yaxis.set_pane_color((0.8, 0.8, 0.9, 0.8)) # type: ignore
+        ax.zaxis.set_pane_color((0.9, 0.9, 0.8, 0.8)) # type: ignore
 
         # Set z-axis to left hand side
-        ax.zaxis._axinfo['juggled'] = (1, 2, 0) # pylint: disable=protected-access
+        ax.zaxis._axinfo['juggled'] = (1, 2, 0) # pylint: disable=protected-access # type: ignore
 
         # Set fontsize of axis ticks
         ax.tick_params(axis='both',
@@ -383,23 +387,23 @@ class Greeks_3D():
         ax.set_ylabel(graph_params['axis_label2'],
                       fontsize=ax_font_scale*0.9,
                       labelpad=ax_font_scale*0.6)
-        ax.set_zlabel(graph_params['axis_label3'],
+        ax.set_zlabel(graph_params['axis_label3'], # type: ignore
                       fontsize=ax_font_scale*0.9,
                       labelpad=ax_font_scale*0.2,
                       rotation='vertical')
 
         # Auto scale the z-axis
-        ax.set_zlim(auto=True)
+        ax.set_zlim(auto=True) # type: ignore
 
-        # Set x-axis to decrease from left to right 
+        # Set x-axis to decrease from left to right
         #ax.invert_xaxis()
 
-        # Set y-axis to increase from left to right 
+        # Set y-axis to increase from left to right
         #ax.invert_yaxis()
 
         # apply graph_scale so that if volatility is the x-axis it
         # will be * 100
-        ax.plot_surface(graph_params['x'],
+        ax.plot_surface(graph_params['x'], # type: ignore
                         graph_params['y'],
                         graph_params['z'],
                         rstride=2,
@@ -428,4 +432,5 @@ class Greeks_3D():
             return fig, ax, graph_params['titlename'], title_font_scale
 
         # Display graph
-        return plt.show()
+        plt.show()
+        return None
