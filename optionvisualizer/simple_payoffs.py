@@ -77,13 +77,16 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = -option_legs['C1'] + option_legs['C1_0']
             title = 'Short Call'
             if params['value']:
                 payoff2 = -option_legs['C1_G'] + option_legs['C1_0']
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -107,7 +110,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -179,13 +182,16 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = -option_legs['C1'] + option_legs['C1_0']
             title = 'Short Put'
             if params['value']:
                 payoff2 = -option_legs['C1_G'] + option_legs['C1_0']
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -209,7 +215,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -250,9 +256,12 @@ class SimplePayoff():
             payoff = SA - params['S']
             title = 'Long Stock'
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = params['S'] - SA
             title = 'Short Stock'
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -276,7 +285,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -353,11 +362,14 @@ class SimplePayoff():
                       * pv)
             title = 'Long Forward'
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = ((-option_legs['C1'] + option_legs['C2']
                        + option_legs['C1_0'] - option_legs['C2_0'])
                       * pv)
             title = 'Short Forward'
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -381,7 +393,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -464,7 +476,7 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (-option_legs['SA'] + params['S']
                       - option_legs['C1'] + option_legs['C2']
                       + option_legs['C1_0'] - option_legs['C2_0'])
@@ -476,6 +488,9 @@ class SimplePayoff():
                            + option_legs['C1_0'] - option_legs['C2_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -499,7 +514,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -581,7 +596,7 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (-option_legs['C1'] + option_legs['C2']
                       + option_legs['C1_0'] - option_legs['C2_0'])
             if params['value']:
@@ -590,15 +605,24 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
+
         # Create title based on option type and direction
         if params['option'] == 'call' and params['direction'] == 'long':
             title = 'Bull Call Spread'
-        if params['option'] == 'put' and params['direction'] == 'long':
+        elif params['option'] == 'put' and params['direction'] == 'long':
             title = 'Bull Put Spread'
-        if params['option'] == 'call' and params['direction'] == 'short':
+        elif params['option'] == 'call' and params['direction'] == 'short':
             title = 'Bear Call Spread'
-        if params['option'] == 'put' and params['direction'] == 'short':
+        elif params['option'] == 'put' and params['direction'] == 'short':
             title = 'Bear Put Spread'
+
+        else:
+            raise ValueError(
+                f"Choose direction long or short: {params['direction']} "
+                f"and option type put or call: {params['option']}"
+            )
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -622,7 +646,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -709,7 +733,7 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['option'] == 'put':
+        elif params['option'] == 'put':
             payoff = (params['ratio'] * option_legs['C1']
                       - option_legs['C2']
                       - params['ratio'] * option_legs['C1_0']
@@ -722,6 +746,9 @@ class SimplePayoff():
                            + option_legs['C2_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose option type put or call: {params['option']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -745,7 +772,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -834,7 +861,7 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['option'] == 'put':
+        elif params['option'] == 'put':
             title = 'Put Ratio Vertical Spread'
             payoff = (-params['ratio'] * option_legs['C1']
                       + option_legs['C2']
@@ -847,6 +874,9 @@ class SimplePayoff():
                            - option_legs['C2_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose option type put or call: {params['option']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -870,7 +900,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -948,7 +978,7 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (-option_legs['C1'] - option_legs['C2']
                       + option_legs['C1_0'] + option_legs['C2_0'])
             title = 'Short Straddle'
@@ -957,6 +987,9 @@ class SimplePayoff():
                            + option_legs['C1_0'] + option_legs['C2_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -980,7 +1013,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -1060,7 +1093,7 @@ class SimplePayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (-option_legs['C1'] - option_legs['C2']
                       + option_legs['C1_0'] + option_legs['C2_0'])
             title = 'Short Strangle'
@@ -1069,6 +1102,9 @@ class SimplePayoff():
                            + option_legs['C1_0'] + option_legs['C2_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -1092,7 +1128,7 @@ class SimplePayoff():
 
         if params['data_output']:
             data_dict = MultiPayoff.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict

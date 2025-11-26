@@ -98,7 +98,7 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (-option_legs['C1'] + 2 * option_legs['C2']
                       - option_legs['C3'] + option_legs['C1_0']
                       - 2 * option_legs['C2_0'] + option_legs['C3_0'])
@@ -109,15 +109,23 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
+
         # Create title based on option type and direction
         if params['option'] == 'call' and params['direction'] == 'long':
             title = 'Long Butterfly with Calls'
-        if params['option'] == 'put' and params['direction'] == 'long':
+        elif params['option'] == 'put' and params['direction'] == 'long':
             title = 'Long Butterfly with Puts'
-        if params['option'] == 'call' and params['direction'] == 'short':
+        elif params['option'] == 'call' and params['direction'] == 'short':
             title = 'Short Butterfly with Calls'
-        if params['option'] == 'put' and params['direction'] == 'short':
+        elif params['option'] == 'put' and params['direction'] == 'short':
             title = 'Short Butterfly with Puts'
+        else:
+            raise ValueError(
+                f"Choose direction long or short: {params['direction']} "
+                f"and option type put or call: {params['option']}"
+            )
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -141,7 +149,7 @@ class MultiPayoff():
 
         if params['data_output']:
             data_dict = cls.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -231,7 +239,7 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
-        if params['option'] == 'put' and params['direction'] == 'long':
+        elif params['option'] == 'put' and params['direction'] == 'long':
             payoff = (-option_legs['C1'] + option_legs['C1_0']
                       - option_legs['C2'] + option_legs['C2_0']
                       + option_legs['C3'] - option_legs['C3_0'])
@@ -243,7 +251,7 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
-        if params['option'] == 'call' and params['direction'] == 'short':
+        elif params['option'] == 'call' and params['direction'] == 'short':
             payoff = (-option_legs['C1'] + option_legs['C1_0']
                       + option_legs['C2'] - option_legs['C2_0']
                       + option_legs['C3'] - option_legs['C3_0'])
@@ -255,7 +263,7 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
-        if params['option'] == 'put' and params['direction'] == 'short':
+        elif params['option'] == 'put' and params['direction'] == 'short':
             payoff = (option_legs['C1'] - option_legs['C1_0']
                       + option_legs['C2'] - option_legs['C2_0']
                       - option_legs['C3'] + option_legs['C3_0'])
@@ -266,6 +274,12 @@ class MultiPayoff():
                            - option_legs['C3_G'] + option_legs['C3_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(
+                f"Choose direction long or short: {params['direction']} "
+                f"and option type put or call: {params['option']}"
+            )
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -289,7 +303,7 @@ class MultiPayoff():
 
         if params['data_output']:
             data_dict = cls.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -387,7 +401,7 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (-option_legs['C1'] + option_legs['C1_0']
                       + option_legs['C2'] - option_legs['C2_0']
                       + option_legs['C3'] - option_legs['C3_0']
@@ -400,15 +414,23 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
+
         # Create title based on option type and direction
         if params['option'] == 'call' and params['direction'] == 'long':
             title = 'Long Condor with Calls'
-        if params['option'] == 'put' and params['direction'] == 'long':
+        elif params['option'] == 'put' and params['direction'] == 'long':
             title = 'Long Condor with Puts'
-        if params['option'] == 'call' and params['direction'] == 'short':
+        elif params['option'] == 'call' and params['direction'] == 'short':
             title = 'Short Condor with Calls'
-        if params['option'] == 'put' and params['direction'] == 'short':
+        elif params['option'] == 'put' and params['direction'] == 'short':
             title = 'Short Condor with Puts'
+        else:
+            raise ValueError(
+                f"Choose direction long or short: {params['direction']} "
+                f"and option type put or call: {params['option']}"
+            )
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -432,7 +454,7 @@ class MultiPayoff():
 
         if params['data_output']:
             data_dict = cls.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -531,7 +553,7 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             payoff = (option_legs['C1'] - option_legs['C1_0']
                       - option_legs['C2'] + option_legs['C2_0']
                       - option_legs['C3'] + option_legs['C3_0']
@@ -544,6 +566,9 @@ class MultiPayoff():
                            + option_legs['C4_G'] - option_legs['C4_0'])
             else:
                 payoff2 = None
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -567,7 +592,7 @@ class MultiPayoff():
 
         if params['data_output']:
             data_dict = cls.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -678,12 +703,18 @@ class MultiPayoff():
             else:
                 payoff2 = None
 
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
+
         # Create graph title based on direction
         if params['direction'] == 'long':
             title = 'Long Iron Condor'
 
-        if params['direction'] == 'short':
+        elif params['direction'] == 'short':
             title = 'Short Iron Condor'
+
+        else:
+            raise ValueError(f"Choose direction long or short: {params['direction']}")
 
         params['payoff_dict'] = {
             'S':params['S'],
@@ -704,10 +735,10 @@ class MultiPayoff():
             fig = cls.vis_payoff(
             payoff_dict=params['payoff_dict'], params=params)
             return fig
-    
+
         if params['data_output']:
             data_dict = cls.vis_payoff(
-                payoff_dict=params['payoff_dict'], 
+                payoff_dict=params['payoff_dict'],
                 params=params
                 )
             return data_dict
@@ -763,7 +794,7 @@ class MultiPayoff():
                     'params': params,
                     'payoff_dict': payoff_dict
                 }
-            
+
             return cls._vis_payoff_plotly(
                 payoff_dict=payoff_dict, params=params)
 
