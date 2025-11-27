@@ -62,7 +62,7 @@ class Option():
                 - (opt_params['S'] * params['carry'] * params['minusNd1']))
 
         else:
-            print("Please supply an option type, 'put' or 'call'")
+            raise ValueError("Please supply an option type, 'put' or 'call'")
 
         opt_price = np.nan_to_num(opt_price)
 
@@ -109,8 +109,11 @@ class Option():
 
         if opt_params['option'] == 'call':
             opt_delta = params['carry'] * params['Nd1']
-        if opt_params['option'] == 'put':
+        elif opt_params['option'] == 'put':
             opt_delta = params['carry'] * (params['Nd1'] - 1)
+
+        else:
+            raise ValueError(f"Choose option type put or call: {opt_params['option']}")
 
         return opt_delta
 
@@ -169,7 +172,7 @@ class Option():
                 * params['Nd2'])
                 / 100)
 
-        if opt_params['option'] == 'put':
+        elif opt_params['option'] == 'put':
             opt_theta = (
                 ((-opt_params['S']
                   * params['carry']
@@ -184,6 +187,9 @@ class Option():
                 * np.exp(-opt_params['r'] * opt_params['T'])
                 * params['minusNd2'])
                 / 100)
+
+        else:
+            raise ValueError(f"Choose option type put or call: {opt_params['option']}")
 
         return opt_theta
 
@@ -320,12 +326,15 @@ class Option():
                 (opt_params['T'] * opt_params['K']
                  * np.exp(-opt_params['r'] * opt_params['T']) * params['Nd2'])
                 / 10000)
-        if opt_params['option'] == 'put':
+        elif opt_params['option'] == 'put':
             opt_rho = (
                 (-opt_params['T'] * opt_params['K']
                  * np.exp(-opt_params['r'] * opt_params['T'])
                  * params['minusNd2'])
                 / 10000)
+
+        else:
+            raise ValueError(f"Choose option type put or call: {opt_params['option']}")
 
         return opt_rho
 
@@ -471,7 +480,7 @@ class Option():
                     - (params['d2'] / (2 * opt_params['T']))))
                     + ((params['b'] - opt_params['r']) * params['Nd1'])))
                 / 100)
-        if opt_params['option'] == 'put':
+        elif opt_params['option'] == 'put':
             opt_charm = (
                 (-params['carry'] * (
                     (params['nd1'] * (
@@ -480,6 +489,9 @@ class Option():
                         - (params['d2'] / (2 * opt_params['T']))))
                     - ((params['b'] - opt_params['r']) * params['minusNd1'])))
                 / 100)
+
+        else:
+            raise ValueError(f"Choose option type put or call: {opt_params['option']}")
 
         return opt_charm
 
