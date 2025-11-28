@@ -129,7 +129,7 @@ class Sens():
                 return getattr(Option, value)(
                     opt_params=opt_params, params=params)
 
-        return print("Please enter a valid Greek")
+        raise ValueError("Please enter a valid Greek")
 
 
     @classmethod
@@ -186,7 +186,7 @@ class Sens():
                 return getattr(cls, '_num_'+value)(
                     opt_params=opt_params, params=params)
 
-        return print("Please enter a valid Greek")
+        raise ValueError("Please enter a valid Greek")
 
 
     @classmethod
@@ -546,8 +546,10 @@ class Sens():
                 opt_params=opt_params, params=params)
             return output
 
-        except KeyError:
-            return print("Please enter a valid function from 'price', "\
-                   "'delta', 'gamma', 'vega', 'theta', 'rho', 'vomma', "\
-                       "'vanna', 'zomma', 'speed', 'color', 'ultima', "\
-                           "'vega bleed', 'charm'")
+        except KeyError as exc:
+            raise ValueError(
+                "Please enter a valid function from 'price', "
+                "'delta', 'gamma', 'vega', 'theta', 'rho', 'vomma', "
+                "'vanna', 'zomma', 'speed', 'color', 'ultima', "
+                "'vega bleed', 'charm'"
+                ) from exc
